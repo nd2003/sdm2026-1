@@ -1323,12 +1323,13 @@ body {
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
-/* ================= ROOM 2: THE GOLDEN ALCHEMIST'S PARLOR ================= */
+/* ================= ROOM 2: SUB-ZERO CRYO-LAB ================= */
 .tle-r2-backdrop {
   position: absolute;
   inset: 0 0 24% 0;
-  background: radial-gradient(circle at 50% 35%, #581c3c 0%, #2c0b1e 60%, #14050e 100%);
-  border-bottom: 5px solid #d97706;
+  background: radial-gradient(circle at 50% 35%, #06283d 0%, #031525 58%, #020b14 100%);
+  border-bottom: 5px solid #06b6d4;
+  box-shadow: inset 0 -20px 50px rgba(6, 182, 212, 0.28);
 }
 
 .tle-r2-rose-arch {
@@ -1338,13 +1339,13 @@ body {
   transform: translateX(-50%);
   width: 240px;
   height: 110px;
-  opacity: 0.85;
+  opacity: 0.92;
 }
 
 .tle-rose-svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.35));
+  filter: drop-shadow(0 0 18px rgba(6, 182, 212, 0.65));
 }
 
 .tle-r2-pillars {
@@ -1358,10 +1359,10 @@ body {
 .tle-r2-pillar {
   width: 28px;
   height: 100%;
-  background: linear-gradient(90deg, #451a03, #78350f, #451a03);
-  border-left: 2px solid #fbbf24;
-  border-right: 2px solid #fbbf24;
-  opacity: 0.55;
+  background: linear-gradient(90deg, #082f49, #0e7490, #082f49);
+  border-left: 2px solid #22d3ee;
+  border-right: 2px solid #eab308;
+  opacity: 0.7;
 }
 
 .tle-r2-marble-floor {
@@ -1369,12 +1370,12 @@ body {
   inset: 76% 0 0 0;
   background: repeating-linear-gradient(
     90deg,
-    #1f122b 0px,
-    #1f122b 64px,
-    #2e1a40 64px,
-    #2e1a40 128px
+    #020b14 0px,
+    #020b14 64px,
+    #061e31 64px,
+    #061e31 128px
   );
-  border-top: 3px solid #fbbf24;
+  border-top: 3px solid #06b6d4;
 }
 
 .tle-gram-svg,
@@ -1438,8 +1439,8 @@ body {
   left: 5%;
   width: 128px;
   height: 170px;
-  background: rgba(45, 16, 26, 0.85);
-  border: 2px solid #f59e0b;
+  background: rgba(4, 29, 49, 0.9);
+  border: 2px solid #06b6d4;
   border-radius: 14px;
   display: flex;
   flex-direction: column;
@@ -1447,7 +1448,7 @@ body {
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7), 0 0 18px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 22px rgba(6, 182, 212, 0.4);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
   z-index: 6;
 }
@@ -1457,7 +1458,7 @@ body {
 .tle-r2-bookshelf:hover,
 .tle-r2-vault-btn:hover {
   transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 12px 30px rgba(251, 191, 36, 0.45);
+  box-shadow: 0 12px 30px rgba(6, 182, 212, 0.65);
 }
 
 .tle-gram-horn {
@@ -1500,10 +1501,10 @@ body {
 .tle-table-top {
   width: 100%;
   height: 76px;
-  background: linear-gradient(135deg, #78350f 0%, #451a03 100%);
-  border: 2.5px solid #fbbf24;
+  background: linear-gradient(135deg, #083344 0%, #041e2e 100%);
+  border: 2.5px solid #06b6d4;
   border-radius: 18px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85), 0 0 20px rgba(251, 191, 36, 0.35);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85), 0 0 22px rgba(6, 182, 212, 0.45);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1589,15 +1590,15 @@ body {
 .tle-r2-fireplace {
   width: 100%;
   height: 185px;
-  background: #451a03;
-  border: 3px solid #92400e;
+  background: #041d2e;
+  border: 3px solid #06b6d4;
   border-radius: 8px 8px 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   padding: 8px 14px 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), inset 0 0 24px rgba(6, 182, 212, 0.3);
 }
 
 .tle-mantle-shelf {
@@ -1605,14 +1606,14 @@ body {
   display: flex;
   justify-content: space-around;
   font-size: 1.25rem;
-  border-bottom: 3px solid #b45309;
+  border-bottom: 3px solid #eab308;
   padding-bottom: 4px;
 }
 
 .tle-fire-hearth {
   width: 82%;
   height: 115px;
-  background: radial-gradient(circle at 50% 85%, #ea580c 0%, #7c2d12 50%, #090504 100%);
+  background: radial-gradient(circle at 50% 85%, #06b6d4 0%, #0284c7 50%, #020b14 100%);
   border-radius: 50% 50% 0 0;
   display: flex;
   align-items: flex-end;
@@ -1622,18 +1623,18 @@ body {
 
 .tle-fire-flames {
   font-size: 2.6rem;
-  filter: drop-shadow(0 0 16px #f97316);
+  filter: hue-rotate(175deg) drop-shadow(0 0 18px #22d3ee);
 }
 
-/* Right-Center Secret Bookshelf */
+/* Right-Center Cryo Manifold / Bookshelf */
 .tle-r2-bookshelf {
   position: absolute;
   top: 18%;
   left: 63%;
   width: 155px;
   height: 58%;
-  background: #3b190b;
-  border: 3px solid #b45309;
+  background: #041f32;
+  border: 3px solid #06b6d4;
   border-radius: 6px;
   padding: 14px 12px;
   display: flex;
@@ -1641,7 +1642,7 @@ body {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85), 0 0 20px rgba(6, 182, 212, 0.35);
   z-index: 5;
   transition: transform 0.18s ease;
 }
@@ -1683,36 +1684,36 @@ body {
 }
 
 .tle-r2-door-btn {
-  background: linear-gradient(180deg, #4c0519 0%, #2a0410 100%);
-  border-color: #fbbf24;
+  background: linear-gradient(180deg, #083344 0%, #02131f 100%);
+  border-color: #06b6d4;
 }
 
-/* ================= ROOM 3: CHRONO-CORE CYBER LAB ================= */
+/* ================= ROOM 3: QUANTUM CORE VOID ================= */
 .tle-r3-wall {
   position: absolute;
   inset: 0 0 24% 0;
-  background: radial-gradient(circle at 50% 42%, #0f2942 0%, #091526 60%, #040911 100%);
-  border-bottom: 4px solid #06b6d4;
+  background: radial-gradient(circle at 50% 42%, #2e074d 0%, #130324 58%, #05020c 100%);
+  border-bottom: 4px solid #a855f7;
 }
 
 .tle-r3-grid-lines {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(168, 85, 247, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(217, 70, 239, 0.14) 1px, transparent 1px);
   background-size: 36px 36px;
 }
 
 .tle-r3-floor {
   position: absolute;
   inset: 76% 0 0 0;
-  background: linear-gradient(180deg, #081220 0%, #03070e 100%);
+  background: linear-gradient(180deg, #120424 0%, #05020c 100%);
 }
 
 .tle-r3-tag {
-  border-color: #22d3ee;
-  color: #a5f3fc;
+  border-color: #d946ef;
+  color: #f5d0fe;
 }
 
 .tle-r3-breaker {
@@ -2622,6 +2623,46 @@ body {
 
 .hidden {
   display: none !important;
+}
+
+/* ================= HIGH-CONTRAST ROOM THEME ENGINE ================= */
+@keyframes warpEffect {
+  0% {
+    box-shadow: inset 0 0 50px rgba(168, 85, 247, 0.5);
+  }
+  50% {
+    box-shadow: inset 0 0 75px rgba(217, 70, 239, 0.75);
+  }
+  100% {
+    box-shadow: inset 0 0 50px rgba(168, 85, 247, 0.5);
+  }
+}
+
+.room-1-office .game-viewport {
+  background: #0d0f12 !important;
+  border: 2px double #d97706; /* Retro Amber */
+}
+
+.room-2-cryolab .game-viewport {
+  background: #020b14 !important;
+  border: 2px solid #06b6d4; /* Neon Ice Blue */
+  box-shadow: inset 0 0 40px rgba(6, 182, 212, 0.4);
+}
+
+.room-2-cryolab .game-viewport::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, transparent 50%, rgba(6, 182, 212, 0.15));
+  pointer-events: none; /* Frost Vignette */
+  z-index: 28;
+}
+
+.room-3-quantum .game-viewport {
+  background: #05020c !important;
+  border: 2.5px dashed #a855f7; /* Violet anomaly */
+  box-shadow: inset 0 0 50px rgba(168, 85, 247, 0.5);
+  animation: warpEffect 10s infinite linear;
 }
 
 /* ================= PROGRESSIVE ROOM HUD, DECAY & TRANSITION EFFECTS ================= */

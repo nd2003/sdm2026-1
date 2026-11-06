@@ -272,7 +272,11 @@ export function renderGameScreen(
   }
 
   container.innerHTML = `
-    <div class="tle-root" id="tle-root" data-room-diff="${state.difficulty}">
+    <div
+      class="tle-root room-1-office"
+      id="tle-root"
+      data-room-diff="${state.difficulty}"
+    >
       <!-- Top Header Bar -->
       <header class="tle-header">
         <div class="tle-header-left">
@@ -328,11 +332,11 @@ export function renderGameScreen(
             </button>
           </div>
 
-          <!-- Room Switcher Pills -->
-          <div class="tle-diff-group" role="group" aria-label="Rooms">
-            <button type="button" class="tle-diff-btn" data-diff="basic">R1</button>
-            <button type="button" class="tle-diff-btn" data-diff="medium">R2</button>
-            <button type="button" class="tle-diff-btn" data-diff="hard">R3</button>
+          <!-- Developer / Testing Room Switcher Toggle in Top HUD Corner -->
+          <div class="tle-diff-group" role="group" aria-label="Developer Room Switcher">
+            <button type="button" class="tle-diff-btn" data-diff="basic">[ROOM 1]</button>
+            <button type="button" class="tle-diff-btn" data-diff="medium">[ROOM 2]</button>
+            <button type="button" class="tle-diff-btn" data-diff="hard">[ROOM 3]</button>
           </div>
         </div>
 
@@ -373,7 +377,7 @@ export function renderGameScreen(
             class="tle-ctrl-btn tle-ctrl-stop"
             id="btn-stop-loop"
           >
-            ⏹ Stop
+            ⏸ Pause/Stop
           </button>
           <button
             type="button"
@@ -391,7 +395,7 @@ export function renderGameScreen(
 
       <!-- Main Escape Room Stage -->
       <main class="tle-stage-wrapper">
-        <div class="tle-room-stage" id="game-viewport">
+        <div class="tle-room-stage game-viewport" id="game-viewport">
           <!-- Blurrable Room Content Container -->
           <div class="tle-room-blur-target" id="room-blur-target">
             <!-- Auto-fading Room Banner (1.4s then disappears!) -->
@@ -2407,6 +2411,9 @@ export function renderGameScreen(
       !countdownOverlay?.classList.contains("hidden");
 
     rootEl?.setAttribute("data-room-diff", state.difficulty);
+    rootEl?.classList.toggle("room-1-office", state.difficulty === "basic");
+    rootEl?.classList.toggle("room-2-cryolab", state.difficulty === "medium");
+    rootEl?.classList.toggle("room-3-quantum", state.difficulty === "hard");
     rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
     blurTarget?.classList.toggle("tle-room-blurred", Boolean(isPopupOpen));
     timerPill?.classList.toggle("tle-timer-urgent", isUrgent);
@@ -2465,6 +2472,10 @@ export function renderGameScreen(
         startRestartBtn.textContent = "▶ Running";
         startRestartBtn.classList.remove("tle-ctrl-restart-mode");
         startRestartBtn.disabled = true;
+      } else if (state.timeLeftSeconds < state.loopDurationSeconds) {
+        startRestartBtn.textContent = "▶ Resume";
+        startRestartBtn.classList.remove("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = false;
       } else {
         startRestartBtn.textContent = "▶ Start";
         startRestartBtn.classList.remove("tle-ctrl-restart-mode");
