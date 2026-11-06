@@ -147,9 +147,11 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 **In-game input, not browser popups**
 - Never use `prompt()`/`alert()`. When an object needs typing, puzzles set `game.input = { for: "<object id>", label: "Password" }`. The UI shows an input inside the game. Submit calls `onInput(text)` in `puzzles.js`, and cancel calls `onInput(null)`. `onInput` clears `game.input`.
 
-**Stage 2 prep: after the door**
-- `game.stage`: `"office"` → `"corridors"`. The office door moves you to the corridors instead of escaping. A reset puts you back in the office (clues stay).
-- For now: **one placeholder corridor puzzle** (e.g. the lift, keypad = a code from the partner), then `escaped`. Abdullah's full corridor design (route, fuse box, lift, dread) comes later.
+**3 levels (prep now, full puzzles later)**
+- `game.stage`: `1` (the office) → `2` (the corridors) → `3` (the lift shaft / roof). Escaping means finishing level 3.
+- Each level's exit takes you to the next level. **Entering a new level adds 60 s to the timer** (`timeLeft += 60`).
+- A loop reset sends you back to **level 1** with everything relocked (clues stay).
+- For now, levels 2 and 3 each get **one placeholder puzzle** (for example a keypad whose code comes from the partner). Abdullah's full corridor design (route, fuse box, lift, dread) comes later.
 
 **State added to `game`**: `loopSeconds`, `code`, `role`, `seed`, `partner` (`{ name, loop, step, escaped }`), `stage`, `input`, `chat` (`[{ from, text }]`, kept across loops).
 
@@ -159,7 +161,7 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 |---|---|---|
 | client → server | `{type:"join", name, code, seconds?}` | Join (or create) room `code`. The creator picks `seconds` |
 | server → client | `{type:"start", partner, role, seed, seconds}` | Both players are in → `phase = "playing"`, `startLoop()` |
-| both ways | `{type:"progress", loop, step, stage}` | Progress (shown on the partner panel) |
+| both ways | `{type:"progress", loop, step, stage}` (stage 1–3) | Progress (shown on the partner panel) |
 | both ways | `{type:"chat", text}` | Chat line → `game.chat` |
 | client → server | `{type:"escaped", loop}` | I'm out → `partner.escaped` on the other side |
 | server → client | `{type:"won"}` | Both escaped → `phase = "over"`, win screen |
