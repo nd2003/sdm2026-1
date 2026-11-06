@@ -4,6 +4,10 @@
 function buildRoom() {
   const S = (vb, body) => `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"><g filter="url(#grime)">${body}</g></svg>`;
   const ink = 'stroke="#090806" stroke-width="2" stroke-linejoin="round"';
+  const CASKET = `
+      <path d="M60 4L104 34 90 146H30L16 34z" fill="#1d130b" ${ink}/>
+      <g class="lid"><path d="M60 10L97 36 85 140H35L23 36z" fill="#3a2614" ${ink}/><path d="M60 40v70M44 64h32" stroke="#6c5a35" stroke-width="5"/>
+      <path d="M35 40l6 3M85 40l-6 3M40 130l6-2M80 130l-6-2" stroke="#0a0805" stroke-width="3"/><path d="M70 130c0 8 1 12 2 12s2-4 2-12z" fill="#8c1a15"/></g>`;
   const objects = [  // DOM order = Tab order: wall left to right, then floor left to right
     ["clock", "Clock", S("0 0 100 100", `
       <circle cx="50" cy="50" r="46" fill="#3b2c1e" ${ink}/><circle cx="50" cy="50" r="38" fill="#8d8671" ${ink}/>
@@ -15,7 +19,7 @@ function buildRoom() {
     ["painting", "Blue painting", S("0 0 120 90", `
       <path d="M1 1h96l6 7 16-3v84H12l-4-9-7 2z" fill="#3f3019" ${ink}/><rect x="8" y="8" width="104" height="74" fill="#120d07"/>
       <rect x="11" y="11" width="98" height="68" fill="url(#sea)"/><circle cx="96" cy="26" r="6" fill="#c9d6f2"/>
-      <path d="M11 56q12-9 24 0t25 0 25 0 24 0v23H11z" fill="#0f338f"/><path d="M11 65q12-8 24 0t25 0 25 0 24 0" fill="none" stroke="#7fa8fb" stroke-width="1.6"/>
+      <path d="M11 56q12-9 24 0t25 0 25 0 24 0v23H11z" style="fill:var(--paint3,#0f338f)"/><path d="M11 65q12-8 24 0t25 0 25 0 24 0" fill="none" style="stroke:var(--paint4,#7fa8fb)" stroke-width="1.6"/>
       <path d="M25 58c-2-9-2-16 0-19 1-3 5-3 6 0 2 3 2 10 0 19z" fill="#04060e"/><circle cx="28" cy="33" r="4" fill="#04060e"/>
       <path d="M72 11L60 28l8 15-13 16 8 20h24l-8-21 11-16-11-14 8-17z" fill="#050403"/>
       <path d="M60 28L42 46l13 13 13-16z" fill="#2c58bf" stroke="#0a1a4a"/><path d="M60 28l-7 14 15 1z" fill="#16368f"/>
@@ -74,6 +78,16 @@ function buildRoom() {
       <path d="M9 14c5-3 6 2 10 0s5 0 11-1" fill="none" stroke="#1c50d2" stroke-width="2" stroke-linecap="round"/>
       <path d="M9 22c4-2 7 1 11 0s5-1 7 0M9 29c3-1 6 1 10 0" fill="none" stroke="#231e15" stroke-width="1.5" stroke-linecap="round"/>
       <ellipse cx="29" cy="33" rx="3.5" ry="4.5" fill="#8c1a15" fill-opacity=".85"/></g>`)],
+    ["casket-left", "Left casket", S("0 0 120 150", CASKET), 2],
+    ["casket-right", "Right casket", S("0 0 120 150", CASKET), 2],
+    ["keypad", "Keypad", S("0 0 60 84", `
+      <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle cx="46" cy="15" r="2.5" fill="#c6352c"/>
+      <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`), 2],
+    ["lift", "Lift", S("0 0 160 220", `
+      <rect x="2" y="26" width="156" height="192" fill="#26241a" ${ink}/><rect x="14" y="38" width="66" height="180" fill="#55524a" ${ink}/><rect x="80" y="38" width="66" height="180" fill="#4d4a42" ${ink}/>
+      <path d="M30 60c2 40-2 70 1 120M118 48c-2 50 3 90-1 150M60 150l7 22M66 148l7 22" fill="none" stroke="#6b3e20" stroke-width="3"/>
+      <rect x="50" y="4" width="60" height="18" fill="#120e0a" ${ink}/><path d="M80 18l-9-9h18z" fill="#c23a30"/>
+      <rect x="146" y="110" width="10" height="26" fill="#6f5a30" stroke="#090806"/>`), 3],
   ];
   const room = document.getElementById("room");
   const rays = (pts, col, w) => pts.map(([x, y]) => `<path d="M800 470L${x} ${y}" stroke="${col}" stroke-width="${w}"/>`).join("");
@@ -103,7 +117,7 @@ function buildRoom() {
     <linearGradient id="rwall"><stop offset="0" stop-color="#7f7640"/><stop offset="1" stop-color="#4f4925"/></linearGradient>
     <linearGradient id="floor" x2="0" y2="1"><stop offset="0" stop-color="#3f3a1f"/><stop offset="1" stop-color="#1f1c0e"/></linearGradient>
     <linearGradient id="desktop" x2="0" y2="1"><stop offset="0" stop-color="#3d2c1c"/><stop offset="1" stop-color="#1b130b"/></linearGradient>
-    <linearGradient id="sea" x2="0" y2="1"><stop offset="0" stop-color="#5b92ff"/><stop offset=".55" stop-color="#1c50d2"/><stop offset="1" stop-color="#0b2474"/></linearGradient>
+    <linearGradient id="sea" x2="0" y2="1"><stop offset="0" style="stop-color:var(--paint0,#5b92ff)"/><stop offset=".55" style="stop-color:var(--paint1,#1c50d2)"/><stop offset="1" style="stop-color:var(--paint2,#0b2474)"/></linearGradient>
     <linearGradient id="tube"><stop offset="0" stop-color="#fff8cf"/><stop offset=".72" stop-color="#f3e9a6"/><stop offset=".8" stop-color="#4b4630"/></linearGradient>
     <clipPath id="outer"><path clip-rule="evenodd" d="M0 0H1600V1000H0zM470 230V700H1130V230z"/></clipPath>
     <clipPath id="tornphoto"><path d="M0 0h60v42l-8 4-5 9-9 2-5 9-7-1-6 7H0z"/></clipPath>
@@ -136,6 +150,22 @@ function buildRoom() {
       <g class="figure"><circle cx="1020" cy="520" r="13" fill="#040302"/><path d="M1007 538q13-8 26 0l5 42-4 62-6 46h-16l-6-46-4-62z" fill="#040302"/><path d="M1007 540l-11 70 6 62M1033 540l11 70-6 62" fill="none" stroke="#040302" stroke-width="6" stroke-linecap="round"/></g></g>
     <path d="M210 860H860L990 1040H100z" fill="url(#desktop)" stroke="#090806" stroke-width="4"/><path d="M340 900l60 40M640 880l-40 70M760 950l50 40M300 960h90" stroke="#0d0905" stroke-width="3"/>
     <ellipse cx="800" cy="930" rx="48" ry="16" fill="none" stroke="#120c07" stroke-width="5"/>
+  </svg>
+  <svg class="walls level-view" data-stage="2" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+    <rect width="1600" height="1000" fill="#25230f"/>
+    <path d="M0 0H1600L960 340H640z" fill="#3a3620"/><path d="M0 0L640 340V600L0 1000z" fill="#4a4426"/><path d="M1600 0L960 340V600L1600 1000z" fill="#4a4426"/>
+    <path d="M0 1000L640 600H960L1600 1000z" fill="#1c190d"/><rect x="640" y="340" width="320" height="260" fill="#050403"/><rect x="730" y="390" width="140" height="210" fill="#000"/>
+    <path d="M500 150h600l-70 40H570z" fill="#b5ab6e" opacity=".5"/><path d="M0 0L640 340M1600 0L960 340M0 1000L640 600M1600 1000L960 600" stroke="#0a0805" stroke-width="6"/>
+    <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".5"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
+    ${drip(180, 90, 18, 420)}${drip(420, 220, 14, 300)}${drip(1180, 220, 18, 320)}${drip(1420, 110, 22, 400)}
+  </svg>
+  <svg class="walls level-view" data-stage="3" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+    <rect width="1600" height="1000" fill="#1d1c17"/>
+    <path d="M0 0H1600L1180 170H420z" fill="#2b2a22"/><path d="M0 0L420 170V760L0 1000z" fill="#34322a"/><path d="M1600 0L1180 170V760L1600 1000z" fill="#34322a"/>
+    <path d="M0 1000L420 760H1180L1600 1000z" fill="#14130e"/><rect x="420" y="170" width="760" height="590" fill="#3d3b31"/>
+    <path d="M90 60V960M200 110V880M1510 60V960M1400 110V880" stroke="#191810" stroke-width="16"/><path d="M420 760L0 1000M1180 760L1600 1000M420 760H1180" stroke="#0a0805" stroke-width="8"/>
+    <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".5"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
+    ${drip(500, 170, 18, 300)}${drip(1040, 170, 22, 360)}
   </svg></div>
   <svg class="arm" viewBox="0 0 300 360" aria-hidden="true">
     <path d="M300 360V200L184 174l-38 58 44 128z" fill="#14120a" stroke="#000" stroke-width="3"/>
@@ -149,10 +179,11 @@ function buildRoom() {
     <path d="M92 74l20 8c26 6 38 22 42 50l10 92 8 96 6 62-7 16-9-15-5 12-7-14-8-70-12-92-4 62 2 119H72l-3-119-7-62-10 96-6 66-8 14-5-12-9 15-7-16 9-64 8-98 9-88c4-30 20-48 49-58z" fill="#020101"/>
   </svg>`;
   const scene = room.querySelector(".scene");
-  for (const [id, label, art] of objects) {
+  for (const [id, label, art, stage = 1] of objects) {
     const el = document.createElement("button");  // button = keyboard + screen reader for free
     el.id = "obj-" + id;
     el.className = "obj";
+    el.dataset.stage = stage;
     el.type = "button";
     el.setAttribute("aria-label", label);
     el.innerHTML = `<span class="art" aria-hidden="true">${art}</span><span class="label">${label}</span>`;
@@ -177,4 +208,26 @@ function buildRoom() {
   };
   room.addEventListener("pointermove", (e) => aim(e.clientX, e.clientY));
   room.addEventListener("focusin", (e) => { const b = e.target.getBoundingClientRect(); aim(b.left + b.width / 2, b.top + b.height / 2); });
+}
+
+// Called once when a match starts, because the seed only exists then. Same room code = same layout on both screens.
+function placeObjects() {
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const put = (id, spot, width) => {
+    const el = document.getElementById("obj-" + id);
+    el.style.left = spot.left + "%";
+    el.style.top = spot.top === undefined ? "auto" : spot.top + "%";
+    el.style.bottom = spot.bottom === undefined ? "auto" : spot.bottom + "%";
+    el.style.setProperty("--w", width + "cqw");
+    el.style.transform = `translateX(-50%) perspective(70cqw) rotateY(${spot.turn}deg)`;
+  };
+  const wallSpots = shuffle([{ left: 18, top: 19, turn: 36, scale: 1 }, { left: 37, top: 27, turn: 0, scale: .6 }, { left: 72, top: 25, turn: -34, scale: .8 }]);
+  [["painting", 18], ["clock", 9], ["photo", 8]].forEach(([id, width], i) => put(id, wallSpots[i], width * wallSpots[i].scale));
+  const floorSpots = shuffle([{ left: 74, bottom: 25, turn: -36, cabinet: 9, shelf: 12 }, { left: 89, bottom: 10, turn: -40, cabinet: 13, shelf: 17 }, { left: 12, bottom: 13, turn: 36, cabinet: 11, shelf: 14 }]);
+  put("cabinet", floorSpots[0], floorSpots[0].cabinet);
+  put("shelf", floorSpots[1], floorSpots[1].shelf);
+  // The painting is the colour your answer needs: [top, middle, bottom, waves, wave line]
+  const PAINT = { BLUE: ["#5b92ff", "#1c50d2", "#0b2474", "#0f338f", "#7fa8fb"], RED: ["#ff6b5b", "#c11f1a", "#5a0b08", "#7e130f", "#f59a8f"], GREEN: ["#79d98a", "#1f8f3c", "#0b3f1c", "#115a28", "#9be8a8"], WHITE: ["#f2efe4", "#cfcabb", "#9b968a", "#b4ae9f", "#ffffff"], BLACK: ["#5a5a5a", "#2a2a2a", "#0e0e0e", "#1a1a1a", "#8a8a8a"] };
+  const room = document.getElementById("room");
+  PAINT[puzzleAnswers(game.role).color].forEach((c, i) => room.style.setProperty("--paint" + i, c));
 }

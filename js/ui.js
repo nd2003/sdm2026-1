@@ -11,35 +11,73 @@ function render() {
   document.body.dataset.phase = phase;
   updateSound();
 
-  // Lobby: name + Join, then "waiting" once connect() has set playerName
-  const lobby = $("lobby");
+  // Lobby: create or join a room, then "waiting" with the code once connect() has set playerName
+  const lobby = $("lobby"), url = new URLSearchParams(location.search);
   set(lobby, "innerHTML", phase !== "lobby" ? "" : game.playerName
-    ? `<div class="card"><h1>Time Loop Escape</h1><p class="wait" role="status"><span class="spinner" aria-hidden="true"></span>Waiting for an opponent, ${esc(game.playerName)}…</p></div>`
-    : `<form class="card"><h1>Time Loop Escape</h1>
-        <p>Race another player out of a room that resets every 60 seconds. Your items vanish each loop. Your clues don't.</p>
+    ? `<div class="card"><h1>Time Loop Escape</h1>
+        <p class="wait" role="status"><span class="spinner" aria-hidden="true"></span>Waiting for your partner, ${esc(game.playerName)}…</p>
+        <p>Send your partner this room code:</p>
+        <div class="code-row"><strong id="room-code-shown">${esc(game.code)}</strong><button type="button" id="copy-code">Copy</button></div></div>`
+    : `<form class="card" id="lobby-form" novalidate><h1>Time Loop Escape</h1>
+        <p>Two people are trapped, and neither gets out alone. Half of your clues are in your partner's room.</p>
         <label for="player-name">Your name</label>
-        <div class="row"><input id="player-name" required maxlength="20" autocomplete="nickname" placeholder="e.g. Sam"><button>Join</button></div></form>`);
-  const form = lobby.querySelector("form");
-  if (form && !form.onsubmit) {
-    form.onsubmit = (e) => { e.preventDefault(); const name = $("player-name").value.trim(); if (name) connect(name); };
-    setTimeout(() => $("player-name")?.focus());
-  }
+        <input id="player-name" maxlength="20" autocomplete="nickname" placeholder="e.g. Sam" value="${esc(url.get("name") || "")}">
+        <div class="ways">
+          <div class="way"><h2>Create a room</h2>
+            <label for="loop-seconds">Time per loop</label>
+            <select id="loop-seconds"><option value="60">60 seconds</option><option value="90">90 seconds</option><option value="120">120 seconds</option></select>
+            <button name="how" value="create">Create room</button></div>
+          <div class="way"><h2>Join a room</h2>
+            <label for="room-code">Room code</label>
+            <input id="room-code" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="QXTR" value="${esc((url.get("room") || "").toUpperCase())}">
+            <button name="how" value="join">Join room</button></div>
+        </div>
+        <p id="lobby-error" role="alert" hidden></p>
+        <button class="solo" name="how" value="solo">Play alone with a practice partner</button></form>`);
+  if (phase === "lobby" && !game.playerName && !lobby._focused) { lobby._focused = true; setTimeout(() => $("player-name")?.focus()); }
 
-  // Opponent panel: name, loop, progress as 5 steps (1 clue, 2 key, 3 cabinet, 4 door unlocked, 5 escaped)
-  const o = game.opponent, opp = $("opponent");
-  set(opp, "innerHTML", !o ? "" : `<h2>${esc(o.name)} <small>Loop ${o.loop}</small></h2>
-    <ol class="steps" aria-label="${esc(o.name)}: step ${o.step} of 5">`
-    + ["Clue", "Key", "Cabinet", "Door", "Out"].map((s, i) => `<li${i < o.step ? ' class="done"' : ""}>${s}</li>`).join("") + "</ol>");
-  if (o && o.step > (opp._step ?? o.step)) replay(opp, "bump");  // flashes when they get closer
+  // Partner panel: name, level, loop, progress as 7 steps, and whether they're already out
+  const o = game.partner, opp = $("opponent");
+  set(opp, "innerHTML", !o ? "" : `<h2>${esc(o.name)} <small>Level ${o.stage || 1}/3 · Loop ${o.loop}</small></h2>
+    <ol class="steps" aria-label="${esc(o.name)}: step ${o.step} of 7">`
+    + ["Note", "Key", "Cabinet", "PC", "Lv 2", "Casket", "Lv 3"].map((s, i) => `<li${i < o.step ? ' class="done"' : ""}>${s}</li>`).join("") + "</ol>"
+    + (o.escaped ? '<p class="partner-out">Escaped, waiting for you</p>' : ""));
+  if (o && o.step > (opp._step ?? o.step)) replay(opp, "bump");  // flashes when they get further
   opp._step = o ? o.step : 0;
 
   // HUD
-  const t = Math.max(0, Math.ceil(game.timeLeft));
+  const t = Math.max(0, Math.ceil(game.timeLeft)), stage = game.stage || 1, out = !!(game.flags && game.flags.escaped);
   set($("timer"), "textContent", "" + t + "s");
-  $("timer").classList.toggle("low", t <= 10);
-  document.body.classList.toggle("hurry", t <= 10 && !game.won && phase === "playing");  // whole room goes red in the last 10s
-  $("hud").style.setProperty("--time", t / 60);  // drives the shrinking time bar
-  set($("loop-count"), "textContent", "Loop " + game.loop);
+  $("timer").classList.toggle("low", t <= 10 && !out);
+  document.body.classList.toggle("hurry", t <= 10 && !out && !game.won && phase === "playing");  // whole room goes red in the last 10s
+  $("hud").style.setProperty("--time", Math.min(1, t / (game.loopSeconds || 60)));  // drives the shrinking time bar
+  set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
+  if (stage > Number(document.body.dataset.stage || stage)) replay($("bonus"), "show");  // +1:00 for reaching a new level
+  document.body.dataset.stage = stage;
+  if (phase !== "lobby" && $("room")._seed !== game.seed) { $("room")._seed = game.seed; placeObjects(); }
+
+  // Chat: kept across loops, and it scrolls to the newest line
+  const log = $("chat-log"), lines = game.chat || [];
+  set(log, "innerHTML", lines.length
+    ? lines.map((m) => `<li${m.from === game.playerName ? ' class="me"' : ""}><b>${m.from === game.playerName ? "You" : esc(m.from)}:</b> ${esc(m.text)}</li>`).join("")
+    : '<li class="empty">Tell your partner what you find. Half of your clues are in their room.</li>');
+  if (lines.length !== log._count) { log._count = lines.length; log.scrollTop = log.scrollHeight; }
+
+  // In-game input, whenever an object needs typing
+  const box = $("game-input"), asking = phase === "playing" ? game.input : null;
+  box.hidden = !asking;
+  if (asking && box._for !== asking.for) {
+    box._for = asking.for;
+    $("game-input-label").textContent = asking.label;
+    $("game-input-text").value = "";
+    setTimeout(() => $("game-input-text").focus());
+  }
+  if (!asking) box._for = null;
+
+  // Out of the building, waiting for the partner
+  document.body.classList.toggle("waiting", out && phase === "playing");
+  const note = $("room").querySelector(".out-note") || $("room").appendChild(Object.assign(document.createElement("div"), { className: "out-note" }));
+  set(note, "textContent", out ? `You're out. Talk ${o ? o.name : "your partner"} through it.` : "");
 
   // Inventory (resets every loop)
   const inv = $("inventory");
@@ -93,31 +131,77 @@ function render() {
   }
   document.body.dataset.loop = game.loop;
 
-  // End screen: race result once the server picks a winner; "checking" while we wait for it after walking out
-  const over = phase === "over", showEnd = over || game.won;
+  // End screen: both escaped, or the partner left
+  const over = phase === "over";
   let win = $("win");
-  if (showEnd && !win) {
+  if (over && !win) {
     win = document.createElement("div");
     win.id = "win";
     win.setAttribute("role", "dialog");
-    win.setAttribute("aria-label", "Race result");
+    win.setAttribute("aria-label", "Result");
     document.body.append(win);
   }
   if (win) {
-    win.hidden = !showEnd;
-    const first = game.winner === game.playerName;
-    document.body.classList.toggle("dead", over && !first);  // plays the death scene in style.css
-    const loops = `${game.loop} loop${game.loop === 1 ? "" : "s"}`;
-    set(win, "innerHTML", !over
-      ? `<div><h1>You're out!</h1><p class="wait"><span class="spinner" aria-hidden="true"></span>Checking who escaped first…</p></div>`
-      : `<div class="${first ? "first" : "second"}"><h1>${!first ? "You died" : game.won ? "You escaped first!" : "You win"}</h1>`
-        + `<p>${first ? (game.won ? `${esc(game.opponent?.name || "Your opponent")} didn't make it. It took you ${loops}.` : `${esc(game.opponent?.name || "Your opponent")} left the race.`) : `${esc(game.winner || "Your opponent")} escaped first. You were on loop ${game.loop}.`}</p>`
-        + `<button type="button" onclick="location.reload()">Play again</button></div>`);
+    win.hidden = !over;
+    const who = esc(o ? o.name : "Your partner"), loops = `${game.loop} loop${game.loop === 1 ? "" : "s"}`;
+    set(win, "innerHTML", `<div class="${game.won ? "first" : "second"}"><h1>${game.won ? "You both got out" : "Your partner left"}</h1>`
+      + `<p>${game.won ? `You and ${who} escaped together after ${loops}.` : `${who} is gone, and nobody leaves floor 14 alone.`}</p>`
+      + `<button type="button" onclick="location.reload()">Play again</button></div>`);
     if (over && !win._focused) { win._focused = true; setTimeout(() => win.querySelector("button")?.focus()); }  // keyboard users land on "Play again"
   }
 }
 
-// Music and settings. Settings belong to this device, not the race, so they live here and not in `game`.
+// Co-op panels that live for the whole page: chat, the in-game input and the +1:00 flash. Created once, filled by render().
+(() => {
+  const $ = (id) => document.getElementById(id);
+  document.body.insertAdjacentHTML("beforeend", `
+    <section id="chat" aria-label="Chat with your partner">
+      <h2>Chat</h2>
+      <ul id="chat-log" aria-live="polite"></ul>
+      <form id="chat-form"><label for="chat-text" class="sr-only">Message</label><input id="chat-text" maxlength="200" autocomplete="off" placeholder="Tell your partner…"><button>Send</button></form>
+    </section>
+    <form id="game-input" hidden><label id="game-input-label" for="game-input-text"></label>
+      <input id="game-input-text" autocomplete="off" spellcheck="false">
+      <div class="row"><button>Enter</button><button type="button" id="game-input-cancel">Step back</button></div></form>`);
+  $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span>');
+
+  $("chat-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    sendChat($("chat-text").value);
+    $("chat-text").value = "";
+  });
+  $("game-input").addEventListener("submit", (e) => { e.preventDefault(); onInput($("game-input-text").value); });
+  $("game-input-cancel").addEventListener("click", () => onInput(null));
+  $("game-input").addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); onInput(null); } });
+
+  // The lobby form is redrawn by render(), so its events are handled here.
+  $("lobby").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("player-name").value.trim(), code = $("room-code").value.trim().toUpperCase();
+    const how = document.activeElement === $("room-code") ? "join" : e.submitter?.value || "create";
+    const problem = !name ? "Enter your name first." : how === "join" && !/^[A-Z]{4}$/.test(code) ? "A room code is 4 letters, like QXTR." : "";
+    const error = $("lobby-error");
+    error.hidden = !problem;
+    error.textContent = problem;
+    if (problem) return;
+    if (how === "create") connect(name, makeRoomCode(), Number($("loop-seconds").value));
+    else if (how === "join") connect(name, code);
+    else connect(name);
+  });
+  $("lobby").addEventListener("click", (e) => {
+    if (e.target.id !== "copy-code") return;
+    const done = () => { e.target.textContent = "Copied"; };
+    const fallback = () => {
+      const range = document.createRange();
+      range.selectNodeContents($("room-code-shown"));
+      getSelection().removeAllRanges();
+      getSelection().addRange(range);
+      e.target.textContent = document.execCommand("copy") ? "Copied" : "Press Ctrl+C";
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(game.code).then(done, fallback); else fallback();
+  });
+})();
+// Music and settings. Settings belong to this device, not the match, so they live here and not in `game`.
 // The music is generated in the browser, so there are no audio files and it works from file://.
 const updateSound = (() => {
   const $ = (id) => document.getElementById(id);
@@ -189,8 +273,8 @@ const updateSound = (() => {
   };
 
   const update = () => {
-    const over = game.phase === "over", dead = over && game.winner !== game.playerName;
-    const next = dead ? "dead" : over || game.won ? "end" : game.phase === "playing" ? (game.timeLeft <= 10 ? "hurry" : "play") : "lobby";
+    const over = game.phase === "over", dead = document.body.classList.contains("dead"), out = game.flags && game.flags.escaped;
+    const next = dead ? "dead" : over || game.won ? "end" : game.phase === "playing" ? (game.timeLeft <= 10 && !out ? "hurry" : "play") : "lobby";
     if (!ctx || next === mode) { mode = next; return; }
     mode = next;
     clearInterval(heartTimer);
