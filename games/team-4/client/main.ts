@@ -1,30 +1,32 @@
-/**
- * Template game client. Placeholder: checks the server's /health and shows the result.
- * Teams replace this with their own lobby and renderer; the debug overlay comes from @sdm/core/client.
- */
 import "./styles.css";
-import { HealthResponseSchema, Routes } from "@sdm/core/shared";
-import { GAME_ID } from "../shared/index.ts";
-
-/** In local dev the server runs on :2567; deployed builds are served by the server itself. */
-export const SERVER_URL: string =
-  import.meta.env.VITE_SERVER_URL ?? (import.meta.env.DEV ? "http://localhost:2567" : location.origin);
+import { renderGameScreen } from "./ui/index.ts";
 
 const app = document.getElementById("app");
 
-async function main(): Promise<void> {
+function main(): void {
   if (!app) return;
-  try {
-    const res = await fetch(`${SERVER_URL}${Routes.health}`);
-    const health = HealthResponseSchema.parse(await res.json());
-    app.innerHTML = `<div class="ok">Server OK</div>
-      <div>game: ${GAME_ID}</div>
-      <div>env: ${health.env}</div>
-      <div>sha: ${health.sha}</div>
-      <div>games: ${health.games.join(", ")}</div>`;
-  } catch (err) {
-    app.innerHTML = `<div class="bad">Can't reach the server at ${SERVER_URL}</div><div>${String(err)}</div>`;
-  }
+
+  app.style.padding = "0";
+  const game = renderGameScreen(app, {
+    roomId: "ROOM-04",
+    timeLeftSeconds: 60,
+    loopDurationSeconds: 60,
+    loopCount: 1,
+    connectedPlayers: 2,
+    maxPlayers: 2,
+    score: 0,
+    statusText: "Time Loop Active",
+  });
+
+  // 60-second Time Loop countdown: resets room & items at 00:00, keeps clues
+  setInterval(() => {
+    const current = game.getState();
+    if (current.escaped) return;
+
+    if (current.timeLeftSeconds > 0) {
+      game.update({ timeLeftSeconds: current.timeLeftSeconds - 1 });
+    }
+  }, 1000);
 }
 
-void main();
+main();

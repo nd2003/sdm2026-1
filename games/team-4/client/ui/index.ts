@@ -1,1 +1,1 @@
-// Shared UI exports will be added here.
+export * from "./game-screen.ts";
