@@ -43,6 +43,7 @@ function startLoop() {
   const timer = setInterval(() => {
     // no global handle: a finished loop's timer stops itself. The timer is just a counter (no Date.now).
     if (game.phase === "over" || game.flags.escaped || game.loop !== loop) return clearInterval(timer);
+    if (isAdmin() && game.timeLeft <= 1) return render();  // ponytail: testing cheat (puzzles.js), admin's clock never runs out
     game.timeLeft--;
     if (game.timeLeft <= 0) resetLoop();
     else render();

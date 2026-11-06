@@ -33,7 +33,18 @@ function partnerSaid(...words) {  // your partner told you, in the chat (spread 
   return words.every((w) => /^\d+$/.test(w) ? new RegExp(`(^|\\D)${w}(\\D|$)`).test(heard) : heard.includes(w.toUpperCase()));
 }
 const OFFICE = ["note", "painting", "cabinet", "photo", "computer", "door", "clock", "shelf", "lamp"];  // level 1 objects
-function inputLocked() { return game.flags.lockedUntil !== undefined && game.timeLeft > game.flags.lockedUntil; }
+function inputLocked() { return !isAdmin() && game.flags.lockedUntil !== undefined && game.timeLeft > game.flags.lockedUntil; }
+
+// ponytail: testing cheat, becomes a ?debug command in the course port. The name "admin" (any case) passes every gate,
+// any code is right, nothing drains time, and the timer never runs out. Checked only at the gates below.
+function isAdmin() { return String(game.playerName || "").toLowerCase() === "admin"; }
+function adminSkip() {  // the UI's "Skip level" button: as if this level's exit were solved
+  if (!isAdmin() || game.phase !== "playing" || game.flags.escaped) return;
+  game.input = null;
+  if (game.stage === 1) enterStage(2, "You skip ahead. The door opens onto the casket corridor.");
+  else if (game.stage === 2) enterStage(3, "You skip ahead. The wall slides open onto the lift shaft.");
+  else escapeNow();
+}
 
 // Lore: "Meridian Trust, floor 14". Every year on the night of 13 October the firm hires two night auditors.
 // They sign in at 23:59, and the door lets only one of them out. The one who stays becomes one of the hungry things
@@ -69,10 +80,10 @@ function onObjectClick(id) {
       break;
     case "painting": {
       if (f.paintingMoved) { say("Only the hole behind it remains. It breathes."); break; }
-      if (!partnerSaid(me.color, String(me.clicks))) { say(`A ${me.color.toLowerCase()} painting. Something about it matters, but you don't know what yet. Ask ${p} what they found.`); break; }
+      if (!isAdmin() && !partnerSaid(me.color, String(me.clicks))) { say(`A ${me.color.toLowerCase()} painting. Something about it matters, but you don't know what yet. Ask ${p} what they found.`); break; }
       const clicks = (f.paintingClicks || 0) + 1;
       setFlag("paintingClicks", clicks);
-      if (clicks === me.clicks) {
+      if (clicks === me.clicks || isAdmin()) {
         setFlag("paintingMoved", true);
         addItem("key");
         say(atLoop(['The painting swings aside. A key drops out. Its paper tag reads: "14-B. Return before sunrise."',
@@ -85,7 +96,7 @@ function onObjectClick(id) {
     }
     case "cabinet":
       if (f.cabinetOpen) { say("The cabinet is empty now. You're sure something was watching from inside."); break; }
-      if (!hasItem("key")) { say("It's locked. Something inside knocks back."); break; }
+      if (!hasItem("key") && !isAdmin()) { say("It's locked. Something inside knocks back."); break; }
       setFlag("cabinetOpen", true);
       addClue("Find the year on the photograph");
       addClue(`For ${p}: the code sleeps in the ${them.casket.toUpperCase()} casket`);
@@ -98,7 +109,7 @@ function onObjectClick(id) {
       progress(3);
       break;
     case "photo": {
-      if (!knows("Find the year")) { say("A photo of two night auditors. The faces mean nothing to you. Yet."); break; }
+      if (!knows("Find the year") && !isAdmin()) { say("A photo of two night auditors. The faces mean nothing to you. Yet."); break; }
       const remote = photoIsRemote(), year = remote ? them.year : me.year;
       addClue(remote ? `For ${p}: the photo is dated ${year}` : `The photograph is dated ${year}`);
       say(`A photo of the night shift: "${NIGHT}, ${year}". Two people. One face is scratched out. The other is yours.`
@@ -108,7 +119,7 @@ function onObjectClick(id) {
       break;
     }
     case "computer":
-      if (!knows("Find the year")) { say("The screen asks for a password. You have no idea where to start."); break; }
+      if (!knows("Find the year") && !isAdmin()) { say("The screen asks for a password. You have no idea where to start."); break; }
       if (inputLocked()) { say("The screen is frozen. Something is still reading your last answer."); break; }
       game.input = { for: "computer", label: "Password" };
       say(photoIsRemote() ? `The screen wants your year. It isn't on your photo: ${partnerName()} has it.` : "The screen wants a password. The year on your photo.");
@@ -152,7 +163,7 @@ function onObjectClick(id) {
       const side = id === "casket-left" ? "left" : "right";
       if (game.stage !== 2) { say("A casket. The lid is nailed down from the inside."); break; }
       if (f.casketOpen) { say("You've already disturbed enough of the dead tonight."); break; }
-      if (side !== me.casket) {
+      if (side !== me.casket && !isAdmin()) {
         game.timeLeft = Math.max(1, game.timeLeft - VAMPIRE_DRAIN);
         say(`The lid slides open. Something in a Meridian Trust badge sits up and drinks the seconds out of you. (-${VAMPIRE_DRAIN}s) The other casket, maybe.`);
         remember("The things in the caskets wear Meridian Trust badges. They're the ones who stayed behind.");
@@ -168,8 +179,8 @@ function onObjectClick(id) {
     }
     case "keypad":
       if (game.stage !== 2) { say("A keypad, dead and cold."); break; }
-      if (!f.powerOn) { say("The keypad is dead. No light, no sound. Somewhere in the corridor there must be power."); break; }
-      if (!knows("The keypad code is")) { say("Three digits. You could guess, but something is listening for wrong ones."); break; }
+      if (!f.powerOn && !isAdmin()) { say("The keypad is dead. No light, no sound. Somewhere in the corridor there must be power."); break; }
+      if (!knows("The keypad code is") && !isAdmin()) { say("Three digits. You could guess, but something is listening for wrong ones."); break; }
       if (inputLocked()) { say("The keypad is still flashing red. Wait."); break; }
       game.input = { for: "keypad", label: "Code" };
       render();
@@ -178,8 +189,8 @@ function onObjectClick(id) {
     // ---------- Level 3: the lift ----------
     case "lift":
       if (game.stage !== 3) { say("A lift door, painted shut."); break; }
-      if (!f.gateClosed) { say("The lift won't move while its cage gate hangs open."); break; }
-      if (!partnerSaid(me.floor)) { say(`The lift has every button from G to 20. Scratched into the wall: THE DOOR OPENS FOR ONE. Ask ${p} which floor.`); break; }
+      if (!f.gateClosed && !isAdmin()) { say("The lift won't move while its cage gate hangs open."); break; }
+      if (!partnerSaid(me.floor) && !isAdmin()) { say(`The lift has every button from G to 20. Scratched into the wall: THE DOOR OPENS FOR ONE. Ask ${p} which floor.`); break; }
       if (inputLocked()) { say("The buttons are dark. Wait."); break; }
       game.input = { for: "lift", label: "Floor" };
       render();
@@ -274,10 +285,11 @@ function onInput(text) {
   game.input = null;
   if (!what || game.phase !== "playing") return render();
   const me = mine(), answer = String(text ?? "").trim();
-  if (!answer) return say("You step back.");  // cancel or an empty box never costs a lock
+  if (!answer && !isAdmin()) return say("You step back.");  // cancel or an empty box never costs a lock
+  const right = (correct) => isAdmin() || answer === correct;
   const wrong = (msg) => { setFlag("lockedUntil", game.timeLeft - WRONG_CODE_LOCK); say(msg + ` (locked for ${WRONG_CODE_LOCK}s)`); };
   if (what === "computer") {
-    if (answer !== me.year) return wrong("Access denied. For a second the screen shows your face, from behind."
+    if (!right(me.year)) return wrong("Access denied. For a second the screen shows your face, from behind."
       + (photoIsRemote() ? ` The year on your photo is ${partnerName()}'s. Ask them for yours.` : ""));
     setFlag("doorUnlocked", true);
     if (game.loop >= 3) {
@@ -288,14 +300,18 @@ function onInput(text) {
     }
     progress(4);
   } else if (what === "keypad") {
-    if (answer !== me.keypad) return wrong("The keypad buzzes. In one of the caskets, something turns over.");
+    if (!right(me.keypad)) return wrong("The keypad buzzes. In one of the caskets, something turns over.");
     enterStage(3, "The wall slides open onto a lift shaft. The lift is waiting, lights flickering.");
   } else if (what === "lift") {
-    if (answer !== me.floor) return wrong("The lift drops a few metres and stops. Laughter from the shaft.");
-    setFlag("escaped", true);  // stops my timer: I wait for my partner
-    say(game.partner && game.partner.escaped
-      ? "The lift opens onto the street. Dawn. You walk out together. Upstairs, for the first time, two names are signed out. The clock stops."
-      : `The lift opens onto the street. Dawn. You're out, but upstairs ${partnerName()}'s name still has no sign-out. Talk them through it.`);
-    send("escaped", { loop: game.loop });
+    if (!right(me.floor)) return wrong("The lift drops a few metres and stops. Laughter from the shaft.");
+    escapeNow();
   }
+}
+
+function escapeNow() {
+  setFlag("escaped", true);  // stops my timer: I wait for my partner
+  say(game.partner && game.partner.escaped
+    ? "The lift opens onto the street. Dawn. You walk out together. Upstairs, for the first time, two names are signed out. The clock stops."
+    : `The lift opens onto the street. Dawn. You're out, but upstairs ${partnerName()}'s name still has no sign-out. Talk them through it.`);
+  send("escaped", { loop: game.loop });
 }
