@@ -18,32 +18,37 @@ export class ParticleSystem {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("2D canvas is not available");
+    this.ctx = ctx;
     this.resize();
     window.addEventListener("resize", () => this.resize());
   }
 
   resize(): void {
-    const rect = this.canvas.parentElement!.getBoundingClientRect();
+    const rect = this.canvas.parentElement?.getBoundingClientRect();
+    if (!rect) return;
     this.canvas.width = rect.width;
     this.canvas.height = rect.height;
   }
 
   burst(x: number, y: number, color: string, count = 24): void {
-    const colors = color === "#FFD700"
-      ? ["#FFD700", "#FFA500", "#FF8C00", "#FFEC60", "#FFF0A0"]
-      : ["#FF4444", "#FF6666", "#FF2222", "#CC2222", "#FF8888"];
+    const colors =
+      color === "#FFD700"
+        ? ["#FFD700", "#FFA500", "#FF8C00", "#FFEC60", "#FFF0A0"]
+        : ["#FF4444", "#FF6666", "#FF2222", "#CC2222", "#FF8888"];
 
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.6;
       const speed = 2.5 + Math.random() * 5;
       this.particles.push({
-        x, y,
+        x,
+        y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 3,
         life: 1,
         decay: 0.018 + Math.random() * 0.012,
-        color: colors[Math.floor(Math.random() * colors.length)]!,
+        color: colors[Math.floor(Math.random() * colors.length)] ?? color,
         size: 4 + Math.random() * 5,
         shape: Math.random() > 0.5 ? "star" : "circle",
       });

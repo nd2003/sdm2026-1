@@ -2,21 +2,21 @@ import type { HiddenObject } from "./types.ts";
 
 export function getHiddenObjects(): HiddenObject[] {
   return [
-    { id: "clock",   name: "Alarm Clock",      found: false, iconSvg: iconClock() },
-    { id: "phone",   name: "Rotary Telephone",  found: false, iconSvg: iconPhone() },
-    { id: "cup",     name: "Tea Cup",           found: false, iconSvg: iconCup() },
-    { id: "lipstick",name: "Lipstick",          found: false, iconSvg: iconLipstick() },
-    { id: "necklace",name: "Pearl Necklace",    found: false, iconSvg: iconNecklace() },
-    { id: "scissors",name: "Scissors",          found: false, iconSvg: iconScissors() },
-    { id: "mirror",  name: "Hand Mirror",       found: false, iconSvg: iconMirror() },
-    { id: "perfume", name: "Perfume Bottle",    found: false, iconSvg: iconPerfume() },
-    { id: "candle",  name: "Candle",            found: false, iconSvg: iconCandle() },
-    { id: "key",     name: "Golden Key",        found: false, iconSvg: iconKey() },
-    { id: "cards",   name: "Playing Cards",     found: false, iconSvg: iconCards() },
-    { id: "cameo",   name: "Cameo Brooch",      found: false, iconSvg: iconCameo() },
-    { id: "crystal", name: "Crystal Ball",      found: false, iconSvg: iconCrystal() },
-    { id: "feather", name: "Peacock Feather",   found: false, iconSvg: iconFeather() },
-    { id: "hatpin",  name: "Hatpin",            found: false, iconSvg: iconHatpin() },
+    { id: "clock", name: "Alarm Clock", found: false, iconSvg: iconClock() },
+    { id: "phone", name: "Rotary Telephone", found: false, iconSvg: iconPhone() },
+    { id: "cup", name: "Tea Cup", found: false, iconSvg: iconCup() },
+    { id: "lipstick", name: "Lipstick", found: false, iconSvg: iconLipstick() },
+    { id: "necklace", name: "Pearl Necklace", found: false, iconSvg: iconNecklace() },
+    { id: "scissors", name: "Scissors", found: false, iconSvg: iconScissors() },
+    { id: "mirror", name: "Hand Mirror", found: false, iconSvg: iconMirror() },
+    { id: "perfume", name: "Perfume Bottle", found: false, iconSvg: iconPerfume() },
+    { id: "candle", name: "Candle", found: false, iconSvg: iconCandle() },
+    { id: "key", name: "Golden Key", found: false, iconSvg: iconKey() },
+    { id: "cards", name: "Playing Cards", found: false, iconSvg: iconCards() },
+    { id: "cameo", name: "Cameo Brooch", found: false, iconSvg: iconCameo() },
+    { id: "crystal", name: "Crystal Ball", found: false, iconSvg: iconCrystal() },
+    { id: "feather", name: "Peacock Feather", found: false, iconSvg: iconFeather() },
+    { id: "hatpin", name: "Hatpin", found: false, iconSvg: iconHatpin() },
   ];
 }
 
@@ -190,7 +190,7 @@ export function createScene(): string {
 <rect x="472" y="66" width="30" height="48" fill="#E8D8B0"/>
 <rect x="474" y="68" width="26" height="44" fill="#D0C090" opacity="0.7"/>
 <!-- telephone [HIDDEN] -->
-<g id="obj-phone" data-object-id="obj-phone" class="hidden-object" style="cursor:crosshair">
+<g id="obj-phone" data-object-id="phone" class="hidden-object" style="cursor:crosshair" transform="translate(458,268)">
   <path d="M516,62 Q520,50 532,48 Q556,48 566,58 Q568,66 566,74 Q560,74 554,66 Q542,56 522,60 Q512,68 510,74 Z" fill="#2A2820" stroke="#1A1810" stroke-width="1"/>
   <rect x="508" y="72" width="68" height="40" rx="5" fill="#2A2820" stroke="#1A1810" stroke-width="1"/>
   <circle cx="542" cy="90" r="13" fill="#383828" stroke="#1A1810" stroke-width="1"/>
@@ -212,7 +212,7 @@ export function createScene(): string {
 <ellipse cx="618" cy="80" rx="22" ry="6"  fill="#C8A020"/>
 <ellipse cx="618" cy="62" rx="28" ry="6"  fill="#FFE880" opacity="0.6"/>
 <!-- alarm clock [HIDDEN] -->
-<g id="obj-clock" data-object-id="obj-clock" class="hidden-object" style="cursor:crosshair">
+<g id="obj-clock" data-object-id="clock" class="hidden-object" style="cursor:crosshair">
   <rect x="728" y="72" width="48" height="44" rx="6" fill="#C8A020" stroke="#A07810" stroke-width="1.5"/>
   <circle cx="752" cy="89" r="17" fill="#F8F0D8" stroke="#A07810" stroke-width="1"/>
   <line x1="752" y1="75" x2="752" y2="79" stroke="#2A1206" stroke-width="1.5"/>
@@ -240,7 +240,7 @@ export function createScene(): string {
 <rect x="906" y="66" width="36" height="48" fill="#C8B890"/>
 <ellipse cx="924" cy="90" rx="12" ry="14" fill="#E8D8C0"/>
 <!-- playing cards [HIDDEN] -->
-<g id="obj-cards" data-object-id="obj-cards" class="hidden-object" style="cursor:crosshair">
+<g id="obj-cards" data-object-id="cards" class="hidden-object" style="cursor:crosshair">
   <rect x="975" y="72" width="32" height="46" rx="3" fill="#A82020" transform="rotate(-10,991,95)"/>
   <rect x="980" y="70" width="32" height="46" rx="3" fill="white" stroke="#C0C0C0" stroke-width="0.8" transform="rotate(-4,996,93)"/>
   <text x="983" y="84" font-size="11" fill="#C82020" font-family="serif" transform="rotate(-4,996,93)">♥</text>
@@ -274,7 +274,7 @@ export function createScene(): string {
 <path d="M326,270 Q322,230 328,210 Q334,202 340,200 Q346,202 352,210 Q358,230 354,270 Z" fill="#C84040"/>
 <ellipse cx="340" cy="200" rx="12" ry="4" fill="#D85050"/>
 <!-- candle [HIDDEN] -->
-<g id="obj-candle" data-object-id="obj-candle" class="hidden-object" style="cursor:crosshair">
+<g id="obj-candle" data-object-id="candle" class="hidden-object" style="cursor:crosshair" transform="translate(652,0)">
   <ellipse cx="398" cy="268" rx="13" ry="4" fill="#C8A020"/>
   <rect x="392" y="210" width="12" height="58" rx="2" fill="#F0E8D0" stroke="#D8D0B8" stroke-width="1"/>
   <path d="M392,218 Q389,230 390,242" stroke="#F0E8D0" stroke-width="3" fill="none"/>
@@ -368,7 +368,7 @@ export function createScene(): string {
 <ellipse cx="1420" cy="119" rx="11" ry="14" fill="#D0B890"/>
 <ellipse cx="1438" cy="119" rx="11" ry="14" fill="#C0A880"/>
 <!-- peacock feather [HIDDEN] in vase -->
-<g id="obj-feather" data-object-id="obj-feather" class="hidden-object" style="cursor:crosshair">
+<g id="obj-feather" data-object-id="feather" class="hidden-object" style="cursor:crosshair">
   <ellipse cx="1472" cy="155" rx="24" ry="8" fill="#6B4820"/>
   <path d="M1468,155 Q1462,120 1466,78" stroke="#808040" stroke-width="2.5" fill="none"/>
   <path d="M1476,155 Q1482,118 1480,80" stroke="#606030" stroke-width="2" fill="none"/>
@@ -455,7 +455,7 @@ export function createScene(): string {
 <rect x="244" y="120" width="444" height="22" fill="#D4A050" opacity="0.3"/>
 
 <!-- tea cup [HIDDEN] -->
-<g id="obj-cup" data-object-id="obj-cup" class="hidden-object" style="cursor:crosshair">
+<g id="obj-cup" data-object-id="cup" class="hidden-object" style="cursor:crosshair">
   <ellipse cx="336" cy="130" rx="28" ry="8" fill="#E8E0D0" stroke="#C8B890" stroke-width="1"/>
   <path d="M312,112 Q310,126 312,130 Q322,136 358,132 Q362,128 360,112 Z" fill="#F0E8D8" stroke="#C8B890" stroke-width="1.5"/>
   <ellipse cx="336" cy="112" rx="22" ry="6" fill="#F0E8D8" stroke="#C8B890" stroke-width="1"/>
@@ -466,7 +466,7 @@ export function createScene(): string {
 </g>
 
 <!-- key [HIDDEN] -->
-<g id="obj-key" data-object-id="obj-key" class="hidden-object" style="cursor:crosshair">
+<g id="obj-key" data-object-id="key" class="hidden-object" style="cursor:crosshair">
   <circle cx="398" cy="130" r="10" fill="none" stroke="#C8A020" stroke-width="4"/>
   <circle cx="398" cy="130" r="5"  fill="none" stroke="#C8A020" stroke-width="1.5"/>
   <line x1="408" y1="130" x2="434" y2="130" stroke="#C8A020" stroke-width="4"/>
@@ -484,7 +484,7 @@ export function createScene(): string {
 <line x1="450" y1="132" x2="486" y2="132" stroke="#C0B090" stroke-width="1" opacity="0.5"/>
 
 <!-- crystal ball [HIDDEN] -->
-<g id="obj-crystal" data-object-id="obj-crystal" class="hidden-object" style="cursor:crosshair">
+<g id="obj-crystal" data-object-id="crystal" class="hidden-object" style="cursor:crosshair">
   <path d="M510,142 Q522,138 534,142 Q530,146 522,148 Q514,146 510,142 Z" fill="#C8A020"/>
   <circle cx="522" cy="118" r="24" fill="url(#crystalGrad)"/>
   <ellipse cx="514" cy="108" rx="8" ry="6" fill="white" opacity="0.4"/>
@@ -493,7 +493,7 @@ export function createScene(): string {
 </g>
 
 <!-- hand mirror [HIDDEN] -->
-<g id="obj-mirror" data-object-id="obj-mirror" class="hidden-object" style="cursor:crosshair">
+<g id="obj-mirror" data-object-id="mirror" class="hidden-object" style="cursor:crosshair">
   <rect x="612" y="130" width="8" height="24" rx="3" fill="#C8A020" stroke="#A07810" stroke-width="1"/>
   <ellipse cx="616" cy="110" rx="20" ry="23" fill="#C8A020" stroke="#A07810" stroke-width="2"/>
   <ellipse cx="616" cy="110" rx="16" ry="19" fill="url(#mirrorRefl)"/>
@@ -525,7 +525,7 @@ export function createScene(): string {
 <!-- ═══════════ VANITY SURFACE ITEMS ═══════════ -->
 
 <!-- lipstick [HIDDEN] -->
-<g id="obj-lipstick" data-object-id="obj-lipstick" class="hidden-object" style="cursor:crosshair">
+<g id="obj-lipstick" data-object-id="lipstick" class="hidden-object" style="cursor:crosshair">
   <rect x="742" y="84"  width="13" height="34" rx="2" fill="#C8A020" stroke="#A07810" stroke-width="1"/>
   <rect x="742" y="68"  width="13" height="18" rx="1" fill="#A07810"/>
   <path d="M742,68 L755,68 L755,56 Q748.5,50 742,56 Z" fill="#CC2828"/>
@@ -533,7 +533,7 @@ export function createScene(): string {
 </g>
 
 <!-- pincushion + hatpin [HIDDEN] -->
-<g id="obj-hatpin" data-object-id="obj-hatpin" class="hidden-object" style="cursor:crosshair">
+<g id="obj-hatpin" data-object-id="hatpin" class="hidden-object" style="cursor:crosshair">
   <ellipse cx="818" cy="128" rx="22" ry="14" fill="#8B2050"/>
   <ellipse cx="818" cy="122" rx="18" ry="10" fill="#B02868"/>
   <line x1="818" y1="78"  x2="818" y2="128" stroke="#C0C0C8" stroke-width="2.5"/>
@@ -547,7 +547,7 @@ export function createScene(): string {
 </g>
 
 <!-- scissors [HIDDEN] -->
-<g id="obj-scissors" data-object-id="obj-scissors" class="hidden-object" style="cursor:crosshair">
+<g id="obj-scissors" data-object-id="scissors" class="hidden-object" style="cursor:crosshair">
   <path d="M864,142 Q870,134 876,128 Q886,116 902,110" stroke="#B0B8C0" stroke-width="4.5" fill="none" stroke-linecap="round"/>
   <path d="M864,110 Q875,118 882,128 Q892,140 898,146" stroke="#B0B8C0" stroke-width="4.5" fill="none" stroke-linecap="round"/>
   <circle cx="879" cy="128" r="5" fill="#A0A8B0" stroke="#808890" stroke-width="1"/>
@@ -570,7 +570,7 @@ export function createScene(): string {
 <ellipse cx="997" cy="80" rx="7" ry="5" fill="white" opacity="0.3"/>
 
 <!-- cameo brooch [HIDDEN] -->
-<g id="obj-cameo" data-object-id="obj-cameo" class="hidden-object" style="cursor:crosshair">
+<g id="obj-cameo" data-object-id="cameo" class="hidden-object" style="cursor:crosshair">
   <ellipse cx="1058" cy="122" rx="18" ry="22" fill="#C8A020" stroke="#A07810" stroke-width="2"/>
   <ellipse cx="1058" cy="122" rx="13" ry="17" fill="#2A1810"/>
   <path d="M1051,110 Q1051,107 1054,106 Q1060,105 1064,110 Q1066,114 1064,118 Q1062,122 1060,125 Q1058,128 1055,127 Q1050,124 1050,120 Q1050,114 1051,110 Z" fill="#F8F0E0"/>
@@ -578,7 +578,7 @@ export function createScene(): string {
 </g>
 
 <!-- pearl necklace [HIDDEN] -->
-<g id="obj-necklace" data-object-id="obj-necklace" class="hidden-object" style="cursor:crosshair">
+<g id="obj-necklace" data-object-id="necklace" class="hidden-object" style="cursor:crosshair">
   <ellipse cx="1116" cy="124" rx="24" ry="13" fill="none" stroke="#F0ECE4" stroke-width="11" opacity="0.9"/>
   <circle cx="1092" cy="124" r="4.5" fill="#F8F4EC" stroke="#D8D0C0" stroke-width="1"/>
   <circle cx="1100" cy="113" r="4.5" fill="#F8F4EC" stroke="#D8D0C0" stroke-width="1"/>
@@ -595,7 +595,7 @@ export function createScene(): string {
 </g>
 
 <!-- perfume bottle [HIDDEN] -->
-<g id="obj-perfume" data-object-id="obj-perfume" class="hidden-object" style="cursor:crosshair">
+<g id="obj-perfume" data-object-id="perfume" class="hidden-object" style="cursor:crosshair">
   <rect x="1170" y="88"  width="30" height="42" rx="6" fill="#A040C0" stroke="#801890" stroke-width="1.5" opacity="0.88"/>
   <rect x="1178" y="78"  width="14" height="12" rx="2" fill="#A040C0" stroke="#801890" stroke-width="1"/>
   <rect x="1176" y="70"  width="18" height="10" rx="3" fill="#C8A020" stroke="#A07810" stroke-width="1"/>
