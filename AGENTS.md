@@ -169,6 +169,12 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 **Loop length:** when you create a room you choose **60 / 90 / 120 s** (default 60). It's stored as `game.loopSeconds`, the creator sends it in `join` as `seconds`, and the server passes it on in `start`, so both players get the same value. `startLoop()` uses `game.loopSeconds` instead of the fixed 60.
 
+**Names the UI can rely on** (from Abdullah's code, confirmed by Zaid):
+- Functions: `connect(name, code?, seconds?)`, `makeRoomCode()` (4 letters, for the Create button), `sendChat(text)`, `onInput(text|null)`, `puzzleAnswers(role)` (e.g. `.color` to tint the painting), `rand()`.
+- `game.flags.escaped`: **you** are out and waiting (your timer stops). `game.partner.escaped`: your partner is out.
+- Level object ids: level 2 = `casket-left`, `casket-right`, `keypad`. Level 3 = `lift`. Show each one only when `game.stage` matches.
+- Two tabs from disk (`file://`): `BroadcastChannel` can't connect them, so `net.js` falls back to `localStorage` storage events (same messages).
+
 **Settings** (UI only, not `game`): a ⚙ panel with **Flickering light: on/off** (plus reduced motion). Save it in `localStorage` inside try/catch.
 
 **Zaid updates `test.html`** to match this at integration, so don't worry if old race checks fail.
