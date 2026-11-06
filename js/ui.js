@@ -17,7 +17,7 @@ function render() {
     : `<form class="card"><h1>Time Loop Escape</h1>
         <p>Race another player out of a room that resets every 60 seconds. Your items vanish each loop. Your clues don't.</p>
         <label for="player-name">Your name</label>
-        <div class="row"><input id="player-name" required maxlength="20" autocomplete="nickname" placeholder="e.g. Abdallah"><button>Join</button></div></form>`);
+        <div class="row"><input id="player-name" required maxlength="20" autocomplete="nickname" placeholder="e.g. Sam"><button>Join</button></div></form>`);
   const form = lobby.querySelector("form");
   if (form && !form.onsubmit) {
     form.onsubmit = (e) => { e.preventDefault(); const name = $("player-name").value.trim(); if (name) connect(name); };
