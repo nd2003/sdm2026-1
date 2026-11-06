@@ -27,9 +27,12 @@ function mine() { return puzzleAnswers(game.role); }
 function theirs() { return puzzleAnswers(game.role === "A" ? "B" : "A"); }
 function partnerName() { return game.partner ? game.partner.name : "your partner"; }
 function knows(text) { return game.clues.some((c) => c.includes(text)); }  // found it in this match (journal)
-function partnerSaid(...words) {  // your partner told you, in the chat
-  return game.chat.some((m) => m.from !== game.playerName && words.every((w) => m.text.toUpperCase().includes(w.toUpperCase())));
+function partnerSaid(...words) {  // your partner told you, in the chat (spread over any number of lines)
+  const heard = " " + game.chat.filter((m) => !m.mine).map((m) => m.text).join(" ").toUpperCase() + " ";
+  // numbers must stand alone ("2" doesn't match "12"); words just have to appear
+  return words.every((w) => /^\d+$/.test(w) ? new RegExp(`(^|\\D)${w}(\\D|$)`).test(heard) : heard.includes(w.toUpperCase()));
 }
+const OFFICE = ["note", "painting", "cabinet", "photo", "computer", "door", "clock", "shelf", "lamp"];  // level 1 objects
 function inputLocked() { return game.flags.lockedUntil !== undefined && game.timeLeft > game.flags.lockedUntil; }
 
 // Lore: "Meridian Trust, floor 14". Every year on the night of 13 October the firm hires two night auditors.
@@ -54,6 +57,7 @@ function enterStage(stage, text) {
 
 function onObjectClick(id) {
   if (game.phase !== "playing" || game.flags.escaped) return;
+  if (OFFICE.includes(id) && game.stage !== 1) return say(id === "door" ? "The door is behind you now." : "That's back in the office. You can't go back.");
   const f = game.flags, me = mine(), them = theirs(), p = partnerName(), later = game.loop >= 2, much = game.loop >= 3;
   switch (id) {
     // ---------- Level 1: the office ----------
@@ -65,7 +69,7 @@ function onObjectClick(id) {
       break;
     case "painting": {
       if (f.paintingMoved) { say("Only the hole behind it remains. It breathes."); break; }
-      if (!partnerSaid(me.color, String(me.clicks))) { say(`A ${me.color.toLowerCase()} painting. Something about it matters, but you don't know what yet.`); break; }
+      if (!partnerSaid(me.color, String(me.clicks))) { say(`A ${me.color.toLowerCase()} painting. Something about it matters, but you don't know what yet. Ask ${p} what they found.`); break; }
       const clicks = (f.paintingClicks || 0) + 1;
       setFlag("paintingClicks", clicks);
       if (clicks === me.clicks) {
@@ -175,7 +179,7 @@ function onObjectClick(id) {
     case "lift":
       if (game.stage !== 3) { say("A lift door, painted shut."); break; }
       if (!f.gateClosed) { say("The lift won't move while its cage gate hangs open."); break; }
-      if (!partnerSaid("floor", me.floor)) { say("The lift has every button from G to 20. Scratched into the wall: THE DOOR OPENS FOR ONE."); break; }
+      if (!partnerSaid(me.floor)) { say(`The lift has every button from G to 20. Scratched into the wall: THE DOOR OPENS FOR ONE. Ask ${p} which floor.`); break; }
       if (inputLocked()) { say("The buttons are dark. Wait."); break; }
       game.input = { for: "lift", label: "Floor" };
       render();
@@ -269,8 +273,8 @@ function onInput(text) {
   const what = game.input && game.input.for;
   game.input = null;
   if (!what || game.phase !== "playing") return render();
-  if (text === null) return say("You step back.");
-  const me = mine(), answer = String(text).trim();
+  const me = mine(), answer = String(text ?? "").trim();
+  if (!answer) return say("You step back.");  // cancel or an empty box never costs a lock
   const wrong = (msg) => { setFlag("lockedUntil", game.timeLeft - WRONG_CODE_LOCK); say(msg + ` (locked for ${WRONG_CODE_LOCK}s)`); };
   if (what === "computer") {
     if (answer !== me.year) return wrong("Access denied. For a second the screen shows your face, from behind."
