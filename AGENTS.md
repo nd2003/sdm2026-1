@@ -87,4 +87,3 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 - When your "Done when" checklist is complete, push your branch and tell Zaid it's ready.
 - Before finishing, open `index.html` in a browser and check that the console has no errors.
 - Open `test.html` too. Every test for your half must pass. Tests for the other person's half may fail until their code is merged.
-- The QA workflow runs `test.html` on every push. A red result on your own branch is expected for the other person's half.

@@ -18,7 +18,7 @@ Claude Code will ask to install the **ponytail** plugin, which keeps code minima
 
 ## Testing
 
-Open `test.html` in a browser. It plays the full escape sequence and the loop reset, then shows PASS or FAIL for each step. GitHub Actions runs the same page on every push.
+Open `test.html` in a browser. It plays the full escape sequence and the loop reset, then shows PASS or FAIL for each step. Zaid also runs it on GitHub Actions after combining everyone's work.
 
 ## Escape sequence (first room)
 
