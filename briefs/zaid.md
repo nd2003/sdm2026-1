@@ -20,11 +20,13 @@ You may make the small integration fixes needed to make the halves fit (remove T
 - Tell the human (Zaid) about anything that needs a decision instead of guessing.
 
 ## Final port to the course repo (nd2003/sdm2026-1)
-Do this only when the human says so. The plan:
-1. We are **team-3** (`games/team-3/`). yigitcemakbas is on our team and owns the server room (`games/team-3/room/`). Align his room with the message table in `AGENTS.md` before porting the client.
-2. Every person opens their own issues and PRs there, following that repo's `AGENTS.md`: issue first, the `team-3` label, `[team-3]` titles, branch `team-3/<issue>-<desc>`, the PR template filled in, `Refs #N` in commits, one approving review, and CI (`pnpm lint && pnpm typecheck && pnpm test && pnpm build`) green. The grade counts per-member contributions, so devs push their own ports, not Zaid.
-3. Copy `server/template/` to `games/team-3/`. Port `state.js` + `puzzles.js` into the Colyseus room (server-authoritative, `SeededRandom`, ticks, zod-validated inputs), the constants into `config/game.json`, and `room.js`/`ui.js` into `client/`. Then delete `net.js`.
-4. Port `test.html` checks into Vitest `*.test.ts`.
+Do this only when the human says so. Its rules are in its `CLAUDE.md`, the source of truth. Re-read it before porting, because it changes often.
+1. We are **team-3** (`games/team-3/`, label `team-3`). yigitcemakbas is on our team and also does platform/infra work there (he wrote its branch workflow). He owns our server room (`games/team-3/room/`). Align his room with the message table in `AGENTS.md` before porting the client.
+2. Branch flow: `team-3/<issue>-<desc>` → PR into `feature/team-3` (a teammate approves) → `feature/team-3` → `main` (CI green) → `prod`. Never put team PRs straight into `main`.
+3. Every person opens their own issues and PRs there: issue first, the `team-3` label, `[team-3]` titles, the PR template filled in, `Refs #N` in commits, one approving review, and CI green on all 3 OSes (`pnpm lint && pnpm typecheck && pnpm test && pnpm build`). The grade counts per-member contributions, so devs push their own ports, not Zaid.
+4. Scaffold once, in its own issue: `pnpm new-game team-3`, which copies `server/template/`. Then make `GAME_ID = "team-3"` in `shared/index.ts` and set the `<title>`. Note: the script names the package `@sdm/team-3`, but GETTING_STARTED says `@team-N/game`. Check which one is current.
+5. Port `state.js` + `puzzles.js` into the Colyseus room (server-authoritative, `SeededRandom`, ticks, zod-validated inputs), the constants into `config/game.json`, and `room.js`/`ui.js` into `client/`. Use `readClientParams` from `@sdm/core/client` for `?room=`/`?name=` and its debug overlay. Then delete `net.js`.
+6. Port the `test.html` checks into Vitest `*.test.ts`.
 
 ## Every session
 1. `git switch main && git pull && git fetch --all --prune`, then read new issue comments, then `gh run list --limit 5`.
