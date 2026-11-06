@@ -32,7 +32,12 @@ function partnerSaid(...words) {  // your partner told you, in the chat
 }
 function inputLocked() { return game.flags.lockedUntil !== undefined && game.timeLeft > game.flags.lockedUntil; }
 
-// Lore: "Meridian Trust, floor 14". Objects say more on later loops, and "Memory:" pages collect in the journal.
+// Lore: "Meridian Trust, floor 14". Every year on the night of 13 October the firm hires two night auditors.
+// They sign in at 23:59, and the door lets only one of them out. The one who stays becomes one of the hungry things
+// that feed on time to keep the clock running (the faceless figure, the vampires in the caskets). The players have
+// been here together for many years, so the notes they find for each other are in their own handwriting.
+// Role A is the auditor who never went home. Role B is the one who came looking for them.
+// Objects say more on later loops, and "Memory:" pages collect in the journal (loop 1 how, 2 who, 3 what, 4+ truth).
 function atLoop(lines) { return lines[Math.min(game.loop, lines.length) - 1]; }
 function remember(text) { addClue("Memory: " + text); }
 
@@ -54,7 +59,8 @@ function onObjectClick(id) {
     // ---------- Level 1: the office ----------
     case "note":
       addClue(`For ${p}: "${them.color} - ${them.clicks}"`);
-      say(`A note in shaking handwriting: "${them.color} - ${them.clicks}". It isn't meant for you. Tell ${p}.`);
+      say(atLoop([`A note addressed to ${p}: "${them.color} - ${them.clicks}". It's in your handwriting. You don't remember writing it. Tell ${p}.`,
+                  `The same note for ${p}, in your handwriting: "${them.color} - ${them.clicks}". The ink is still wet. It always is.`]));
       if (!hasItem("key") && !f.cabinetOpen) progress(1);
       break;
     case "painting": {
@@ -65,8 +71,8 @@ function onObjectClick(id) {
       if (clicks === me.clicks) {
         setFlag("paintingMoved", true);
         addItem("key");
-        say(atLoop(["The painting swings aside. A key drops out, wrapped in hair.",
-                    "The painting swings aside. The same key, wrapped in the same hair. Your hair."]));
+        say(atLoop(['The painting swings aside. A key drops out. Its paper tag reads: "14-B. Return before sunrise."',
+                    'The painting swings aside. The same key, the same tag. On the back, in your handwriting: "Again."']));
         progress(2);
       } else {
         say(["The painting tilts. It wasn't you.", "Something behind the canvas scratches back.", "The frame is warm now. Like skin."][(clicks - 1) % 3]);
@@ -79,16 +85,21 @@ function onObjectClick(id) {
       setFlag("cabinetOpen", true);
       addClue("Find the year on the photograph");
       addClue(`For ${p}: the code sleeps in the ${them.casket.toUpperCase()} casket`);
-      say(`The key turns. Two cards inside. One: "Find the year on the photograph". The other, for ${p}: "${them.casket.toUpperCase()} casket".`);
+      say(`The key turns. Two cards inside. One: "Find the year on the photograph". The other, for ${p}: "${them.casket.toUpperCase()} casket".`
+        + (later ? (game.role === "A"
+          ? " Under them, your own Meridian Trust badge. Night auditor. The photo on it has been scratched off."
+          : ` Under them, a missing-person flyer. MISSING: ${p}. Last seen at Meridian Trust, 13 October.`) : ""));
+      if (later) remember(game.role === "A" ? "My own staff badge was in the cabinet. I worked here. I never went home."
+                                            : `A missing-person flyer for ${p} was in the cabinet. I came here looking for them.`);
       progress(3);
       break;
     case "photo": {
-      if (!knows("Find the year")) { say("A staff photo of Meridian Trust. The faces mean nothing to you. Yet."); break; }
+      if (!knows("Find the year")) { say("A photo of two night auditors. The faces mean nothing to you. Yet."); break; }
       const remote = photoIsRemote(), year = remote ? them.year : me.year;
       addClue(remote ? `For ${p}: the photo is dated ${year}` : `The photograph is dated ${year}`);
-      say(`The staff photo of Meridian Trust, ${year}. Every face is scratched out but one. It's yours.`
-        + (remote ? ` Wait. This is ${p}'s year, not yours.` : "") + (later ? ` On the back: "Night shift, ${NIGHT}."` : ""));
-      if (later) remember("The staff photo. Every face is scratched out except mine.");
+      say(`A photo of the night shift: "${NIGHT}, ${year}". Two people. One face is scratched out. The other is yours.`
+        + (remote ? ` On the back, in your handwriting: "For ${p}."` : ""));
+      if (later) remember(`Every photo shows the same night, ${NIGHT}, in a different year. I'm in all of them.`);
       break;
     }
     case "computer":
@@ -99,8 +110,11 @@ function onObjectClick(id) {
       break;
     case "door":
       if (!f.doorUnlocked) {
-        say(atLoop(["The door won't budge. Someone on the other side is holding it.",
+        say(atLoop(['The door won\'t budge. Taped to it: the ad you answered. "NIGHT AUDITORS WANTED. Floor 14. Cash. No questions."',
+                    `The door won't budge. Under the ad, in your handwriting: "DON'T LEAVE WITHOUT ${p.toUpperCase()}."`,
                     "The door won't budge. On the other side, something whispers your name in your own voice."]));
+        remember(game.role === "B" ? "I answered the same ad they did: night auditors wanted, floor 14. It was the only way in."
+                                   : "I answered an ad: night auditors wanted, floor 14, cash, no questions.");
         break;
       }
       enterStage(2, "The door opens onto a corridor that wasn't there before. Two caskets lie across the floor.");
@@ -112,12 +126,13 @@ function onObjectClick(id) {
       if (later) remember("The tally marks by the clock are in my handwriting. I have been here before.");
       break;
     case "shelf":
-      say(atLoop(["Every book has the same title: YOU WERE HERE BEFORE.",
-                  "A visitor log for Meridian Trust, floor 14. Every night, two names sign in. Only one ever signs out.",
-                  "A visitor log for Meridian Trust, floor 14. Every night, two names sign in. Only one ever signs out.",
-                  `The newest page has two names in fresh ink: yours and ${p}'s. Nobody has ever signed out together.`]));
-      if (later) remember("Every night two people sign in to floor 14. Only one ever signs out.");
-      if (game.loop >= 4) remember(`Tonight's page in the log: my name, and ${p}'s. Nobody has ever left together.`);
+      say(atLoop([`The visitor log lies open at tonight. Two signatures at 23:59: yours, and ${p}'s. Neither of you has signed out.`,
+                  `Older pages of the log. Every ${NIGHT}, two names sign in. Only one ever signs out.`,
+                  "Every book on the shelf has the same title: YOU WERE HERE BEFORE.",
+                  "The first page of the log is a hundred years old. Two names. Nobody, on any page, has ever signed out together."]));
+      remember(`I signed in at 23:59. ${p} signed in right under me.`);
+      if (later) remember(`Every ${NIGHT} two people sign in to floor 14. Only one ever signs out.`);
+      if (game.loop >= 4) remember("Nobody has ever signed out together.");
       break;
     case "lamp":
       say(atLoop(["The light flickers in a rhythm. Like a heartbeat. Not yours.",
@@ -134,14 +149,15 @@ function onObjectClick(id) {
       if (f.casketOpen) { say("You've already disturbed enough of the dead tonight."); break; }
       if (side !== me.casket) {
         game.timeLeft = Math.max(1, game.timeLeft - VAMPIRE_DRAIN);
-        say(`The lid slides open. A vampire sits up and drinks the seconds out of you. (-${VAMPIRE_DRAIN}s) The other casket, maybe.`);
-        if (much) remember("The wrong casket is never empty.");
+        say(`The lid slides open. Something in a Meridian Trust badge sits up and drinks the seconds out of you. (-${VAMPIRE_DRAIN}s) The other casket, maybe.`);
+        remember("The things in the caskets wear Meridian Trust badges. They're the ones who stayed behind.");
         break;
       }
       setFlag("casketOpen", true);
       addClue(`The keypad code is ${me.keypad}`);
       addClue(`For ${p}: the lift goes to floor ${them.floor}`);
-      say(`It's empty except for two scraps of paper. Yours: "${me.keypad}". The other, for ${p}: "FLOOR ${them.floor}".`);
+      say(`Empty, except for a torn diary page with your code: "${me.keypad}". On the back: "They went first. I stayed. I'm so hungry." A second scrap, for ${p}: "FLOOR ${them.floor}".`);
+      if (later) remember('A diary page from someone who stayed behind: "I\'m so hungry."');
       progress(6);
       break;
     }
@@ -156,7 +172,7 @@ function onObjectClick(id) {
     // ---------- Level 3: the lift ----------
     case "lift":
       if (game.stage !== 3) { say("A lift door, painted shut."); break; }
-      if (!partnerSaid("floor", me.floor)) { say("The lift has every button from G to 20. Only one of them goes anywhere real."); break; }
+      if (!partnerSaid("floor", me.floor)) { say("The lift has every button from G to 20. Scratched into the wall: THE DOOR OPENS FOR ONE."); break; }
       if (inputLocked()) { say("The buttons are dark. Wait."); break; }
       game.input = { for: "lift", label: "Floor" };
       render();
@@ -179,8 +195,8 @@ function onInput(text) {
     if (answer !== me.year) return wrong("Access denied. For a second the screen shows your face, from behind.");
     setFlag("doorUnlocked", true);
     if (game.loop >= 3) {
-      say(`ACCESS GRANTED. One unread memo, ${NIGHT}: "The door opens for one. Unless two hold it open together." Behind you, the door unlocks.`);
-      remember(`A memo from ${NIGHT}: the door opens for one, unless two hold it open together.`);
+      say(`ACCESS GRANTED. One unread memo: "To whoever is left. The door opens for one. The one who stays feeds the clock. Unless two hold it open together." Behind you, the door unlocks.`);
+      remember("A memo: the door opens for one, and the one who stays feeds the clock. Unless two hold it open together.");
     } else {
       say("ACCESS GRANTED. Behind you, the door unlocks by itself.");
     }
@@ -192,8 +208,8 @@ function onInput(text) {
     if (answer !== me.floor) return wrong("The lift drops a few metres and stops. Laughter from the shaft.");
     setFlag("escaped", true);  // stops my timer: I wait for my partner
     say(game.partner && game.partner.escaped
-      ? "The lift opens onto the street. You both walk out. Behind you, the clock stops."
-      : `The lift opens onto the street. You're out. ${partnerName()} is still inside. Talk them through it.`);
+      ? "The lift opens onto the street. Dawn. You walk out together. Upstairs, for the first time, two names are signed out. The clock stops."
+      : `The lift opens onto the street. Dawn. You're out, but upstairs ${partnerName()}'s name still has no sign-out. Talk them through it.`);
     send("escaped", { loop: game.loop });
   }
 }
