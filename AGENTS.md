@@ -143,6 +143,14 @@ Two players on two devices. Each one runs their own copy of the room with their 
 
 `main.js` no longer calls `startLoop()` on load. It calls `buildRoom(); render();` and waits in the lobby.
 
+## Credit: your name on your work
+
+The course grades how the work is spread across members, using commits, issues and PRs.
+- Commit from your own laptop with your own git identity, so GitHub links each commit to your account. Check with `git config user.email`; it must be an email on your GitHub account.
+- Don't add `Co-Authored-By` or "Generated with" lines to commits, PRs or comments.
+- Write commit messages and status comments about what *you* changed, in plain words.
+- Zaid combines branches with real merges (`git merge --no-ff`), never squash, cherry-pick or copy-paste. That way every commit keeps its original author.
+
 ## Tech rules
 
 - Use plain HTML/CSS/JS with classic `<script>` tags. `index.html` must keep working when opened directly from disk (`file://`).
