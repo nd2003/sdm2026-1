@@ -21,17 +21,7 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 #room {
   grid-area: room; position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 10px;
   container-type: inline-size;  /* lets object sizes scale with the room (cqw) */
-  background:
-    linear-gradient(#0000 0 5.4%, #3d3820 5.4% 6%, #0000 6%),                                              /* ceiling edge */
-    repeating-linear-gradient(90deg, #8a8150 0 .25cqw, #0000 .25cqw 11cqw) top / 100% 6% no-repeat,        /* ceiling tiles */
-    linear-gradient(#b8ae78, #b8ae78) top / 100% 6% no-repeat,
-    radial-gradient(ellipse 7cqw 15cqw at 20% 6%, #4a401c99, #0000),                                       /* damp stains */
-    radial-gradient(ellipse 5cqw 11cqw at 60% 6%, #4a401c80, #0000),
-    radial-gradient(ellipse 20cqw 5cqw at 40% 84%, #2c2610b0, #0000),
-    radial-gradient(ellipse 14cqw 4cqw at 78% 93%, #2c2610a0, #0000),
-    linear-gradient(#0000 0 61.4%, #4a4322 61.4% 62.6%, #0000 62.6%),                                      /* skirting board */
-    repeating-linear-gradient(90deg, #a09556 0 2.5cqw, #998e50 2.5cqw 2.7cqw, #a09556 2.7cqw 5.2cqw) top / 100% 62% no-repeat,  /* wallpaper */
-    repeating-linear-gradient(0deg, #5f5630 0 .4cqw, #5a5130 .4cqw .8cqw) bottom / 100% 38% no-repeat;     /* carpet */
+  background: #0a0904;
   box-shadow: inset 0 0 60px #000c, 0 8px 24px #0008;
 }
 .obj {
@@ -43,25 +33,12 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 .obj:hover { filter: drop-shadow(0 0 .8cqw #c9b458) brightness(1.08); }
 .obj:focus-visible { outline: 2px dashed #c9b458; outline-offset: 4px; }
 .obj .art { position: relative; z-index: 1; display: block; width: var(--w); transition: transform .5s; filter: drop-shadow(0 .5cqw .4cqw #0009); }
-.obj svg, .desk svg { display: block; width: 100%; height: auto; }
+.obj svg { display: block; width: 100%; height: auto; }
 .obj .label {
   position: absolute; z-index: 2; top: calc(100% + 3px); left: 50%; transform: translateX(-50%);
   font-size: clamp(10px, 1.5cqw, 13px); padding: 1px 6px; border-radius: 999px; background: #000b; white-space: nowrap;
 }
-.desk { position: absolute; left: 58%; bottom: 14%; width: 28cqw; transform: translateX(-50%); filter: drop-shadow(0 .6cqw .5cqw #0009); }
 
-/* wall */
-#obj-clock    { left: 10%; top: 9%;  --w: 8cqw; }
-#obj-painting { left: 30%; top: 7%;  --w: 18cqw; }
-#obj-photo    { left: 50%; top: 13%; --w: 6.5cqw; }
-#obj-door     { left: 85%; bottom: 36%; --w: 13cqw; }
-/* floor */
-#obj-shelf    { left: 10%; bottom: 20%; --w: 13cqw; }
-#obj-cabinet  { left: 27%; bottom: 20%; --w: 12cqw; }
-/* on the desk */
-#obj-computer { left: 51%; bottom: 32%; --w: 11cqw; }
-#obj-note     { left: 60%; bottom: 32%; --w: 4.5cqw; }
-#obj-lamp     { left: 67%; top: 0; --w: 16cqw; }  /* tube in the ceiling */
 
 /* living details */
 #obj-clock .sec { transform-origin: 50px 50px; animation: tick 60s steps(60) infinite; }  /* one lap = one loop */
@@ -157,8 +134,6 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 @keyframes ink { from { background: #c9b45888; color: #8a2b2b; } }
 #loop-flash small { display: block; margin-top: 8px; font-size: 1rem; font-weight: normal; }
 /* last 10 seconds: the room pulses red */
-body.hurry #room { animation: hurry 1s infinite; }
-@keyframes hurry { 50% { box-shadow: inset 0 0 90px #c22c, 0 8px 24px #0008; } }
 /* new item in the inventory */
 #inventory li.new { animation: got 1.2s ease-out; }
 @keyframes got { from { transform: scale(1.4); background: #c9b458; color: #111; } }
@@ -206,34 +181,90 @@ body[data-phase="lobby"] :is(#hud, #opponent, #room, #message, #inventory, #jour
 #win .second { border-color: #e55; }
 #win p { opacity: .85; }
 
-/* --- Eerie restyle: an empty office that goes on forever --- */
+/* --- Eerie restyle --- */
 h1, h2, #timer, #loop-count, #hud::before { font-family: "Special Elite", "Courier New", monospace; }
-#room { box-shadow: inset 0 0 60px #0009, 0 8px 24px #000a; }
-/* doorway into another empty room. A figure stands in it only during the last 10 seconds. */
-#room::before {
-  content: ""; position: absolute; left: 68%; width: 8.5%; top: 6%; bottom: 38%; box-shadow: 0 0 0 .3cqw #4a4322;
-  background:
-    var(--figure, linear-gradient(#0000, #0000)),
-    linear-gradient(#7d7440, #7d7440) 50% 62% / 46% 62% no-repeat,
-    linear-gradient(#3a3519, #3a3519) 50% 70% / 74% 80% no-repeat,
-    #171409;
-}
-body.hurry #room::before { --figure: radial-gradient(circle at 50% 60%, #050402 0 .62cqw, #0000 .68cqw), linear-gradient(#050402, #050402) 50% 81.4% / 20% 22% no-repeat; }
-/* the dim light: corners fall away, and the whole room dips when the tube stutters */
-#room::after {
-  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
-  background-image: radial-gradient(ellipse 100% 110% at 50% 6%, #0000 0 45%, #0b0a0540 75%, #050402a0 100%);
-  animation: dip 7s steps(1) infinite;
-}
-@keyframes dip { 0%, 41%, 45%, 47%, 83%, 86%, 100% { background-color: #0a090400; } 42%, 46% { background-color: #0a0904b0; } 84% { background-color: #0a090470; } }
-#obj-lamp .tube { animation: stutter 7s steps(1) infinite; }
-@keyframes stutter { 0%, 41%, 45%, 47%, 83%, 86%, 100% { opacity: 1; } 42%, 46% { opacity: .25; } 84% { opacity: .5; } }
-#obj-lamp .art { filter: drop-shadow(0 0 2cqw #f3e9a6aa); }
-/* last 10 seconds: red in the corners and a slight shake */
-body.hurry #room { animation: hurry 1s infinite, shake .35s steps(2) infinite; }
-@keyframes shake { 50% { transform: translate(.15cqw, -.1cqw); } }
 /* loop reset: harsh static instead of a white flash */
 #loop-flash { background: repeating-linear-gradient(0deg, #d9cf8a 0 2px, #15130a 2px 5px); color: #fff; text-shadow: 0 0 6px #000, 0 0 2px #000, 0 0 14px #000; }
 #loop-flash.show { animation: staticburst 1.6s linear; }
 @keyframes staticburst { 0% { opacity: 1; } 8% { opacity: .35; } 16% { opacity: 1; } 26% { opacity: .5; } 34%, 60% { opacity: .9; } 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { #room::after { animation: none !important; } }
+
+/* --- First-person view: an old, rotting office seen through your own eyes --- */
+/* The scene is a bit larger than the frame, so looking around can shift it without showing an edge. */
+.scene {
+  position: absolute; inset: -3%;
+  translate: calc((.5 - var(--nx, .5)) * 3cqw) calc((.5 - var(--ny, .45)) * 2cqw);
+  transition: translate .3s ease-out;
+  animation: breathe 5s ease-in-out infinite;  /* your breathing */
+}
+@keyframes breathe { 50% { transform: translateY(.35cqw) scale(1.006); } }
+.walls { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.figure { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; transform: scale(calc(.75 + var(--dread, 1) * .12)); }  /* closer every loop */
+body.hurry .figure { opacity: 1; }
+
+/* Back wall */
+#obj-door     { left: 50%; bottom: 30%; --w: 10cqw; }
+#obj-clock    { left: 38%; top: 27%; --w: 5.5cqw; }
+/* Left wall */
+#obj-painting { left: 18%; top: 19%; --w: 18cqw; transform: translateX(-50%) perspective(70cqw) rotateY(36deg); }
+/* Right wall */
+#obj-photo    { left: 73%; top: 27%; --w: 5.5cqw; transform: translateX(-50%) perspective(70cqw) rotateY(-34deg); }
+#obj-cabinet  { left: 74%; bottom: 25%; --w: 9cqw; transform: translateX(-50%) perspective(70cqw) rotateY(-36deg); }
+#obj-shelf    { left: 89%; bottom: 10%; --w: 17cqw; transform: translateX(-50%) perspective(70cqw) rotateY(-40deg); }
+/* Ceiling, hanging crooked from one chain */
+#obj-lamp     { left: 50%; top: 6%; --w: 20cqw; transform: translateX(-50%) rotate(-4deg); }
+/* The desk right in front of you */
+#obj-computer { left: 29%; bottom: 11%; --w: 17cqw; }
+#obj-note     { left: 44%; bottom: 7%; --w: 7cqw; }
+
+/* Labels stay out of the view until you look at something. Touch screens have no hover, so they always show there. */
+.obj .label { opacity: 0; transition: opacity .15s; }
+.obj:hover .label, .obj:focus-visible .label { opacity: 1; }
+@media (hover: none) { .obj .label { opacity: 1; } }
+
+/* Your flashlight. Outside the beam the room stays faintly visible, so nothing is impossible to find. */
+#room { --beam: 34cqw; }
+#room::after {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background-image:
+    var(--panic, linear-gradient(#0000, #0000)),
+    radial-gradient(circle var(--beam) at var(--lx, 50%) var(--ly, 45%), #0000 0 30%, #07060366 62%, #030201bd 100%);
+  animation: dip 7s steps(1) infinite;
+}
+@keyframes dip { 0%, 41%, 45%, 47%, 83%, 86%, 100% { background-color: #0a090400; } 42%, 46% { background-color: #0a0904b8; } 84% { background-color: #0a090480; } }
+#obj-lamp .tube { animation: stutter 7s steps(1) infinite; }
+@keyframes stutter { 0%, 41%, 45%, 47%, 83%, 86%, 100% { opacity: 1; } 42%, 46% { opacity: .2; } 84% { opacity: .45; } }
+#obj-lamp .art { filter: drop-shadow(0 0 2cqw #f3e9a688); }
+#obj-painting .art { filter: brightness(1.45) saturate(1.25); }  /* the clue needs it to stay clearly blue in the dark */
+#obj-painting.moved .art { transform: translate(-6%, 20%) rotate(-12deg) scale(.86); }
+
+/* The arm holding the flashlight swings toward where you look */
+.arm {
+  position: absolute; z-index: 4; right: -1%; bottom: -5%; width: 19cqw; height: auto; pointer-events: none;
+  transform-origin: 100% 100%; transform: rotate(calc((var(--nx, .5) - .55) * 34deg)) translateY(calc((var(--ny, .45) - .45) * 5cqw));
+  transition: transform .18s ease-out;
+}
+
+/* Last 10 seconds: the beam narrows, red closes in, the view shakes */
+body.hurry #room { --beam: 24cqw; --panic: radial-gradient(ellipse at 50% 50%, #0000 45%, #6e0d0888 100%); animation: shake .35s steps(2) infinite; }
+@keyframes shake { 50% { transform: translate(.15cqw, -.1cqw); } }
+
+@media (prefers-reduced-motion: reduce) {
+  #room::after { animation: none !important; }
+  .scene { translate: none !important; }
+}
+
+/* Losing the race: the light fails, the figure comes for you, then black */
+.killer { position: absolute; z-index: 5; left: 58%; bottom: 8%; height: 62%; opacity: 0; pointer-events: none; transform-origin: 50% 40%; }
+body.dead #room { --beam: 11cqw; --panic: none; animation: none; }
+body.dead .arm { transform: translateY(70%) rotate(32deg); transition: transform .9s ease-in; }
+body.dead .killer { animation: lunge 1.7s cubic-bezier(.7, 0, 1, .6) forwards; }
+@keyframes lunge {
+  0% { opacity: 0; transform: scale(.45); }
+  20%, 55% { opacity: 1; transform: scale(.5); }
+  100% { opacity: 1; transform: translate(-12cqw, 6cqw) scale(7); }
+}
+body.dead #win { background: #030201; animation: deathcard .5s 1.6s both; }
+@keyframes deathcard { from { opacity: 0; } }
+body.dead #win > div { background: none; border: 0; }
+body.dead #win h1 { margin: 0 0 8px; color: #c6352c; font-size: clamp(2.6rem, 9vw, 4.5rem); letter-spacing: .04em; }
+#win, #loop-flash { z-index: 10; }  /* above the arm and the figure in #room */

@@ -68,6 +68,7 @@ function render() {
 
   // Room visual states
   const f = game.flags || {};
+  $("room").style.setProperty("--dread", Math.min(game.loop, 5));  // the figure stands closer every loop
   $("obj-painting")?.style.setProperty("--clicks", f.paintingClicks || 0);  // tilts a bit more on every click
   $("obj-painting")?.classList.toggle("moved", !!f.paintingMoved);
   $("obj-cabinet")?.classList.toggle("open", !!f.cabinetOpen);
@@ -103,11 +104,12 @@ function render() {
   if (win) {
     win.hidden = !showEnd;
     const first = game.winner === game.playerName;
+    document.body.classList.toggle("dead", over && !first);  // plays the death scene in style.css
     const loops = `${game.loop} loop${game.loop === 1 ? "" : "s"}`;
     set(win, "innerHTML", !over
       ? `<div><h1>You're out!</h1><p class="wait"><span class="spinner" aria-hidden="true"></span>Checking who escaped first…</p></div>`
-      : `<div class="${first ? "first" : "second"}"><h1>${first ? "You escaped first!" : `${esc(game.winner || "Your opponent")} escaped first`}</h1>`
-        + `<p>${first ? `It took you ${loops}.` : `You were on loop ${game.loop}. So close.`}</p>`
+      : `<div class="${first ? "first" : "second"}"><h1>${first ? "You escaped first!" : "You died"}</h1>`
+        + `<p>${first ? `${esc(game.opponent?.name || "Your opponent")} didn't make it. It took you ${loops}.` : `${esc(game.winner || "Your opponent")} escaped first. You were on loop ${game.loop}.`}</p>`
         + `<button type="button" onclick="location.reload()">Play again</button></div>`);
     if (over && !win._focused) { win._focused = true; setTimeout(() => win.querySelector("button")?.focus()); }  // keyboard users land on "Play again"
   }
