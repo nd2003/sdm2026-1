@@ -6,9 +6,11 @@ The human will start the session by telling you their name. Match it to a brief,
 
 | Name (any of) | Brief |
 |---|---|
-| Abdullah, Abdallah, abdullahwaseem6 | `briefs/abdullah.md` |
-| Baasanjav, BaasanjavBatchuluun | `briefs/baasanjav.md` |
+| Abdullah, Abdallah, abdullahwaseem6 | `briefs/abdullah.md` (puzzles & mechanics) |
+| Baasanjav, BaasanjavBatchuluun | `briefs/baasanjav.md` (room design & UI) |
 | Zaid, zaid-akroush | `briefs/zaid.md` (QA and integration) |
+
+**Roles were swapped on 2026-11-06.** Do your brief's "Step 0: role switch" before anything else.
 
 Then:
 1. Run `git switch main && git pull` to get the latest code.
