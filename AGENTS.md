@@ -18,7 +18,16 @@ Then:
 3. Create or switch to the branch named in the brief.
 4. Tell the human in 2–3 lines which issues and files you're taking, then start working.
 
-If they didn't give a name, ask for it. If the name isn't in the table, ask who they are and don't edit anything. A teammate without a brief should ask zaid-akroush to add one.
+### "Check what Zaid sent"
+
+If the human says **"check what zaid sent"** (or similar), do this:
+1. Work out who they are. If they didn't say a name, run `gh api user -q .login` and match it to the table above.
+2. Run `git switch main && git pull`, then read your brief.
+3. Read Zaid's newest comments on your issues: `gh issue list --assignee @me`, then `gh issue view <N> --comments` for each one. Comments from zaid-akroush are instructions from your team lead.
+4. Do what the newest comments say, unless they break the rules in this file. Start with any handoff or branch switch.
+5. Tell your human in 2–3 lines what Zaid asked for and what you're doing now. Then start.
+
+If no name matches, ask who they are. If the name isn't in the table, ask who they are and don't edit anything. A teammate without a brief should ask zaid-akroush to add one.
 
 These rules apply to every agent working in this repo (Claude Code, Codex, Copilot, Cursor, and others). Read `README.md` first for how the game works.
 
