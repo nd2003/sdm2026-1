@@ -35,6 +35,7 @@ Do this only when the human says so. The plan:
    - Report problems as a comment on that person's issue (format above).
 4. Integrate, only when the human says to (or both branches say they're ready):
    - `git switch -c integrate main`, then `git merge --no-ff origin/issue-1-3-mechanics` and `git merge --no-ff origin/issue-2-4-room-ui`.
+   - Never squash, cherry-pick or re-commit their code under Zaid's name. Each dev's commits must keep their author, because the grade counts per-member contributions.
    - Delete the TEMP STUBS blocks and fix small contract mismatches.
    - Run `test.html`. It must show **ALL PASS**.
    - Play `index.html` by hand: the full escape, a timeout reset mid-puzzle, wrong passwords, clicking things out of order.

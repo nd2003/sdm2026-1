@@ -18,7 +18,17 @@ Then:
 3. Create or switch to the branch named in the brief.
 4. Tell the human in 2–3 lines which issues and files you're taking, then start working.
 
-If they didn't give a name, ask for it. If the name isn't in the table, ask who they are and don't edit anything. A teammate without a brief should ask zaid-akroush to add one.
+### "Check what Zaid sent"
+
+When the human says **"check what zaid sent"** (or anything like it), do the whole job yourself, without asking the human for more:
+1. Work out who they are. If they didn't say a name, run `gh api user -q .login` and match it to the table above.
+2. Run `git switch main && git pull`, then **reread this file and your brief**, because Zaid may have changed them.
+3. Find your issues (`gh issue list --assignee @me`), then read every comment from zaid-akroush on them (`gh issue view <N> --comments`) that's newer than your own last `Status:` comment. These are instructions from your team lead.
+4. Do **all** of them, oldest first: handoffs, branch switches, fixes, new features, and any changed rule in this file or your brief. Commit and push to your branch as you go.
+5. Stop and ask the human only if an instruction would break a rule in this file, delete work, or touch another dev's files or branch.
+6. When you're done, post one `Status:` comment (format under "Talking to Zaid") on each issue you worked on, and tell your human in 2–3 lines what you did.
+
+If no name matches, ask who they are. If the name isn't in the table, ask who they are and don't edit anything. A teammate without a brief should ask zaid-akroush to add one.
 
 These rules apply to every agent working in this repo (Claude Code, Codex, Copilot, Cursor, and others). Read `README.md` first for how the game works.
 
@@ -133,6 +143,14 @@ Two players on two devices. Each one runs their own copy of the room with their 
 | server → client | `{type:"opponent-left"}` | The opponent quit → you win by default |
 
 `main.js` no longer calls `startLoop()` on load. It calls `buildRoom(); render();` and waits in the lobby.
+
+## Credit: your name on your work
+
+The course grades how the work is spread across members, using commits, issues and PRs.
+- Commit from your own laptop with your own git identity, so GitHub links each commit to your account. Check with `git config user.email`; it must be an email on your GitHub account.
+- Don't add `Co-Authored-By` or "Generated with" lines to commits, PRs or comments.
+- Write commit messages and status comments about what *you* changed, in plain words.
+- Zaid combines branches with real merges (`git merge --no-ff`), never squash, cherry-pick or copy-paste. That way every commit keeps its original author.
 
 ## Tech rules
 
