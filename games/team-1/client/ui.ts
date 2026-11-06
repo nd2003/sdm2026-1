@@ -57,8 +57,7 @@ export function showWin(loops: number, timeLeft: number, clueCount: number): voi
     2: "Two loops — the cipher decoded, the USB secured. You're out.",
     3: "Three loops. Every clue collected, every puzzle solved. The cycle breaks.",
   };
-  el("win-msg").textContent =
-    msgs[loops] ?? `After ${loops} loops, the operatives finally break the cycle.`;
+  el("win-msg").textContent = msgs[loops] ?? `After ${loops} loops, the operatives finally break the cycle.`;
 }
 
 // ── HUD ──────────────────────────────────────────────────────────────────────
@@ -262,7 +261,9 @@ export function closeSafeModal(): void {
 function renderSafeDisplay(): void {
   const display = el("safe-display");
   const slots = ["_", "_", "_", "_"];
-  safeDigits.forEach((d, i) => { slots[i] = d; });
+  safeDigits.forEach((d, i) => {
+    slots[i] = d;
+  });
   display.textContent = slots.join("  ");
 }
 
@@ -323,7 +324,13 @@ export function startRain(): void {
   resize();
   new ResizeObserver(resize).observe(cv);
 
-  interface Drop { x: number; y: number; len: number; speed: number; opacity: number }
+  interface Drop {
+    x: number;
+    y: number;
+    len: number;
+    speed: number;
+    opacity: number;
+  }
 
   const drops: Drop[] = Array.from({ length: 70 }, () => ({
     x: Math.random() * (cv.width || 200),
@@ -369,7 +376,13 @@ export function startParticles(): void {
   cv.height = window.innerHeight;
 
   interface Particle {
-    x: number; y: number; vx: number; vy: number; r: number; a: number; hue: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    r: number;
+    a: number;
+    hue: number;
   }
 
   const particles: Particle[] = Array.from({ length: 160 }, () => ({
@@ -384,7 +397,10 @@ export function startParticles(): void {
 
   let tick = 0;
   function draw(): void {
-    if (tick++ > 110) { cx.clearRect(0, 0, cv.width, cv.height); return; }
+    if (tick++ > 110) {
+      cx.clearRect(0, 0, cv.width, cv.height);
+      return;
+    }
     cx.clearRect(0, 0, cv.width, cv.height);
     for (const p of particles) {
       p.x += p.vx;

@@ -7,13 +7,7 @@ function ctx(): AudioContext {
   return _ctx;
 }
 
-function tone(
-  freq: number,
-  dur: number,
-  vol = 0.08,
-  type: OscillatorType = "sine",
-  delay = 0,
-): void {
+function tone(freq: number, dur: number, vol = 0.08, type: OscillatorType = "sine", delay = 0): void {
   try {
     const c = ctx();
     const osc = c.createOscillator();
@@ -81,6 +75,8 @@ export const audio = {
 
   win(): void {
     const melody = [523, 659, 784, 1047, 1319, 1568];
-    melody.forEach((f, i) => tone(f, 0.5, 0.1, "sine", i * 0.17));
+    melody.forEach((f, i) => {
+      tone(f, 0.5, 0.1, "sine", i * 0.17);
+    });
   },
 };

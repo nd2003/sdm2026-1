@@ -1,4 +1,5 @@
 import "./style.css";
+import { audio } from "./audio.ts";
 import {
   addClue,
   CODE_ANSWER,
@@ -11,7 +12,6 @@ import {
   switchPlayer,
 } from "./game.ts";
 import * as ui from "./ui.ts";
-import { audio } from "./audio.ts";
 
 // ── singleton state ───────────────────────────────────────────────────────────
 
@@ -345,7 +345,9 @@ function bindKey(id: string, handler: () => void): void {
 
 document.addEventListener("DOMContentLoaded", () => {
   bind("btn-start", startGame);
-  bind("btn-restart", () => { ui.showStart(); });
+  bind("btn-restart", () => {
+    ui.showStart();
+  });
 
   // Room objects
   bind("obj-note", onClickNote);
