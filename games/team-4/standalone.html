@@ -1,0 +1,6384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Loop Escape — CCTV Match Preview v11</title>
+  <style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: #0c0a14;
+  color: #f8fafc;
+}
+
+.tle-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 680px;
+  width: 100%;
+  background: #0c0a14;
+  color: #f1f5f9;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ================= TOP HEADER BAR ================= */
+.tle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 62px;
+  padding: 0 22px;
+  background: linear-gradient(180deg, #0d0b18 0%, #151226 100%);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.28);
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.tle-header-left,
+.tle-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tle-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(30, 25, 52, 0.85);
+  border: 1.5px solid rgba(167, 139, 250, 0.45);
+  color: #e2e8f0;
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tle-icon-btn:hover {
+  transform: translateY(-1px);
+  border-color: #c084fc;
+  box-shadow: 0 0 16px rgba(192, 132, 252, 0.45);
+}
+
+.tle-lobby-corner-btn {
+  padding: 6px 13px;
+  border-radius: 9px;
+  background: rgba(127, 29, 29, 0.35);
+  border: 1.5px solid rgba(248, 113, 113, 0.55);
+  color: #fecaca;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.tle-lobby-corner-btn:hover {
+  background: rgba(185, 28, 28, 0.55);
+  transform: translateY(-1px);
+}
+
+.tle-corner-loop-badge {
+  background: rgba(88, 28, 135, 0.55);
+  border: 1.5px solid #c084fc;
+  color: #f3e8ff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 5px 12px;
+  border-radius: 9px;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.35);
+}
+
+.tle-players-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tle-player-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #f8fafc;
+  background: rgba(24, 20, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  cursor: pointer;
+}
+
+.tle-player-you {
+  border-color: rgba(74, 222, 128, 0.55);
+}
+
+.tle-player-friend {
+  border-color: rgba(56, 189, 248, 0.55);
+}
+
+.tle-p-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tle-dot-you {
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+}
+
+.tle-dot-friend {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+.tle-diff-group {
+  display: inline-flex;
+  background: rgba(20, 16, 36, 0.9);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.tle-diff-btn {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.tle-diff-btn.tle-diff-active {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+.tle-header-center {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tle-title-line {
+  width: 72px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(192, 132, 252, 0.7), transparent);
+}
+
+.tle-title-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-loop-emblem {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  color: rgba(168, 85, 247, 0.55);
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+  pointer-events: none;
+}
+
+.tle-title {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #f8fafc;
+  text-shadow: 0 0 16px rgba(192, 132, 252, 0.65);
+}
+
+.tle-timer-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: rgba(24, 18, 43, 0.9);
+  border: 1.5px solid #a855f7;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+}
+
+.tle-timer-pill.tle-timer-urgent {
+  border-color: #ef4444;
+  color: #fca5a5;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+}
+
+.tle-ctrl-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1.5px solid rgba(167, 139, 250, 0.5);
+  background: rgba(30, 25, 52, 0.9);
+  color: #f8fafc;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.tle-ctrl-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.tle-ctrl-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tle-ctrl-start {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  border-color: #4ade80;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
+}
+
+.tle-ctrl-start.tle-ctrl-restart-mode {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  border-color: #fbbf24;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.45);
+}
+
+.tle-ctrl-stop {
+  background: rgba(153, 27, 27, 0.8);
+  border-color: #f87171;
+}
+
+.tle-ctrl-restart {
+  background: rgba(88, 28, 135, 0.75);
+  border-color: #c084fc;
+}
+
+/* ================= MAIN ILLUSTRATED ROOM STAGE ================= */
+.tle-stage-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background: #08060e;
+  overflow: hidden;
+}
+
+.tle-room-stage {
+  position: relative;
+  width: 100%;
+  max-width: 1220px;
+  height: 600px;
+  min-height: 540px;
+  max-height: 680px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(168, 85, 247, 0.35);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  background: #1c1824;
+}
+
+/* Room Back Wall, Left Perspective Wall & Wooden Floor */
+.tle-wall-back {
+  position: absolute;
+  inset: 0 0 24% 18%;
+  background: radial-gradient(circle at 42% 45%, #352f44 0%, #221d2d 60%, #16131f 100%);
+  border-bottom: 4px solid #120e17;
+}
+
+.tle-wall-left {
+  position: absolute;
+  top: 0;
+  bottom: 20%;
+  left: 0;
+  width: 20%;
+  background: linear-gradient(90deg, #161422 0%, #252036 100%);
+  border-right: 2px solid #13101c;
+  z-index: 2;
+}
+
+.tle-floor {
+  position: absolute;
+  inset: 76% 0 0 0;
+  background: linear-gradient(180deg, #231710 0%, #160e09 100%);
+  border-top: 3px solid #38251a;
+  z-index: 1;
+}
+
+/* Rainy Night Window & Venetian Blinds */
+.tle-window-frame {
+  position: absolute;
+  top: 7%;
+  left: 10%;
+  width: 78%;
+  height: 62%;
+  border: 6px solid #2b1d14;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #0b192c;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.8), 6px 10px 28px rgba(0, 0, 0, 0.6);
+}
+
+.tle-window-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0b1528 0%, #162e4d 65%, #0f2138 100%);
+}
+
+.tle-rain-layer {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    105deg,
+    transparent 0px,
+    transparent 12px,
+    rgba(147, 197, 253, 0.22) 12px,
+    rgba(147, 197, 253, 0.22) 13px
+  );
+}
+
+.tle-window-blinds {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(43, 29, 20, 0.88) 0px,
+    rgba(43, 29, 20, 0.88) 6px,
+    transparent 6px,
+    transparent 16px
+  );
+}
+
+.tle-ivy-left {
+  position: absolute;
+  top: 2%;
+  left: 2%;
+  font-size: 2.2rem;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+}
+
+/* Warm or UV Lamp Light Cone */
+.tle-lamp-cone {
+  position: absolute;
+  top: 28%;
+  left: 12%;
+  width: 340px;
+  height: 290px;
+  background: radial-gradient(ellipse at 32% 20%, rgba(251, 191, 36, 0.26) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 4;
+  transition: opacity 0.25s ease, background 0.3s ease;
+}
+
+.tle-uv-room .tle-lamp-cone {
+  width: 650px;
+  height: 420px;
+  background: radial-gradient(ellipse at 35% 25%, rgba(168, 85, 247, 0.38) 0%, transparent 75%);
+}
+
+.tle-lamp-off .tle-lamp-cone {
+  opacity: 0.05;
+}
+
+.tle-uv-wall-secret {
+  position: absolute;
+  top: 7%;
+  left: 52%;
+  font-family: "Courier New", monospace;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #e879f9;
+  text-shadow: 0 0 12px #a855f7;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.tle-uv-room .tle-uv-wall-secret {
+  opacity: 1;
+}
+
+.tle-fuse-spark {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 1.1rem;
+  filter: drop-shadow(0 0 8px #facc15);
+}
+
+/* Feedback & Reset Toasts (z-index 95 so it is NEVER behind modals!) */
+.tle-feedback-toast {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 12, 28, 0.96);
+  border: 1.5px solid #c084fc;
+  color: #f8fafc;
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  z-index: 95;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.75);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.tle-toast-reset {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(185, 28, 28, 0.94);
+  border: 1px solid #fca5a5;
+  color: #ffffff;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  z-index: 25;
+}
+
+/* ================= 1. BLUE MOUNTAIN PAINTING & WALL SAFE ================= */
+.tle-painting-zone {
+  position: absolute;
+  top: 15%;
+  left: 25%;
+  width: 136px;
+  height: 174px;
+  z-index: 5;
+}
+
+.tle-wall-safe {
+  position: absolute;
+  inset: 14px;
+  background: #0d0b14;
+  border: 3px solid #334155;
+  border-radius: 6px;
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-safe-key-btn {
+  background: rgba(251, 191, 36, 0.14);
+  border: 1.5px solid #fbbf24;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #fde68a;
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.45);
+}
+
+.tle-svg-key {
+  width: 42px;
+  height: 42px;
+}
+
+.tle-key-sparkle {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.tle-painting-btn {
+  position: absolute;
+  inset: 0;
+  padding: 7px;
+  background: linear-gradient(135deg, #5c3a21, #382212);
+  border: 2px solid rgba(255, 255, 255, 0.78);
+  border-radius: 6px;
+  box-shadow: 0 0 16px rgba(192, 132, 252, 0.45), 0 10px 24px rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+  transition: transform 0.35s ease, box-shadow 0.2s ease;
+}
+
+.tle-painting-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 22px rgba(96, 165, 250, 0.75);
+}
+
+.tle-painting-btn.tle-painting-open {
+  transform: translateX(-82px) rotate(-6deg);
+}
+
+.tle-painting-svg {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #93c5fd;
+  display: block;
+}
+
+.tle-painting-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #60a5fa;
+  color: #bfdbfe;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tle-cursor-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 1.25rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+/* ================= 2. WOODEN DOUBLE-DOOR CABINET ================= */
+.tle-cabinet-zone {
+  position: absolute;
+  top: 14%;
+  left: 42%;
+  width: 162px;
+  height: 62%;
+  z-index: 5;
+}
+
+.tle-cabinet-ivy {
+  position: absolute;
+  top: -14px;
+  left: -8px;
+  font-size: 1.45rem;
+  z-index: 7;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.7));
+}
+
+.tle-cabinet-btn {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: linear-gradient(180deg, #4a2816 0%, #321a0d 100%);
+  border: 3px solid #241208;
+  border-radius: 4px 4px 0 0;
+  box-shadow: -8px 10px 28px rgba(0, 0, 0, 0.75);
+  cursor: pointer;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.tle-cabinet-btn:hover {
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.35), -8px 10px 28px rgba(0, 0, 0, 0.75);
+}
+
+.tle-cabinet-top-trim {
+  height: 14px;
+  background: #2b150a;
+  border-bottom: 2px solid #1a0c05;
+}
+
+.tle-cabinet-doors {
+  position: absolute;
+  inset: 14px 6px 6px 6px;
+  display: flex;
+  gap: 3px;
+  z-index: 3;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.tle-cabinet-open .tle-cabinet-doors {
+  transform: scaleX(0.18);
+  opacity: 0.25;
+}
+
+.tle-cabinet-door {
+  flex: 1;
+  background: linear-gradient(180deg, #542e19 0%, #3d2010 100%);
+  border: 2px solid #261309;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+  position: relative;
+}
+
+.tle-door-panel {
+  height: 44%;
+  border: 2px solid #2b150a;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.tle-cabinet-interior {
+  position: absolute;
+  inset: 20px 12px 12px 12px;
+  background: #140b06;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fde68a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.tle-glow-badge {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.4rem;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9));
+  z-index: 6;
+}
+
+/* ================= 3. CORKBOARD & 1998 PHOTOGRAPH ================= */
+.tle-corkboard-btn {
+  position: absolute;
+  top: 14%;
+  left: 61%;
+  width: 175px;
+  height: 140px;
+  background: #7c4d2b;
+  border: 6px solid #422512;
+  border-radius: 4px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+  z-index: 5;
+  padding: 8px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tle-corkboard-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.45);
+}
+
+.tle-polaroid {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  width: 88px;
+  background: #f1f5f9;
+  padding: 5px 5px 3px 5px;
+  transform: rotate(-3deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.tle-pin {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  margin: 0 auto 3px auto;
+}
+
+.tle-building-svg {
+  width: 100%;
+  height: 46px;
+  display: block;
+}
+
+.tle-polaroid-caption {
+  font-family: "Courier New", monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1e293b;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.tle-sticky {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  background: #eab308;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.tle-sticky-1 {
+  top: 18px;
+  right: 16px;
+  transform: rotate(4deg);
+}
+
+.tle-sticky-2 {
+  bottom: 14px;
+  right: 16px;
+  transform: rotate(-3deg);
+}
+
+.tle-sticky-3 {
+  bottom: 12px;
+  left: 22px;
+  transform: rotate(5deg);
+}
+
+/* ================= 4. COMPUTER DESK & LOCKED MONITOR ================= */
+.tle-computer-desk-zone {
+  position: absolute;
+  top: 43%;
+  left: 58%;
+  width: 230px;
+  height: 36%;
+  z-index: 6;
+}
+
+.tle-monitor-btn {
+  position: absolute;
+  top: 0;
+  left: 42px;
+  width: 132px;
+  height: 92px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.tle-monitor-screen {
+  width: 100%;
+  height: 78px;
+  background: linear-gradient(180deg, #0f1b3d 0%, #091026 100%);
+  border: 2.5px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 0 18px rgba(147, 197, 253, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tle-monitor-btn:hover .tle-monitor-screen {
+  border-color: #38bdf8;
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.75);
+}
+
+.tle-monitor-screen.tle-monitor-unlocked {
+  border-color: #4ade80;
+  box-shadow: 0 0 22px rgba(74, 222, 128, 0.65);
+}
+
+.tle-monitor-screen.tle-monitor-unpowered {
+  background: #090a10;
+  border-color: #475569;
+  box-shadow: none;
+  opacity: 0.75;
+}
+
+.tle-monitor-lock {
+  font-size: 1rem;
+}
+
+.tle-monitor-passbox {
+  border: 1px solid rgba(226, 232, 240, 0.75);
+  border-radius: 4px;
+  padding: 2px 12px;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  color: #f8fafc;
+}
+
+.tle-monitor-stand {
+  width: 34px;
+  height: 10px;
+  background: #64748b;
+  margin: 0 auto;
+  border-radius: 0 0 4px 4px;
+}
+
+.tle-pencil-cup {
+  position: absolute;
+  top: 56px;
+  left: 16px;
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.tle-right-desk {
+  position: absolute;
+  top: 86px;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: linear-gradient(180deg, #6b3e23, #4a2916);
+  border-radius: 3px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.tle-desk-leg {
+  position: absolute;
+  top: 16px;
+  width: 10px;
+  height: 92px;
+  background: #3d2212;
+}
+
+.tle-leg-l {
+  left: 12px;
+}
+
+.tle-leg-r {
+  right: 12px;
+}
+
+/* ================= 5. PANELED EXIT DOOR + 3D PORTAL (Far Right) ================= */
+.tle-door-zone {
+  position: absolute;
+  top: 18%;
+  right: 4%;
+  width: 138px;
+  height: 58%;
+  padding: 8px;
+  background: #14111d;
+  border-radius: 4px 4px 0 0;
+  z-index: 5;
+  perspective: 750px;
+}
+
+.tle-door-portal-Light {
+  position: absolute;
+  inset: 8px;
+  border-radius: 4px;
+  border: 2px solid #fde047;
+  background: radial-gradient(circle at 50% 45%, #fde047 0%, #c084fc 45%, #3b0764 100%);
+  box-shadow: inset 0 0 28px rgba(250, 204, 21, 0.8), 0 0 24px rgba(250, 204, 21, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.tle-portal-cyber {
+  background: radial-gradient(circle at 50% 45%, #67e8f9 0%, #0284c7 50%, #0f172a 100%);
+}
+
+.tle-portal-victory {
+  background: radial-gradient(circle at 50% 45%, #86efac 0%, #16a34a 50%, #052e16 100%);
+}
+
+.tle-portal-sparkle {
+  font-size: 2rem;
+}
+
+.tle-portal-text {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+}
+
+.tle-exit-door-btn {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #241f30 0%, #181421 100%);
+  border: 2px solid rgba(226, 232, 240, 0.75);
+  border-radius: 4px;
+  box-shadow: 0 0 14px rgba(192, 132, 252, 0.35);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px;
+  cursor: pointer;
+  transform-origin: left center;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tle-exit-door-btn.tle-door-swung-open {
+  transform: rotateY(-102deg);
+  border-color: #4ade80;
+  box-shadow: 0 0 32px rgba(74, 222, 128, 0.85);
+}
+
+.tle-exit-door-btn:hover {
+  border-color: #c084fc;
+  box-shadow: 0 0 22px rgba(192, 132, 252, 0.65);
+}
+
+.tle-exit-door-btn.tle-door-unlocked {
+  border-color: #4ade80;
+  box-shadow: 0 0 28px rgba(74, 222, 128, 0.65);
+}
+
+.tle-exit-panel {
+  height: 26%;
+  border: 2px solid #120e1a;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.tle-exit-panel-mid {
+  height: 34%;
+}
+
+.tle-door-handle {
+  position: absolute;
+  top: 52%;
+  left: 10px;
+  width: 18px;
+  height: 5px;
+  background: #d97706;
+  border-radius: 3px;
+}
+
+.tle-door-badge {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  color: #f8fafc;
+  text-shadow: 0 0 12px rgba(192, 132, 252, 0.9);
+}
+
+/* ================= 6. FOREGROUND LEFT STUDY DESK, LAMP & BOOK ================= */
+.tle-left-desk-zone {
+  position: absolute;
+  bottom: 16%;
+  left: 0;
+  width: 44%;
+  height: 28%;
+  z-index: 8;
+}
+
+.tle-left-desk-surface {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 75%;
+  background: linear-gradient(135deg, #6e3f22 0%, #422412 100%);
+  border-top: 3px solid #8c5430;
+  border-right: 4px solid #2b160a;
+  border-radius: 0 18px 0 0;
+  box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.8);
+}
+
+/* Desk Lamp */
+.tle-lamp-btn {
+  position: absolute;
+  top: -78px;
+  left: 72px;
+  width: 78px;
+  height: 92px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.tle-lamp-shade {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  width: 46px;
+  height: 28px;
+  background: #1e293b;
+  border: 2px solid #ca8a04;
+  border-radius: 22px 22px 4px 4px;
+  transform: rotate(24deg);
+}
+
+.tle-lamp-bulb {
+  position: absolute;
+  top: 24px;
+  right: 10px;
+  width: 18px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fef08a;
+  box-shadow: 0 0 18px #facc15;
+}
+
+.tle-lamp-off .tle-lamp-bulb {
+  background: #475569;
+  box-shadow: none;
+}
+
+.tle-lamp-arm {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 5px;
+  height: 58px;
+  background: #ca8a04;
+  transform: rotate(-16deg);
+}
+
+.tle-lamp-base {
+  position: absolute;
+  bottom: 0;
+  left: 6px;
+  width: 44px;
+  height: 12px;
+  border-radius: 999px;
+  background: #334155;
+  border: 2px solid #ca8a04;
+}
+
+/* Stacked Books */
+.tle-book-stack {
+  position: absolute;
+  top: -22px;
+  left: 205px;
+  width: 78px;
+}
+
+.tle-stacked-book {
+  height: 14px;
+  background: #78350f;
+  border: 1.5px solid #451a03;
+  border-radius: 2px;
+  margin-bottom: 2px;
+}
+
+/* Open Clue Journal Book */
+.tle-open-book-btn {
+  position: absolute;
+  top: 12px;
+  left: 142px;
+  width: 120px;
+  height: 46px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.tle-open-book-btn:hover {
+  transform: scale(1.06);
+}
+
+.tle-book-pages {
+  display: flex;
+  width: 100%;
+  height: 36px;
+  background: #fef3c7;
+  border: 2px solid #c084fc;
+  border-radius: 4px;
+  box-shadow: 0 0 16px rgba(192, 132, 252, 0.55);
+  transform: skewX(-14deg);
+}
+
+.tle-page-left,
+.tle-page-right {
+  flex: 1;
+  border-right: 1px solid #d97706;
+}
+
+.tle-magnifier-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(30, 25, 52, 0.92);
+  border: 1.5px solid #c084fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  box-shadow: 0 0 10px rgba(192, 132, 252, 0.65);
+}
+
+/* ================= BOTTOM FLOATING GLASS DOCK (INVENTORY | CLUES) ================= */
+.tle-bottom-dock {
+  position: absolute;
+  bottom: 14px;
+  left: 3%;
+  right: 3%;
+  height: 92px;
+  background: rgba(20, 16, 36, 0.92);
+  border: 1.5px solid rgba(168, 85, 247, 0.45);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  padding: 0 26px;
+  gap: 24px;
+  z-index: 15;
+}
+
+.tle-inventory-panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tle-dock-label-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tle-dock-label {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #f8fafc;
+}
+
+.tle-dock-sub {
+  font-size: 0.68rem;
+  color: #a78bfa;
+}
+
+.tle-inv-slots {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tle-inv-slot {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  border-radius: 12px;
+  background: rgba(36, 30, 58, 0.7);
+  border: 1.5px solid rgba(148, 163, 184, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  color: #f8fafc;
+  padding: 4px;
+}
+
+.tle-inv-slot-filled {
+  border-color: #a855f7;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.5);
+  background: rgba(59, 39, 102, 0.55);
+  cursor: pointer;
+}
+
+.tle-inv-slot-active {
+  border-color: #facc15;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.65);
+}
+
+.tle-slot-key-svg {
+  width: 30px;
+  height: 30px;
+}
+
+.tle-slot-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.tle-slot-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #e9d5ff;
+  margin-top: 2px;
+}
+
+.tle-scoreboard-box {
+  background: rgba(30, 24, 50, 0.85);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tle-score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.tle-score-row strong {
+  color: #fef08a;
+}
+
+.tle-dock-divider {
+  width: 1.5px;
+  height: 56px;
+  background: rgba(168, 85, 247, 0.35);
+}
+
+.tle-clues-panel {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tle-clues-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+}
+
+.tle-clue-empty {
+  list-style: none;
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 0.88rem;
+}
+
+/* ================= MODALS, BLUR TARGET & 3 UNIQUE ROOM SCENES ================= */
+.tle-room-blur-target {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.tle-room-blurred {
+  filter: blur(10px) brightness(0.65);
+  pointer-events: none;
+  user-select: none;
+}
+
+.tle-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tle-room-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(18, 14, 32, 0.92);
+  border: 1.5px solid rgba(192, 132, 252, 0.65);
+  color: #f3e8ff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 5px 18px;
+  border-radius: 999px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
+  z-index: 26;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.tle-banner-hidden {
+  opacity: 0 !important;
+  transform: translate(-50%, -10px) !important;
+  pointer-events: none !important;
+}
+
+.tle-green-escape-pill {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 78, 59, 0.95);
+  border: 1.5px solid #4ade80;
+  color: #bbf7d0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 6px 20px;
+  border-radius: 999px;
+  box-shadow: 0 0 24px rgba(74, 222, 128, 0.55);
+  z-index: 30;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+/* ================= ROOM 2: SUB-ZERO CRYO-LAB ================= */
+.tle-r2-backdrop {
+  position: absolute;
+  inset: 0 0 24% 0;
+  background: radial-gradient(circle at 50% 35%, #06283d 0%, #031525 58%, #020b14 100%);
+  border-bottom: 5px solid #06b6d4;
+  box-shadow: inset 0 -20px 50px rgba(6, 182, 212, 0.28);
+}
+
+.tle-r2-rose-arch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 110px;
+  opacity: 0.92;
+}
+
+.tle-rose-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 18px rgba(6, 182, 212, 0.65));
+}
+
+.tle-r2-pillars {
+  position: absolute;
+  inset: 0 12%;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.tle-r2-pillar {
+  width: 28px;
+  height: 100%;
+  background: linear-gradient(90deg, #082f49, #0e7490, #082f49);
+  border-left: 2px solid #22d3ee;
+  border-right: 2px solid #eab308;
+  opacity: 0.7;
+}
+
+.tle-r2-marble-floor {
+  position: absolute;
+  inset: 76% 0 0 0;
+  background: repeating-linear-gradient(
+    90deg,
+    #020b14 0px,
+    #020b14 64px,
+    #061e31 64px,
+    #061e31 128px
+  );
+  border-top: 3px solid #06b6d4;
+}
+
+.tle-gram-svg,
+.tle-vault-svg {
+  width: 68px;
+  height: 68px;
+}
+
+.tle-r3-neon-arch {
+  position: absolute;
+  inset: 14px 18% 0;
+  border: 2px solid rgba(34, 211, 238, 0.35);
+  border-bottom: none;
+  border-radius: 32px 32px 0 0;
+  box-shadow: inset 0 0 30px rgba(34, 211, 238, 0.18);
+  pointer-events: none;
+}
+
+/* ================= ROOM 2: THE CRIMSON PARLOR & CIPHER LOUNGE ================= */
+.tle-r2-wallpaper {
+  position: absolute;
+  inset: 0 0 24% 0;
+  background: radial-gradient(circle at 50% 40%, #4c1127 0%, #2d0917 65%, #19040c 100%);
+  border-bottom: 5px solid #78350f;
+}
+
+.tle-r2-wainscot {
+  position: absolute;
+  inset: 68% 0 0 0;
+  background: repeating-linear-gradient(
+    90deg,
+    #3b1c0e 0px,
+    #3b1c0e 42px,
+    #291208 42px,
+    #291208 46px
+  );
+  border-top: 3px solid #b45309;
+}
+
+.tle-r2-floor {
+  position: absolute;
+  inset: 76% 0 0 0;
+  background: linear-gradient(180deg, #27130a 0%, #140904 100%);
+}
+
+.tle-r2-rug {
+  position: absolute;
+  top: 16px;
+  left: 14%;
+  right: 18%;
+  height: 44px;
+  background: linear-gradient(90deg, #7f1d1d, #991b1b, #7f1d1d);
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+}
+
+.tle-r2-gramophone {
+  position: absolute;
+  top: 26%;
+  left: 5%;
+  width: 128px;
+  height: 170px;
+  background: rgba(4, 29, 49, 0.9);
+  border: 2px solid #06b6d4;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 22px rgba(6, 182, 212, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  z-index: 6;
+}
+
+.tle-r2-gramophone:hover,
+.tle-r2-coffee-table:hover,
+.tle-r2-bookshelf:hover,
+.tle-r2-vault-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(6, 182, 212, 0.65);
+}
+
+.tle-gram-horn {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.6));
+}
+
+.tle-gram-disc {
+  font-size: 1.4rem;
+}
+
+.tle-obj-tag,
+.tle-table-badge,
+.tle-bookshelf-badge,
+.tle-vault-status,
+.tle-r3-tag {
+  background: rgba(15, 10, 28, 0.92);
+  border: 1px solid #fbbf24;
+  color: #fef08a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+/* Coffee Table with Scrambled Letter Tiles */
+.tle-r2-coffee-table {
+  position: absolute;
+  bottom: 20%;
+  left: 16%;
+  width: 240px;
+  height: 112px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.18s ease;
+}
+
+.tle-table-top {
+  width: 100%;
+  height: 76px;
+  background: linear-gradient(135deg, #083344 0%, #041e2e 100%);
+  border: 2.5px solid #06b6d4;
+  border-radius: 18px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85), 0 0 22px rgba(6, 182, 212, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  position: relative;
+}
+
+.tle-teacup {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  font-size: 1.2rem;
+}
+
+.tle-mini-tiles {
+  display: flex;
+  gap: 6px;
+}
+
+.tle-mini-tile {
+  width: 26px;
+  height: 26px;
+  background: #fef3c7;
+  border: 1.5px solid #d97706;
+  border-radius: 5px;
+  color: #451a03;
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.tle-table-legs {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.tle-table-legs span {
+  width: 10px;
+  height: 32px;
+  background: #451a03;
+  border: 1px solid #78350f;
+}
+
+/* Center Fireplace & Rotary Safe */
+.tle-r2-fireplace-zone {
+  position: absolute;
+  top: 14%;
+  left: 41%;
+  width: 200px;
+  height: 62%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 5;
+}
+
+.tle-r2-vault-btn {
+  width: 140px;
+  height: 110px;
+  background: radial-gradient(circle, #334155 0%, #0f172a 100%);
+  border: 2.5px solid #fbbf24;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+  transition: transform 0.18s ease;
+}
+
+.tle-vault-wheel {
+  font-size: 2.3rem;
+}
+
+.tle-r2-fireplace {
+  width: 100%;
+  height: 185px;
+  background: #041d2e;
+  border: 3px solid #06b6d4;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), inset 0 0 24px rgba(6, 182, 212, 0.3);
+}
+
+.tle-mantle-shelf {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  font-size: 1.25rem;
+  border-bottom: 3px solid #eab308;
+  padding-bottom: 4px;
+}
+
+.tle-fire-hearth {
+  width: 82%;
+  height: 115px;
+  background: radial-gradient(circle at 50% 85%, #06b6d4 0%, #0284c7 50%, #020b14 100%);
+  border-radius: 50% 50% 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+.tle-fire-flames {
+  font-size: 2.6rem;
+  filter: hue-rotate(175deg) drop-shadow(0 0 18px #22d3ee);
+}
+
+/* Right-Center Cryo Manifold / Bookshelf */
+.tle-r2-bookshelf {
+  position: absolute;
+  top: 18%;
+  left: 63%;
+  width: 155px;
+  height: 58%;
+  background: #041f32;
+  border: 3px solid #06b6d4;
+  border-radius: 6px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85), 0 0 20px rgba(6, 182, 212, 0.35);
+  z-index: 5;
+  transition: transform 0.18s ease;
+}
+
+.tle-shelf-row {
+  width: 100%;
+  height: 36%;
+  border-bottom: 5px solid #78350f;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.tle-spine {
+  width: 20px;
+  height: 82%;
+  border-radius: 3px 3px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.tle-spine-blue {
+  background: #2563eb;
+}
+.tle-spine-red {
+  background: #dc2626;
+  height: 92%;
+}
+.tle-spine-gold {
+  background: #d97706;
+  height: 88%;
+}
+.tle-spine-green {
+  background: #16a34a;
+}
+.tle-spine-purple {
+  background: #7c3aed;
+}
+
+.tle-r2-door-btn {
+  background: linear-gradient(180deg, #083344 0%, #02131f 100%);
+  border-color: #06b6d4;
+}
+
+/* ================= ROOM 3: QUANTUM CORE VOID ================= */
+.tle-r3-wall {
+  position: absolute;
+  inset: 0 0 24% 0;
+  background: radial-gradient(circle at 50% 42%, #2e074d 0%, #130324 58%, #05020c 100%);
+  border-bottom: 4px solid #a855f7;
+}
+
+.tle-r3-grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(168, 85, 247, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(217, 70, 239, 0.14) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+.tle-r3-floor {
+  position: absolute;
+  inset: 76% 0 0 0;
+  background: linear-gradient(180deg, #120424 0%, #05020c 100%);
+}
+
+.tle-r3-tag {
+  border-color: #d946ef;
+  color: #f5d0fe;
+}
+
+.tle-r3-breaker {
+  position: absolute;
+  top: 20%;
+  left: 5%;
+  width: 150px;
+  height: 175px;
+  background: #0b1528;
+  border: 2px solid #22d3ee;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.3);
+  z-index: 6;
+  transition: transform 0.18s ease;
+}
+
+.tle-r3-breaker:hover,
+.tle-r3-holo-table:hover,
+.tle-r3-laser-panel:hover,
+.tle-r3-cryo:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 0 28px rgba(34, 211, 238, 0.6);
+}
+
+.tle-breaker-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 24px);
+  gap: 8px;
+}
+
+.tle-bm-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  background: #1e293b;
+  border: 1.5px solid #475569;
+}
+
+.tle-bm-dot.tle-bm-on {
+  background: #06b6d4;
+  border-color: #a5f3fc;
+  box-shadow: 0 0 10px #22d3ee;
+}
+
+.tle-r3-holo-table {
+  position: absolute;
+  bottom: 20%;
+  left: 20%;
+  width: 220px;
+  height: 125px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 9;
+  transition: transform 0.18s ease;
+}
+
+.tle-holo-beam {
+  width: 180px;
+  height: 70px;
+  background: linear-gradient(180deg, rgba(34, 211, 238, 0.08), rgba(34, 211, 238, 0.38));
+  border: 1.5px dashed #22d3ee;
+  border-radius: 14px 14px 4px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.4);
+}
+
+.tle-holo-letters {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #e0f2fe;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 12px #22d3ee;
+}
+
+.tle-holo-base {
+  width: 100%;
+  height: 40px;
+  background: #0f172a;
+  border: 2px solid #06b6d4;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-r3-laser-panel {
+  position: absolute;
+  top: 17%;
+  left: 42%;
+  width: 210px;
+  height: 175px;
+  background: #0b1322;
+  border: 2px solid #f43f5e;
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(244, 63, 94, 0.35);
+  z-index: 6;
+  transition: transform 0.18s ease;
+}
+
+.tle-laser-preview-svg {
+  width: 100%;
+  height: 118px;
+}
+
+.tle-r3-cryo {
+  position: absolute;
+  top: 18%;
+  left: 65%;
+  width: 140px;
+  height: 56%;
+  background: #0b1528;
+  border: 2px solid #22d3ee;
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 0 28px rgba(34, 211, 238, 0.35);
+  z-index: 6;
+  transition: transform 0.18s ease;
+}
+
+.tle-cryo-tube {
+  width: 82%;
+  height: 78%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.35), rgba(59, 130, 246, 0.15));
+  border: 2px solid #67e8f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 24px #06b6d4;
+}
+
+.tle-cryo-plasma {
+  font-size: 2.6rem;
+}
+
+.tle-r3-door-btn {
+  background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
+  border-color: #22d3ee;
+}
+
+/* ================= INTERACTIVE MINI-PUZZLE MODAL CONTROLS ================= */
+.tle-puzzle-modal {
+  max-width: 460px;
+}
+
+.tle-word-slots-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.tle-word-slot {
+  width: 44px;
+  height: 48px;
+  border-radius: 8px;
+  background: #0f0b1c;
+  border: 2px dashed #a855f7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fef08a;
+}
+
+.tle-word-slot-filled {
+  border-style: solid;
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.tle-letter-tiles-grid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.tle-letter-tile {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+  border: 2px solid #b45309;
+  color: #451a03;
+  font-size: 1.2rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.tle-holo-tile {
+  background: linear-gradient(135deg, #083344, #06b6d4);
+  border-color: #67e8f9;
+  color: #ecfeff;
+}
+
+.tle-book-pull-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 12px 0;
+}
+
+.tle-book-pull-btn {
+  background: #1e1630;
+  border: 2px solid #a855f7;
+  border-radius: 8px;
+  color: #f8fafc;
+  font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tle-book-pulled {
+  background: rgba(250, 204, 21, 0.2);
+  transform: translateX(12px);
+}
+
+.tle-dials-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 14px 0;
+}
+
+.tle-dial-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.tle-dial-wheel {
+  width: 58px;
+  height: 54px;
+  border-radius: 10px;
+  background: #0d0a16;
+  border: 2px solid #fbbf24;
+  color: #fef08a;
+  font-size: 1.35rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-dial-step {
+  width: 44px;
+  padding: 4px 0;
+  border-radius: 6px;
+  background: #271f3d;
+  border: 1px solid #a855f7;
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.tle-circuit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 74px);
+  justify-content: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.tle-circuit-cell {
+  height: 54px;
+  border-radius: 10px;
+  background: #0f172a;
+  border: 2px solid #475569;
+  color: #94a3b8;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tle-circuit-cell.tle-circuit-on {
+  background: rgba(6, 182, 212, 0.25);
+  border-color: #22d3ee;
+  color: #ecfeff;
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.55);
+}
+
+.tle-laser-interactive-svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  margin: 10px auto;
+  display: block;
+}
+
+.tle-mirror-controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.tle-mirror-btn {
+  background: #0f172a;
+  border: 1.5px solid #22d3ee;
+  color: #a5f3fc;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tle-mini-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.tle-puzzle-success {
+  color: #4ade80;
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin: 8px 0 0;
+}
+
+.tle-puzzle-error {
+  color: #f87171;
+  font-weight: 700;
+  font-size: 0.86rem;
+  margin: 8px 0 0;
+}
+
+/* In-Modal Puzzle Alert Banner (Right inside the active puzzle modal!) */
+.tle-modal-alert {
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.tle-modal-alert-error {
+  background: rgba(153, 27, 27, 0.45);
+  border: 1.5px solid #f87171;
+  color: #fecaca;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.45);
+}
+
+.tle-modal-alert-success {
+  background: rgba(20, 83, 45, 0.48);
+  border: 1.5px solid #4ade80;
+  color: #bbf7d0;
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.4);
+}
+
+/* ================= 2-PLAYER READY LOBBY & 5-4-3-2-1 COUNTDOWN ================= */
+.tle-ctrl-lobby {
+  background: rgba(30, 58, 138, 0.75);
+  border-color: #60a5fa;
+}
+
+.tle-lobby-card {
+  max-width: 520px;
+}
+
+.tle-lobby-header-pill {
+  display: inline-block;
+  background: rgba(88, 28, 135, 0.5);
+  border: 1px solid #c084fc;
+  color: #f3e8ff;
+  font-size: 0.78rem;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 6px;
+}
+
+.tle-lobby-players-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.tle-lobby-player-box {
+  background: rgba(30, 24, 52, 0.9);
+  border: 1.5px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.tle-lobby-box-ready {
+  border-color: #4ade80;
+  background: rgba(20, 60, 42, 0.38);
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.3);
+}
+
+.tle-lobby-avatar {
+  font-size: 1.9rem;
+}
+
+.tle-lobby-pname {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #f8fafc;
+}
+
+.tle-ready-badge {
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid #facc15;
+  color: #fef08a;
+}
+
+.tle-ready-badge.tle-ready-yes {
+  background: rgba(22, 163, 74, 0.25);
+  border-color: #4ade80;
+  color: #bbf7d0;
+}
+
+.tle-ready-toggle-btn {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 9px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  background: rgba(234, 179, 8, 0.18);
+  border: 1.5px solid #facc15;
+  color: #fef08a;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.tle-ready-toggle-btn.tle-ready-active {
+  background: rgba(22, 163, 74, 0.32);
+  border-color: #4ade80;
+  color: #bbf7d0;
+}
+
+.tle-game-end-card {
+  max-width: 390px;
+}
+
+.tle-verdict-title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin: 4px 0 8px 0;
+}
+
+.tle-verdict-won {
+  color: #4ade80;
+  text-shadow: 0 0 22px rgba(74, 222, 128, 0.65);
+}
+
+.tle-verdict-lost {
+  color: #f87171;
+  text-shadow: 0 0 22px rgba(248, 113, 113, 0.65);
+}
+
+/* PUBG-Style Tactical Slide-In Side Drawer (Right Edge) */
+.tle-pubg-side-drawer {
+  position: absolute;
+  top: 76px;
+  right: 16px;
+  width: 285px;
+  background: linear-gradient(135deg, rgba(20, 24, 42, 0.96), rgba(12, 15, 28, 0.98));
+  border: 1.5px solid #facc15;
+  border-left: 5px solid #facc15;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: -8px 12px 32px rgba(0, 0, 0, 0.85), 0 0 20px rgba(250, 204, 21, 0.35);
+  z-index: 65;
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease,
+    border-color 0.25s ease;
+  overflow: hidden;
+}
+
+.tle-pubg-side-drawer.tle-side-hidden {
+  transform: translateX(340px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tle-pubg-side-drawer.tle-pubg-rejected {
+  border-color: #ef4444;
+  border-left-color: #ef4444;
+  box-shadow: -8px 12px 32px rgba(0, 0, 0, 0.85), 0 0 22px rgba(239, 68, 68, 0.45);
+}
+
+.tle-pubg-side-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tle-pubg-icon {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.tle-pubg-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.tle-pubg-text-col strong {
+  font-size: 0.86rem;
+  color: #fef08a;
+  letter-spacing: 0.03em;
+}
+
+.tle-pubg-rejected .tle-pubg-text-col strong {
+  color: #fecaca;
+}
+
+.tle-pubg-text-col span {
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+
+.tle-pubg-side-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tle-pubg-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.12s ease;
+}
+
+.tle-pubg-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.tle-pubg-accept {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  border: 1px solid #4ade80;
+  color: #ffffff;
+}
+
+.tle-pubg-reject {
+  background: rgba(153, 27, 27, 0.65);
+  border: 1px solid #f87171;
+  color: #fecaca;
+}
+
+.tle-pubg-timer-bar {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, #facc15, #ef4444);
+  margin-top: 10px;
+  border-radius: 999px;
+}
+
+.tle-game-end-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.2);
+  border: 1.5px solid #facc15;
+  color: #fef08a;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+
+.tle-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tle-stat-card {
+  background: rgba(20, 16, 38, 0.9);
+  border: 1.5px solid rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tle-stat-winner {
+  border-color: #4ade80;
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.3);
+}
+
+.tle-stat-name {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.tle-stat-loops {
+  font-size: 1.15rem;
+  color: #fef08a;
+}
+
+.tle-whatsapp-hint {
+  font-size: 0.82rem;
+  color: #fde68a;
+  margin: 8px 0;
+}
+
+/* Synchronized 5 - 4 - 3 - 2 - 1 - GO! Countdown */
+.tle-countdown-box {
+  text-align: center;
+  padding: 30px 40px;
+  background: rgba(16, 12, 32, 0.95);
+  border: 2.5px solid #c084fc;
+  border-radius: 22px;
+  box-shadow: 0 0 60px rgba(168, 85, 247, 0.7);
+}
+
+.tle-countdown-sub {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #e9d5ff;
+}
+
+.tle-countdown-number {
+  font-size: 5.2rem;
+  font-weight: 900;
+  color: #fef08a;
+  text-shadow: 0 0 32px #facc15;
+  margin: 10px 0;
+}
+
+.tle-countdown-players {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+/* Aesthetic 3D Doorway Portal Modal */
+.tle-portal-card {
+  max-width: 460px;
+}
+
+.tle-aesthetic-door-frame {
+  position: relative;
+  width: 120px;
+  height: 170px;
+  margin: 0 auto 14px;
+  padding: 6px;
+  background: #1e152a;
+  border: 3px solid #fbbf24;
+  border-radius: 10px 10px 0 0;
+  perspective: 600px;
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
+}
+
+.tle-aesthetic-portal-glow {
+  position: absolute;
+  inset: 6px;
+  border-radius: 6px 6px 0 0;
+  background: radial-gradient(circle at 50% 45%, #fef08a 0%, #a855f7 55%, #1e1b4b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-portal-Corridor-icon {
+  font-size: 2.4rem;
+}
+
+.tle-aesthetic-door-leaf {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #3b2110 0%, #241308 100%);
+  border: 2px solid #d97706;
+  border-radius: 6px 6px 0 0;
+  transform-origin: left center;
+  transform: rotateY(-108deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 10px;
+  box-shadow: 10px 6px 24px rgba(0, 0, 0, 0.8);
+}
+
+.tle-leaf-panel {
+  height: 36%;
+  border: 1.5px solid #78350f;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.tle-leaf-knob {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fbbf24;
+}
+
+.tle-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 6, 16, 0.78);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+
+.tle-blur-backdrop {
+  background: rgba(6, 4, 14, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.tle-modal-card {
+  background: #181326;
+  border: 1.5px solid #a855f7;
+  border-radius: 14px;
+  padding: 22px 26px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+}
+
+.tle-center-popup {
+  max-width: 450px;
+  border: 2px solid #c084fc;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.92),
+    0 0 36px rgba(168, 85, 247, 0.45);
+}
+
+.tle-popup-icon {
+  font-size: 2.3rem;
+  margin-bottom: 6px;
+}
+
+.tle-popup-desc {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin: 6px 0 12px;
+}
+
+.tle-btn-lg {
+  padding: 10px 20px;
+  font-size: 0.92rem;
+}
+
+.tle-modal-card h3 {
+  margin-top: 0;
+  color: #f8fafc;
+}
+
+.tle-zoom-card {
+  background: rgba(30, 24, 50, 0.85);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  border-radius: 10px;
+  padding: 14px;
+  margin: 10px 0;
+}
+
+.tle-zoom-handwriting {
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  color: #fde68a;
+  margin: 0 0 8px 0;
+}
+
+.tle-zoom-photo-year {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-bottom: 6px;
+}
+
+.tle-zoom-sub {
+  font-size: 0.86rem;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+.tle-passcode-area {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tle-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  justify-content: center;
+  gap: 6px;
+}
+
+.tle-kp-btn {
+  background: #271f3d;
+  border: 1px solid #a855f7;
+  color: #f8fafc;
+  font-weight: 700;
+  padding: 7px 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tle-kp-btn:hover {
+  background: #3b2d5c;
+}
+
+.tle-kp-enter {
+  background: #4c1d95;
+}
+
+.tle-code-input-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tle-code-input {
+  width: 110px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1.5px solid #a855f7;
+  background: #0d0a16;
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.16em;
+}
+
+.tle-modal-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.tle-primary-btn {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border: 1px solid #a855f7;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tle-secondary-btn {
+  background: #271f3d;
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  color: #e2e8f0;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ================= HIGH-CONTRAST ROOM THEME ENGINE ================= */
+@keyframes warpEffect {
+  0% {
+    box-shadow: inset 0 0 50px rgba(168, 85, 247, 0.5);
+  }
+  50% {
+    box-shadow: inset 0 0 75px rgba(217, 70, 239, 0.75);
+  }
+  100% {
+    box-shadow: inset 0 0 50px rgba(168, 85, 247, 0.5);
+  }
+}
+
+.room-1-office .game-viewport {
+  background: #0d0f12 !important;
+  border: 2px double #d97706; /* Retro Amber */
+}
+
+.room-2-cryolab .game-viewport {
+  background: #020b14 !important;
+  border: 2px solid #06b6d4; /* Neon Ice Blue */
+  box-shadow: inset 0 0 40px rgba(6, 182, 212, 0.4);
+}
+
+.room-2-cryolab .game-viewport::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, transparent 50%, rgba(6, 182, 212, 0.15));
+  pointer-events: none; /* Frost Vignette */
+  z-index: 28;
+}
+
+.room-3-quantum .game-viewport {
+  background: #05020c !important;
+  border: 2.5px dashed #a855f7; /* Violet anomaly */
+  box-shadow: inset 0 0 50px rgba(168, 85, 247, 0.5);
+  animation: warpEffect 10s infinite linear;
+}
+
+/* ================= PROGRESSIVE ROOM HUD, DECAY & TRANSITION EFFECTS ================= */
+.tle-room-indicator-pill {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1.5px solid rgba(56, 189, 248, 0.55);
+  color: #e0f2fe;
+  font-family: "Courier New", monospace;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 5px 11px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.tle-root[data-room-diff="basic"] .tle-room-indicator-pill {
+  border-color: #f59e0b;
+  color: #fde68a;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+.tle-root[data-room-diff="medium"] .tle-room-indicator-pill {
+  border-color: #eab308;
+  color: #fef08a;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.35);
+}
+
+.tle-root[data-room-diff="hard"] .tle-room-indicator-pill {
+  border-color: #e879f9;
+  color: #fae8ff;
+  box-shadow: 0 0 16px rgba(217, 70, 239, 0.45);
+}
+
+/* Glitch increment animation on LOOP #XX badge */
+@keyframes tle-glitch-pulse {
+  0% {
+    transform: translate(0, 0) skewX(0deg);
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    transform: translate(-3px, 1px) skewX(-8deg);
+    background: rgba(220, 38, 38, 0.75);
+  }
+  50% {
+    transform: translate(3px, -1px) skewX(8deg);
+    filter: hue-rotate(90deg);
+  }
+  75% {
+    transform: translate(-2px, 0) skewX(-4deg);
+  }
+  100% {
+    transform: translate(0, 0) skewX(0deg);
+    filter: hue-rotate(0deg);
+  }
+}
+
+.tle-loop-glitch {
+  animation: tle-glitch-pulse 0.55s ease;
+}
+
+/* Smooth visual transition when advancing between rooms */
+@keyframes tle-room-warp-in {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.97);
+    filter: brightness(1.6) blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1) blur(0);
+  }
+}
+
+.tle-room-transitioning {
+  animation: tle-room-warp-in 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Room 1: 1980s Retro Surveillance Office Amber CRT Phosphor Accent */
+.tle-root[data-room-diff="basic"] .tle-monitor-screen {
+  background: linear-gradient(180deg, #291502 0%, #140900 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.45);
+}
+
+.tle-root[data-room-diff="basic"] .tle-monitor-passbox {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.75);
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+
+/* Room 2: Sub-Zero Cryo-Lab Deep Abyssal Navy & Hazard Yellow Telemetry */
+.tle-r2-telemetry-bar {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(7, 18, 38, 0.88);
+  border: 1.5px solid #eab308;
+  color: #fef08a;
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border-radius: 6px;
+  z-index: 12;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.35);
+}
+
+.tle-r2-hazard-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #eab308;
+  box-shadow: 0 0 10px #facc15;
+  animation: tle-pulse-urgent 0.9s infinite alternate;
+}
+
+.tle-r2-hazard-strip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #eab308 0px,
+    #eab308 12px,
+    #0f172a 12px,
+    #0f172a 24px
+  );
+}
+
+/* Room 2: 30-second mark Frosted Glass Vignette (.frost-decay) */
+.frost-decay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 32;
+  box-shadow:
+    inset 0 0 65px rgba(125, 211, 252, 0.55),
+    inset 0 0 130px rgba(186, 230, 253, 0.35);
+  border: 2px solid rgba(186, 230, 253, 0.65);
+  border-radius: inherit;
+}
+
+/* Room 3: Quantum Core Void Floating Spatial Anomalies & Gravity Warp (.gravity-warp) */
+@keyframes tle-float-anomaly {
+  0% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) rotate(18deg) scale(1.12);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+}
+
+.tle-r3-anomaly {
+  position: absolute;
+  font-size: 1.5rem;
+  color: #e879f9;
+  text-shadow: 0 0 18px #d946ef, 0 0 32px #a855f7;
+  pointer-events: none;
+  animation: tle-float-anomaly 3.2s ease-in-out infinite;
+}
+
+.tle-anomaly-1 {
+  top: 14%;
+  left: 28%;
+}
+
+.tle-anomaly-2 {
+  top: 16%;
+  right: 26%;
+  animation-delay: 1.4s;
+}
+
+@keyframes tle-gravity-wobble {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-0.45deg) scale(1.004);
+  }
+  50% {
+    transform: rotate(0deg) scale(0.997);
+  }
+  75% {
+    transform: rotate(0.45deg) scale(1.004);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.gravity-warp {
+  animation: tle-gravity-wobble 1.2s ease-in-out infinite;
+  box-shadow:
+    inset 0 0 70px rgba(217, 70, 239, 0.45),
+    0 0 36px rgba(168, 85, 247, 0.55) !important;
+}
+
+/* ================= ISOMETRIC 3D PERSPECTIVE & CCTV SURVEILLANCE CONSOLE ================= */
+.tle-cctv-hud-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 0 0 85px rgba(0, 0, 0, 0.72);
+}
+
+.tle-crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.18) 0px,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+}
+
+.tle-cam-bracket {
+  position: absolute;
+  font-family: "Courier New", monospace;
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: rgba(56, 189, 248, 0.75);
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.65);
+  line-height: 1;
+}
+
+.tle-cam-bracket-tl {
+  top: 10px;
+  left: 12px;
+}
+
+.tle-cam-bracket-tr {
+  top: 10px;
+  right: 12px;
+}
+
+.tle-cam-bracket-bl {
+  bottom: 112px;
+  left: 12px;
+}
+
+.tle-cam-bracket-br {
+  bottom: 112px;
+  right: 12px;
+}
+
+.tle-cam-crosshair {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border: 1px dashed rgba(56, 189, 248, 0.28);
+  border-radius: 50%;
+}
+
+.tle-cam-crosshair::before,
+.tle-cam-crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(56, 189, 248, 0.35);
+}
+
+.tle-cam-crosshair::before {
+  top: 50%;
+  left: -6px;
+  right: -6px;
+  height: 1px;
+}
+
+.tle-cam-crosshair::after {
+  left: 50%;
+  top: -6px;
+  bottom: -6px;
+  width: 1px;
+}
+
+.tle-cam-top-telemetry {
+  position: absolute;
+  top: 12px;
+  right: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(8, 15, 28, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #7dd3fc;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
+}
+
+.tle-cam-rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+  animation: tle-pulse-urgent 0.85s infinite alternate;
+}
+
+.tle-cam-bottom-coords {
+  position: absolute;
+  bottom: 114px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  justify-content: space-between;
+  font-family: "Courier New", monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(148, 163, 184, 0.78);
+}
+
+/* Isometric 3D Perspective Room Geometry & Ground Shadows */
+.tle-iso-scene {
+  perspective: 800px;
+  transform-style: preserve-3d;
+}
+
+.tle-iso-grid-plane {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.tle-iso-floor {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(56, 189, 248, 0.08) 0px,
+      rgba(56, 189, 248, 0.08) 1px,
+      transparent 1px,
+      transparent 48px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(56, 189, 248, 0.08) 0px,
+      rgba(56, 189, 248, 0.08) 1px,
+      transparent 1px,
+      transparent 24px
+    );
+  box-shadow: inset 0 18px 36px rgba(0, 0, 0, 0.8);
+}
+
+.tle-iso-depth-card {
+  transform: perspective(800px) rotateX(2deg) rotateY(-3deg);
+  filter: drop-shadow(0 16px 22px rgba(0, 0, 0, 0.85));
+  transition: transform 0.22s ease, filter 0.22s ease;
+}
+
+.tle-iso-depth-card:hover {
+  transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateY(-3px) scale(1.02);
+  filter: drop-shadow(0 20px 28px rgba(6, 182, 212, 0.45));
+}
+
+.tle-iso-blast-door {
+  transform: perspective(800px) rotateY(-12deg);
+  filter: drop-shadow(-10px 16px 24px rgba(0, 0, 0, 0.88));
+}
+
+.tle-cyan-anomaly-glow {
+  border-color: #22d3ee !important;
+  box-shadow:
+    0 0 24px rgba(34, 211, 238, 0.65),
+    inset 0 0 18px rgba(34, 211, 238, 0.35) !important;
+}
+
+/* Floating Magnetic Containment Rings in Room 3 */
+@keyframes tle-spin-ring {
+  0% {
+    transform: translate(-50%, -50%) perspective(800px) rotateX(62deg) rotateZ(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) perspective(800px) rotateX(62deg) rotateZ(360deg);
+  }
+}
+
+.tle-r3-magnetic-ring {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  border-radius: 50%;
+  border: 2px dashed rgba(217, 70, 239, 0.55);
+  box-shadow: 0 0 28px rgba(168, 85, 247, 0.45);
+  pointer-events: none;
+  animation: tle-spin-ring 12s linear infinite;
+}
+
+.tle-ring-outer {
+  width: 340px;
+  height: 340px;
+}
+
+.tle-ring-inner {
+  width: 220px;
+  height: 220px;
+  border-color: rgba(56, 189, 248, 0.55);
+  animation-direction: reverse;
+  animation-duration: 8s;
+}
+
+/* Hover / Proximity Tactical Reticle Bracket [ ⛶ ] (Zero Spoiler Overlays) */
+.tle-reticle-tag {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(6, 14, 26, 0.95);
+  border: 1px solid #22d3ee;
+  color: #67e8f9;
+  font-family: "Courier New", monospace;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.45);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 30;
+}
+
+.tle-iso-hotspot:hover .tle-reticle-tag,
+.tle-iso-hotspot:focus-visible .tle-reticle-tag,
+.tle-safe-key-btn:hover .tle-reticle-tag {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Focused Tactical Inspection Modal (.tactical-inspect-view) */
+.tactical-inspect-view .tle-tactical-modal {
+  background: linear-gradient(180deg, #0b1324 0%, #070b16 100%);
+  border: 1.5px solid #22d3ee;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.92),
+    0 0 32px rgba(34, 211, 238, 0.35);
+}
+
+.tle-tactical-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(34, 211, 238, 0.28);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  font-family: "Courier New", monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.tle-tactical-bracket {
+  color: #67e8f9;
+}
+
+.tle-tactical-sync-tag {
+  color: #4ade80;
+}
+
+/* Red Emergency Strobe (< 15s remaining) */
+@keyframes emergencyStrobe {
+  0%,
+  100% {
+    box-shadow: inset 0 0 45px rgba(220, 38, 38, 0.25);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 110px rgba(239, 68, 68, 0.72),
+      0 0 36px rgba(239, 68, 68, 0.65);
+  }
+}
+
+.emergency-strobe {
+  animation: emergencyStrobe 0.75s ease-in-out infinite !important;
+}
+
+/* 0.4s VHS / Static Glitch Rewind on Loop Reset (00:00) */
+@keyframes vhsGlitchRewind {
+  0% {
+    filter: contrast(1.8) brightness(1.5) saturate(0.2);
+    transform: translateX(-6px) skewX(-6deg);
+  }
+  35% {
+    filter: invert(0.85) hue-rotate(160deg);
+    transform: translateX(6px) skewX(8deg);
+  }
+  70% {
+    filter: contrast(2) brightness(1.3);
+    transform: translateX(-3px) skewX(-3deg);
+  }
+  100% {
+    filter: none;
+    transform: none;
+  }
+}
+
+.vhs-glitch-rewind {
+  animation: vhsGlitchRewind 0.4s steps(4, end);
+}
+
+.tle-vhs-rewind-layer {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.14) 0px,
+    rgba(255, 255, 255, 0.14) 2px,
+    rgba(6, 182, 212, 0.2) 2px,
+    rgba(0, 0, 0, 0.6) 6px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.tle-vhs-text {
+  font-family: "Courier New", monospace;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: #f8fafc;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 8px 18px;
+  border: 1.5px solid #22d3ee;
+  text-shadow: 2px 0 #ef4444, -2px 0 #06b6d4;
+}
+
+/* ================= EXACT MATCH: CCTV SURVEILLANCE MOCKUP STYLING ================= */
+
+/* Top HUD Center: 00:12 RESET IMMINENT & Progress Bar */
+.tle-cctv-hud-timer-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tle-top-urgent-pulse {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: #ef4444;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.85);
+  animation: tle-pulse-urgent 0.8s infinite alternate;
+}
+
+.tle-ecg-line {
+  font-size: 0.95rem;
+  letter-spacing: -0.05em;
+  color: #ef4444;
+}
+
+.tle-top-timer-display {
+  font-family: "Courier New", monospace;
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #ef4444;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.95), 0 0 35px rgba(220, 38, 38, 0.7);
+  line-height: 1;
+}
+
+.tle-timer-progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 220px;
+}
+
+.tle-prog-bound {
+  font-family: "Courier New", monospace;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.tle-prog-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+.tle-prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.75);
+  transition: width 0.3s ease;
+}
+
+.tle-prog-fill.tle-prog-urgent {
+  background: #ef4444;
+  box-shadow: 0 0 14px #ef4444;
+}
+
+/* Top Remote Player Status Pill (P2 REMOTE) */
+.tle-remote-p2-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(8, 20, 32, 0.85);
+  border: 1.5px solid rgba(34, 197, 94, 0.55);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #86efac;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.25);
+}
+
+.tle-p2-sync-dot {
+  color: #22c55e;
+  text-shadow: 0 0 8px #22c55e;
+}
+
+/* Surveillance Camera HUD Overlays & Pitch Rulers */
+.tle-cam-ruler-top {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  color: rgba(56, 189, 248, 0.55);
+}
+
+.tle-cam-top-left-status {
+  position: absolute;
+  top: 14px;
+  left: 34px;
+  font-family: "Courier New", monospace;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgba(56, 189, 248, 0.85);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.tle-cam-side-pitch {
+  position: absolute;
+  top: 36%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: "Courier New", monospace;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: rgba(56, 189, 248, 0.75);
+}
+
+.tle-pitch-left {
+  left: 20px;
+}
+
+.tle-pitch-right {
+  right: 20px;
+}
+
+.tle-pitch-ticks {
+  writing-mode: vertical-rl;
+  letter-spacing: 2px;
+  font-size: 0.62rem;
+  opacity: 0.6;
+}
+
+.tle-cam-bottom-left,
+.tle-cam-bottom-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: "Courier New", monospace;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.tle-cam-bottom-right {
+  text-align: right;
+}
+
+/* CCTV Room Background: Dark Teal Corner Perspective */
+.tle-cctv-wall-corner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 45%;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.35) 0%, rgba(6, 182, 212, 0.08) 100%);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.45);
+}
+
+/* In-World Blue Painting with Glowing Cyan Holographic Border */
+.tle-painting-btn.tle-cyan-anomaly-glow {
+  border: 3.5px solid #22d3ee !important;
+  box-shadow:
+    0 0 32px rgba(34, 211, 238, 0.85),
+    inset 0 0 24px rgba(34, 211, 238, 0.5) !important;
+  position: relative;
+  overflow: visible;
+}
+
+.tle-painting-cctv-label {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: "Courier New", monospace;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #7dd3fc;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.85);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tle-painting-inte-prompt {
+  position: absolute;
+  right: -130px;
+  top: 40%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(4, 18, 30, 0.88);
+  border: 1px solid #38bdf8;
+  padding: 3px 8px;
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
+  pointer-events: none;
+}
+
+.tle-inte-icon {
+  font-size: 0.95rem;
+  color: #38bdf8;
+  line-height: 1;
+}
+
+.tle-inte-text {
+  font-family: "Courier New", monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #e0f2fe;
+}
+
+/* Corner L-Desk Workstation */
+.tle-corner-l-desk-zone {
+  position: absolute;
+  top: 40%;
+  left: 36%;
+  width: 320px;
+  height: 38%;
+  z-index: 6;
+}
+
+.tle-l-desk-geometry {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tle-l-desk-top {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  width: 100%;
+  height: 22px;
+  background: linear-gradient(135deg, #422a1d 0%, #29180e 100%);
+  border-top: 2.5px solid #854d27;
+  border-radius: 4px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.9);
+}
+
+.tle-l-desk-drawers {
+  position: absolute;
+  top: 64px;
+  right: 18px;
+  width: 82px;
+  height: 110px;
+  background: linear-gradient(180deg, #331f13 0%, #1e110a 100%);
+  border: 2px solid #57331c;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 6px;
+  box-shadow: -8px 8px 24px rgba(0, 0, 0, 0.85);
+}
+
+.tle-drawer-line {
+  height: 2px;
+  background: #140b06;
+  border-bottom: 1.5px solid #6b3e21;
+}
+
+.tle-l-desk-leg {
+  position: absolute;
+  top: 64px;
+  left: 12px;
+  width: 10px;
+  height: 110px;
+  background: #1e110a;
+  border-right: 1.5px solid #4a2b16;
+}
+
+/* Photograph on Desk */
+.tle-desk-photo-btn {
+  position: absolute;
+  top: 10px;
+  left: 28px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 8;
+  transition: transform 0.18s ease;
+}
+
+.tle-desk-photo-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.tle-polaroid-frame {
+  width: 44px;
+  height: 52px;
+  background: #f1f5f9;
+  border: 1.5px solid #94a3b8;
+  border-radius: 2px;
+  padding: 4px 4px 8px 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  transform: rotate(-4deg);
+}
+
+.tle-polaroid-art {
+  width: 100%;
+  height: 100%;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-photo-silhouette {
+  font-size: 1.1rem;
+}
+
+.tle-desk-obj-label {
+  font-family: "Courier New", monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #e2e8f0;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+  margin-top: 4px;
+}
+
+.tle-desk-notepad {
+  position: absolute;
+  top: 48px;
+  left: 92px;
+  width: 24px;
+  height: 30px;
+  background: #fef08a;
+  border: 1px solid #ca8a04;
+  transform: rotate(6deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+/* Computer Station with Amber Outline Matching Image */
+.tle-computer-station-btn {
+  position: absolute;
+  top: -26px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 8;
+  transition: transform 0.18s ease;
+}
+
+.tle-computer-station-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.tle-cctv-computer-outline {
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow:
+    0 0 22px rgba(245, 158, 11, 0.65),
+    inset 0 0 14px rgba(245, 158, 11, 0.25);
+  background: rgba(15, 12, 8, 0.45);
+}
+
+.tle-cctv-monitor-box {
+  width: 95px;
+  height: 72px;
+  background: #cfc8b8;
+  border: 2.5px solid #8c8270;
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8);
+}
+
+.tle-cctv-screen-bezel {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #000;
+}
+
+.tle-cctv-keyboard-box {
+  margin-top: 6px;
+  width: 82px;
+  height: 16px;
+  background: #b5ac9a;
+  border: 1.5px solid #78705f;
+  border-radius: 3px;
+  position: relative;
+}
+
+.tle-mouse-dot {
+  position: absolute;
+  right: -12px;
+  top: 2px;
+  width: 8px;
+  height: 12px;
+  background: #cfc8b8;
+  border-radius: 3px;
+}
+
+.tle-computer-cctv-label {
+  font-family: "Courier New", monospace;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #fde68a;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.85);
+  margin-top: 6px;
+}
+
+/* Heavy Steel Security Exit Door with "EXIT DOOR" and Keypad */
+.tle-cctv-exit-door-zone {
+  position: absolute;
+  top: 18%;
+  right: 5%;
+  width: 185px;
+  height: 60%;
+  z-index: 5;
+}
+
+.tle-cctv-exit-door-btn {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+}
+
+.tle-exit-door-frame {
+  width: 100%;
+  height: 100%;
+  background: #0f1923;
+  border: 5px solid #283949;
+  border-radius: 4px;
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.95),
+    inset 0 0 24px rgba(0, 0, 0, 0.85);
+  padding: 8px;
+}
+
+.tle-exit-door-surface {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #1d2c3a 0%, #101c27 100%);
+  border: 2px solid #3b5064;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.tle-exit-door-header-pill {
+  background: #081119;
+  border: 1.5px solid #4a6682;
+  color: #e2e8f0;
+  font-family: "Courier New", monospace;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  padding: 6px 14px;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.65);
+}
+
+.tle-exit-door-keypad-box {
+  position: absolute;
+  bottom: 34%;
+  right: 12px;
+  width: 32px;
+  height: 48px;
+  background: #0a1118;
+  border: 1.5px solid #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+  border-radius: 4px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-door-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 8px);
+  gap: 2px;
+  font-size: 0.55rem;
+  color: #38bdf8;
+}
+
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+const DIFFICULTY_SECONDS = {
+  basic: 60,
+  medium: 60,
+  hard: 60,
+};
+
+const ROOM_TITLES = {
+  basic: "ROOM 01 // OFFICE",
+  medium: "ROOM 02 // CRYO-LAB",
+  hard: "ROOM 03 // QUANTUM CORE",
+};
+
+const DEFAULT_PARTNER_LOOPS = {
+  basic: 3,
+  medium: 5,
+  hard: 6,
+};
+
+function renderGameScreen(container, initialState) {
+  const callbacks = {
+    onObjectInteract: initialState?.onObjectInteract,
+    onLoopReset: initialState?.onLoopReset,
+    onDifficultyChange: initialState?.onDifficultyChange,
+    onEscape: initialState?.onEscape,
+    onReadyChange: initialState?.onReadyChange,
+    onMatchStart: initialState?.onMatchStart,
+    onRematchInvite: initialState?.onRematchInvite,
+  };
+
+  const initialDiff = initialState?.difficulty ?? "basic";
+  const defaultDuration = initialState?.loopDurationSeconds ?? DIFFICULTY_SECONDS[initialDiff];
+
+  let bannerTimeoutId = null;
+  let toastTimeoutId = null;
+  let greenEventTimeoutId = null;
+  let sideInviteTimeoutId = null;
+  let countdownIntervalId = null;
+
+  let state = {
+    roomId: initialState?.roomId ?? ROOM_TITLES[initialDiff],
+    roomCode: initialState?.roomCode ?? "RM-04",
+    player1Name: initialState?.player1Name ?? "You",
+    player2Name: initialState?.player2Name ?? "Drek",
+    player1Ready: initialState?.player1Ready ?? false,
+    player2Ready: initialState?.player2Ready ?? true,
+    player2Room: initialState?.player2Room ?? "basic",
+    player2LoopCount: initialState?.player2LoopCount ?? 6,
+    matchStarted: false,
+    countdownSeconds: null,
+    difficulty: initialDiff,
+    timeLeftSeconds: initialState?.timeLeftSeconds ?? defaultDuration,
+    loopDurationSeconds: defaultDuration,
+    loopCount: initialState?.loopCount ?? 1,
+    bestLoopScore: initialState?.bestLoopScore ?? null,
+    partnerLoopScore: initialState?.partnerLoopScore ?? 6,
+    connectedPlayers: initialState?.connectedPlayers ?? 2,
+    maxPlayers: initialState?.maxPlayers ?? 2,
+    score: initialState?.score ?? 1,
+    statusText: initialState?.statusText ?? "Ready",
+    selectedObjectId: initialState?.selectedObjectId ?? null,
+    activeItem: initialState?.activeItem ?? null,
+    lampOn: initialState?.lampOn ?? true,
+    bookRead: false,
+    paintingClicks: initialState?.paintingClicks ?? 0,
+    keyRevealed: initialState?.keyRevealed ?? false,
+    keyCollected: initialState?.keyCollected ?? false,
+    cabinetUnlocked: initialState?.cabinetUnlocked ?? false,
+    photoInspected: false,
+    codeEntered: false,
+    r2GramophoneRead: false,
+    r2WordInput: [],
+    r2TableSolved: false,
+    r2BooksSequence: [],
+    r2BooksSolved: false,
+    r2BooksError: "",
+    r2DialValues: [10, 25, 40],
+    r2VaultSolved: false,
+    r2VaultError: "",
+    r3GridCells: [false, true, false, false, false, false, false, true, false],
+    r3BreakerSolved: false,
+    r3HoloInput: [],
+    r3HoloSolved: false,
+    r3HoloError: "",
+    r3MirrorAngles: [0, 0, 0],
+    r3LaserSolved: false,
+    r3LaserError: "",
+    r3CoreUnlocked: false,
+    doorUnlocked: initialState?.doorUnlocked ?? false,
+    escaped: initialState?.escaped ?? false,
+    timerRunning: initialState?.timerRunning ?? false,
+    loopExpired: initialState?.loopExpired ?? false,
+    clues: initialState?.clues ? [...initialState.clues] : [],
+    inventory: initialState?.inventory ? [...initialState.inventory] : [],
+    feedbackMessage: initialState?.feedbackMessage ?? "",
+  };
+
+  function formatTime(seconds) {
+    const clamped = Math.max(0, Math.floor(seconds));
+    const mins = Math.floor(clamped / 60);
+    const secs = clamped % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+
+  function isCurrentRoomAllSolved() {
+    if (state.difficulty === "basic") {
+      return (
+        state.bookRead &&
+        state.keyCollected &&
+        state.cabinetUnlocked &&
+        state.photoInspected &&
+        state.codeEntered
+      );
+    }
+    if (state.difficulty === "medium") {
+      return state.r2TableSolved && state.r2BooksSolved && state.r2VaultSolved;
+    }
+    return (
+      state.r3BreakerSolved &&
+      state.r3HoloSolved &&
+      state.r3LaserSolved &&
+      state.r3CoreUnlocked
+    );
+  }
+
+  container.innerHTML = `
+    <div
+      class="tle-root room-1-office"
+      id="tle-root"
+      data-room-diff="${state.difficulty}"
+    >
+      <!-- Top Header Bar -->
+      <header class="tle-header">
+        <div class="tle-header-left">
+          <!-- Exit-style Corner Lobby Button -->
+          <button
+            type="button"
+            class="tle-lobby-corner-btn"
+            id="btn-open-lobby"
+            title="Lobby"
+          >
+            🚪 Lobby
+          </button>
+
+          <!-- Subtle Clue / Riddle Hint Button -->
+          <button
+            type="button"
+            class="tle-icon-btn"
+            id="btn-hint"
+            title="Whisper a subtle riddle clue"
+          >
+            <span>💡</span>
+          </button>
+
+          <!-- Corner Total Loop Counter -->
+          <div class="tle-corner-loop-badge" id="hud-loop" title="Your total loops">
+            LOOP #01
+          </div>
+
+          <!-- Active Room Indicator Pill -->
+          <div class="tle-room-indicator-pill" id="hud-room-indicator">
+            ${ROOM_TITLES[state.difficulty]}
+          </div>
+
+          <!-- Aesthetic Player Name Badges (You & Drek) -->
+          <div class="tle-players-bar">
+            <button
+              type="button"
+              class="tle-player-tag tle-player-you"
+              id="btn-pause-menu"
+              title="Match Result"
+            >
+              <span class="tle-p-dot tle-dot-you"></span>
+              <span id="hud-p1-name">${state.player1Name}</span>
+            </button>
+            <button
+              type="button"
+              class="tle-player-tag tle-player-friend"
+              id="btn-sim-friend-escape"
+              title="${state.player2Name}"
+            >
+              <span class="tle-p-dot tle-dot-friend"></span>
+              <span id="hud-p2-name">${state.player2Name}</span>
+            </button>
+          </div>
+
+          <!-- Developer / Testing Room Switcher Toggle in Top HUD Corner -->
+          <div class="tle-diff-group" role="group" aria-label="Developer Room Switcher">
+            <button type="button" class="tle-diff-btn" data-diff="basic">[ROOM 1]</button>
+            <button type="button" class="tle-diff-btn" data-diff="medium">[ROOM 2]</button>
+            <button type="button" class="tle-diff-btn" data-diff="hard">[ROOM 3]</button>
+          </div>
+        </div>
+
+        <div class="tle-header-center">
+          <div class="tle-cctv-hud-timer-banner">
+            <div class="tle-top-urgent-pulse">
+              <span class="tle-ecg-line">ﮩ٨ـ</span>
+              <span class="tle-imminent-txt">RESET IMMINENT</span>
+              <span class="tle-ecg-line">ـﮩ٨ـ</span>
+            </div>
+            <div class="tle-top-timer-display" id="hud-timer-val">
+              ${formatTime(state.timeLeftSeconds)}
+            </div>
+            <div class="tle-timer-progress-bar-wrap">
+              <span class="tle-prog-bound">60s</span>
+              <div class="tle-prog-track">
+                <div class="tle-prog-fill" id="hud-timer-progress" style="width: 100%;"></div>
+              </div>
+              <span class="tle-prog-bound">00s</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tle-header-right">
+          <div class="tle-remote-p2-pill" id="hud-remote-p2-pill">
+            <span class="tle-p2-sync-dot">●</span>
+            <span class="tle-p2-label">P2 (REMOTE) · SYNCED</span>
+          </div>
+          <button
+            type="button"
+            class="tle-ctrl-btn tle-ctrl-start"
+            id="btn-start-restart"
+          >
+            ▶ Start
+          </button>
+          <button
+            type="button"
+            class="tle-ctrl-btn tle-ctrl-stop"
+            id="btn-stop-loop"
+          >
+            ⏸ Pause/Stop
+          </button>
+          <button
+            type="button"
+            class="tle-ctrl-btn tle-ctrl-restart"
+            id="btn-reset-loop"
+          >
+            ↺ Restart
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Escape Room Stage -->
+      <main class="tle-stage-wrapper">
+        <div class="tle-room-stage game-viewport" id="game-viewport">
+          <!-- Tactical CCTV Surveillance HUD Frame & Scanline Overlay -->
+          <div class="tle-cctv-hud-overlay" aria-hidden="true">
+            <div class="tle-crt-scanlines"></div>
+            <div class="tle-vhs-rewind-layer hidden" id="vhs-rewind-layer">
+              <span class="tle-vhs-text">⏪ REWIND // 00:00 // TEMPORAL RESET</span>
+            </div>
+            <!-- Surveillance Corner Framing Brackets -->
+            <span class="tle-cam-bracket tle-cam-bracket-tl">┌</span>
+            <span class="tle-cam-bracket tle-cam-bracket-tr">┐</span>
+            <span class="tle-cam-bracket tle-cam-bracket-bl">└</span>
+            <span class="tle-cam-bracket tle-cam-bracket-br">┘</span>
+
+            <!-- Top Optical Tick Marks & Anomaly Detection Status -->
+            <div class="tle-cam-ruler-top">
+              <span class="tle-ruler-notch">|</span><span class="tle-ruler-notch">|</span>
+              <span class="tle-ruler-notch">▼</span>
+              <span class="tle-ruler-notch">|</span><span class="tle-ruler-notch">|</span>
+            </div>
+            <div class="tle-cam-top-left-status">
+              TIME ANOMALY DETECTED
+            </div>
+            <div class="tle-cam-top-telemetry" id="hud-cam-telemetry">
+              <span class="tle-cam-rec-dot"></span>
+              <span id="hud-cam-label">ROOM_CAM_04</span>
+            </div>
+
+            <!-- Optical Grid Pitch / Yaw Rulers on Left and Right -->
+            <div class="tle-cam-side-pitch tle-pitch-left">
+              <span>10.0</span>
+              <div class="tle-pitch-ticks">||||||||</div>
+              <span>-10.0</span>
+            </div>
+            <div class="tle-cam-side-pitch tle-pitch-right">
+              <span>20.0</span>
+              <div class="tle-pitch-ticks">||||||||</div>
+              <span>-10.0</span>
+            </div>
+
+            <!-- Central Subtle Crosshair -->
+            <div class="tle-cam-crosshair"></div>
+
+            <!-- Bottom Telemetry Coordinates -->
+            <div class="tle-cam-bottom-coords">
+              <div class="tle-cam-bottom-left">
+                <span>TELEMETRY - NOISE</span>
+                <span>TIME ANOMALY DETECTED</span>
+                <span>ROOM_CAM_04</span>
+              </div>
+              <div class="tle-cam-bottom-right">
+                <span>TIME ANOMALY DETECTED</span>
+                <span>ROOM_CAM_04</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blurrable Room Content Container -->
+          <div class="tle-room-blur-target" id="room-blur-target">
+            <!-- Auto-fading Room Banner (1.4s then disappears!) -->
+            <div class="tle-room-banner tle-banner-hidden" id="hud-room">${state.roomId}</div>
+
+            <!-- Live Green Escape Notification ("Drek escaped Room 1") -->
+            <div class="tle-green-escape-pill tle-banner-hidden" id="green-escape-banner">
+              ✨ Drek escaped Room 1
+            </div>
+
+            <!-- ===================================================================
+                 ROOM 1: SUB-LEVEL SURVEILLANCE OFFICE (CCTV Tactical Feed)
+                 =================================================================== -->
+            <div class="tle-scene tle-scene-basic tle-iso-scene" id="scene-basic">
+              <!-- Dark Teal Surveillance Room Corner & Grid Planes -->
+              <div class="tle-wall-back tle-iso-wall-back">
+                <div class="tle-cctv-wall-corner"></div>
+                <div class="tle-iso-grid-plane"></div>
+              </div>
+              <div class="tle-wall-left tle-iso-wall-left">
+                <button
+                  type="button"
+                  class="tle-window-frame tle-iso-hotspot"
+                  id="obj-window"
+                  data-object-id="window"
+                  title="ENV_VIEWPORT_00"
+                >
+                  <span class="tle-window-sky">
+                    <span class="tle-rain-layer"></span>
+                  </span>
+                  <span class="tle-window-blinds"></span>
+                  <span class="tle-reticle-tag">[ ⛶ ENV_VIEWPORT_00 ]</span>
+                </button>
+              </div>
+              <div class="tle-floor tle-iso-floor"></div>
+              <div class="tle-lamp-cone" id="lamp-cone"></div>
+
+              <!-- 1. Wall Blue Painting with Cyan Holographic Neon Border & (4x INTR) prompt -->
+              <div class="tle-painting-zone tle-iso-depth-card">
+                <div class="tle-wall-safe" id="wall-safe">
+                  <button
+                    type="button"
+                    class="tle-safe-key-btn hidden"
+                    id="obj-key"
+                    data-object-id="key"
+                    title="ARTIFACT_KEY_01"
+                  >
+                    <svg viewBox="0 0 64 64" class="tle-svg-key">
+                      <circle cx="20" cy="20" r="10" fill="none" stroke="#fbbf24" stroke-width="5" />
+                      <line x1="27" y1="27" x2="52" y2="52" stroke="#fbbf24" stroke-width="5" />
+                      <line x1="42" y1="42" x2="36" y2="48" stroke="#f59e0b" stroke-width="4" />
+                      <line x1="49" y1="49" x2="43" y2="55" stroke="#f59e0b" stroke-width="4" />
+                    </svg>
+                    <span class="tle-reticle-tag">[ ⛶ ARTIFACT_KEY_01 ]</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  class="tle-painting-btn tle-iso-hotspot tle-cyan-anomaly-glow"
+                  id="obj-painting"
+                  data-object-id="painting"
+                  title="BLUE PAINTING"
+                >
+                  <svg viewBox="0 0 160 200" class="tle-painting-svg" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#022c43" />
+                        <stop offset="50%" stop-color="#0582ca" />
+                        <stop offset="100%" stop-color="#001829" />
+                      </linearGradient>
+                    </defs>
+                    <rect width="160" height="200" fill="url(#skyGrad)" />
+                    <!-- Misty atmospheric mountain silhouette matching reference -->
+                    <path d="M0 140 Q40 85 85 130 T160 120 V200 H0 Z" fill="#003554" opacity="0.85" />
+                    <path d="M20 160 Q70 110 110 155 T160 145 V200 H0 Z" fill="#051923" />
+                    <ellipse cx="80" cy="95" rx="35" ry="35" fill="#00a6fb" opacity="0.45" filter="blur(6px)" />
+                  </svg>
+                  <!-- In-World Tactical Tag & Interact Circle Prompt from image -->
+                  <div class="tle-painting-cctv-label">BLUE PAINTING (4x INTR)</div>
+                  <div class="tle-painting-inte-prompt">
+                    <span class="tle-inte-icon">ⓧ</span>
+                    <span class="tle-inte-text">INTE· PROMPT</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- 2. Mechanical Security Locker -->
+              <div class="tle-cabinet-zone tle-iso-depth-card">
+                <button
+                  type="button"
+                  class="tle-cabinet-btn tle-iso-hotspot"
+                  id="obj-cabinet"
+                  data-object-id="cabinet"
+                  title="SEC_LOCKER_02"
+                >
+                  <div class="tle-cabinet-top-trim"></div>
+                  <div class="tle-cabinet-doors" id="cabinet-doors">
+                    <div class="tle-cabinet-door tle-door-left">
+                      <div class="tle-door-panel"></div>
+                      <div class="tle-door-panel"></div>
+                    </div>
+                    <div class="tle-cabinet-door tle-door-right">
+                      <div class="tle-door-panel"></div>
+                      <div class="tle-door-panel"></div>
+                    </div>
+                  </div>
+                  <div class="tle-cabinet-interior" id="cabinet-interior">
+                    <span class="tle-interior-scroll">DATA_LOG</span>
+                  </div>
+                  <span class="tle-glow-badge" id="state-cabinet">🔒</span>
+                  <span class="tle-reticle-tag">[ ⛶ SEC_LOCKER_02 ]</span>
+                </button>
+              </div>
+
+              <!-- 3. L-Shaped Corner Workstation with Photograph, Desk Notes, and Computer (From Image) -->
+              <div class="tle-corner-l-desk-zone">
+                <!-- Desk Surface & Legs -->
+                <div class="tle-l-desk-geometry">
+                  <div class="tle-l-desk-top"></div>
+                  <div class="tle-l-desk-drawers">
+                    <div class="tle-drawer-line"></div>
+                    <div class="tle-drawer-line"></div>
+                    <div class="tle-drawer-line"></div>
+                  </div>
+                  <div class="tle-l-desk-leg"></div>
+                </div>
+
+                <!-- Photograph on Desk with In-World Tag -->
+                <button
+                  type="button"
+                  class="tle-desk-photo-btn tle-iso-hotspot"
+                  id="obj-photo"
+                  data-object-id="photo"
+                  title="PHOTOGRAPH"
+                >
+                  <div class="tle-polaroid-frame">
+                    <div class="tle-polaroid-art">
+                      <span class="tle-photo-silhouette">🏛️</span>
+                    </div>
+                  </div>
+                  <div class="tle-desk-obj-label">PHOTOGRAPH</div>
+                  <span class="tle-reticle-tag">[ ⛶ PHOTOGRAPH ]</span>
+                </button>
+
+                <!-- Notepad & Tech Gear on Desk -->
+                <div class="tle-desk-notepad">
+                  <div class="tle-notepad-sheet"></div>
+                </div>
+
+                <!-- Computer Terminal with Amber Selection Stroke & In-World Tag (From Image) -->
+                <button
+                  type="button"
+                  class="tle-computer-station-btn tle-iso-hotspot"
+                  id="obj-computer"
+                  data-object-id="computer"
+                  title="COMPUTER"
+                >
+                  <div class="tle-cctv-computer-outline">
+                    <!-- Monitor CRT Box -->
+                    <div class="tle-cctv-monitor-box">
+                      <div class="tle-cctv-screen-bezel">
+                        <div class="tle-monitor-screen" id="monitor-screen">
+                          <span class="tle-monitor-lock" id="state-computer">🔒</span>
+                          <div class="tle-monitor-passbox" id="monitor-passbox">* * * *</div>
+                        </div>
+                      </div>
+                      <div class="tle-monitor-neck"></div>
+                    </div>
+                    <!-- Keyboard & Mouse Tray -->
+                    <div class="tle-cctv-keyboard-box">
+                      <div class="tle-keyboard-grid"></div>
+                      <div class="tle-mouse-dot"></div>
+                    </div>
+                  </div>
+                  <div class="tle-computer-cctv-label">COMPUTER</div>
+                  <span class="tle-reticle-tag">[ ⛶ COMPUTER ]</span>
+                </button>
+              </div>
+
+              <!-- 4. Heavy Steel Security Exit Door with Keypad & "EXIT DOOR" Title (From Image) -->
+              <div class="tle-cctv-exit-door-zone" id="r1-door-zone">
+                <button
+                  type="button"
+                  class="tle-door-portal-Light"
+                  data-object-id="door"
+                  title="ENTER_SECTOR_02"
+                >
+                  <span class="tle-portal-sparkle">✨</span>
+                  <span class="tle-portal-text">SECTOR 02<br/>ENTER ➔</span>
+                </button>
+                <button
+                  type="button"
+                  class="tle-cctv-exit-door-btn tle-iso-hotspot"
+                  id="obj-door"
+                  data-object-id="door"
+                  title="EXIT DOOR"
+                >
+                  <div class="tle-exit-door-frame">
+                    <div class="tle-exit-door-surface">
+                      <div class="tle-exit-door-header-pill">EXIT DOOR</div>
+                      <!-- Keypad Box Mounted on Door Frame matching the image -->
+                      <div class="tle-exit-door-keypad-box">
+                        <div class="tle-door-keypad-grid">
+                          <span>•</span><span>•</span><span>•</span>
+                          <span>•</span><span>•</span><span>•</span>
+                          <span>•</span><span>•</span><span>•</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="tle-reticle-tag">[ ⛶ EXIT DOOR ]</span>
+                </button>
+              </div>
+
+              <!-- 5. Foreground Left Command Desk, Lumen Lamp & Logbook -->
+              <div class="tle-left-desk-zone tle-iso-depth-card">
+                <div class="tle-left-desk-surface">
+                  <button
+                    type="button"
+                    class="tle-lamp-btn tle-iso-hotspot"
+                    id="obj-lamp"
+                    data-object-id="lamp"
+                    title="LUMEN_EMITTER_02"
+                  >
+                    <span class="tle-lamp-shade"></span>
+                    <span class="tle-lamp-bulb"></span>
+                    <span class="tle-lamp-arm"></span>
+                    <span class="tle-lamp-base"></span>
+                    <span class="tle-reticle-tag">[ ⛶ LUMEN_02 ]</span>
+                  </button>
+                  <div class="tle-book-stack" aria-hidden="true">
+                    <div class="tle-stacked-book"></div>
+                    <div class="tle-stacked-book"></div>
+                  </div>
+                  <button
+                    type="button"
+                    class="tle-open-book-btn tle-iso-hotspot"
+                    id="obj-book"
+                    data-object-id="book"
+                    title="OBJ_LOGBOOK_00"
+                  >
+                    <div class="tle-book-pages">
+                      <div class="tle-page-left"></div>
+                      <div class="tle-page-right"></div>
+                    </div>
+                    <span class="tle-reticle-tag">[ ⛶ OBJ_LOGBOOK_00 ]</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+                  <button
+                    type="button"
+                    class="tle-lamp-btn tle-iso-hotspot"
+                    id="obj-lamp"
+                    data-object-id="lamp"
+                    title="LUMEN_EMITTER_02"
+                  >
+                    <span class="tle-lamp-shade"></span>
+                    <span class="tle-lamp-bulb"></span>
+                    <span class="tle-lamp-arm"></span>
+                    <span class="tle-lamp-base"></span>
+                    <span class="tle-reticle-tag">[ ⛶ LUMEN_02 ]</span>
+                  </button>
+                  <div class="tle-book-stack" aria-hidden="true">
+                    <div class="tle-stacked-book"></div>
+                    <div class="tle-stacked-book"></div>
+                  </div>
+                  <button
+                    type="button"
+                    class="tle-open-book-btn tle-iso-hotspot"
+                    id="obj-book"
+                    data-object-id="book"
+                    title="OBJ_LOGBOOK_00"
+                  >
+                    <div class="tle-book-pages">
+                      <div class="tle-page-left"></div>
+                      <div class="tle-page-right"></div>
+                    </div>
+                    <span class="tle-reticle-tag">[ ⛶ OBJ_LOGBOOK_00 ]</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===================================================================
+                 ROOM 2: SUB-ZERO CRYO-CONTAINMENT (Isometric 3D Bulkhead Chamber)
+                 =================================================================== -->
+            <div class="tle-scene tle-scene-medium tle-iso-scene hidden" id="scene-medium">
+              <div class="tle-r2-backdrop tle-iso-wall-back">
+                <div class="tle-iso-grid-plane"></div>
+                <div class="tle-r2-telemetry-bar">
+                  <span class="tle-r2-hazard-dot"></span>
+                  <span>CRYO-BULKHEAD // -196°C // HYDRAULIC LINE_02</span>
+                </div>
+                <div class="tle-r2-hazard-strip"></div>
+                <div class="tle-r2-rose-arch">
+                  <svg viewBox="0 0 220 110" class="tle-rose-svg" aria-hidden="true">
+                    <path
+                      d="M10,110 A100,100 0 0,1 210,110 Z"
+                      fill="#041e30"
+                      stroke="#06b6d4"
+                      stroke-width="4"
+                    />
+                    <circle cx="110" cy="72" r="34" fill="none" stroke="#22d3ee" stroke-width="2.5"/>
+                    <line x1="110" y1="10" x2="110" y2="110" stroke="#06b6d4" stroke-width="2"/>
+                    <line x1="40" y1="50" x2="180" y2="95" stroke="#eab308" stroke-width="1.5"/>
+                    <line x1="180" y1="50" x2="40" y2="95" stroke="#eab308" stroke-width="1.5"/>
+                  </svg>
+                </div>
+                <div class="tle-r2-pillars">
+                  <span class="tle-r2-pillar"></span>
+                  <span class="tle-r2-pillar"></span>
+                </div>
+              </div>
+              <div class="tle-r2-marble-floor tle-iso-floor"></div>
+
+              <!-- Left: Acoustic Telemetry Unit -->
+              <button
+                type="button"
+                class="tle-r2-gramophone tle-iso-hotspot tle-iso-depth-card"
+                data-object-id="r2-gramophone"
+                title="ACOUSTIC_LOG_01"
+              >
+                <svg viewBox="0 0 100 120" class="tle-gram-svg">
+                  <path
+                    d="M50,55 C65,18 95,12 92,45 C89,68 62,62 50,55 Z"
+                    fill="#06b6d4"
+                    stroke="#eab308"
+                    stroke-width="3"
+                  />
+                  <ellipse cx="42" cy="76" rx="28" ry="8" fill="#0f172a" stroke="#22d3ee" stroke-width="2"/>
+                  <rect
+                    x="18"
+                    y="82"
+                    width="52"
+                    height="28"
+                    rx="4"
+                    fill="#083344"
+                    stroke="#06b6d4"
+                    stroke-width="2.5"
+                  />
+                </svg>
+                <span class="tle-reticle-tag">[ ⛶ ACOUSTIC_LOG_01 ]</span>
+              </button>
+
+              <!-- Center-Left Foreground: Cryo-Matrix Console -->
+              <button
+                type="button"
+                class="tle-r2-coffee-table tle-iso-hotspot tle-iso-depth-card"
+                id="r2-coffee-table-btn"
+                data-object-id="r2-coffee-table"
+                title="CRYO_MATRIX_02"
+              >
+                <div class="tle-table-top">
+                  <div class="tle-mini-tiles">
+                    <span class="tle-mini-tile">M</span>
+                    <span class="tle-mini-tile">E</span>
+                    <span class="tle-mini-tile">T</span>
+                    <span class="tle-mini-tile">I</span>
+                  </div>
+                  <span class="tle-reticle-tag">[ ⛶ CRYO_MATRIX_02 ]</span>
+                </div>
+                <div class="tle-table-legs">
+                  <span></span>
+                  <span></span>
+                </div>
+              </button>
+
+              <!-- Center: Glowing Cryogenic Stasis Core & Pipe Valve -->
+              <div class="tle-r2-fireplace-zone tle-iso-depth-card">
+                <button
+                  type="button"
+                  class="tle-r2-vault-btn tle-iso-hotspot"
+                  id="r2-vault-btn"
+                  data-object-id="r2-vault"
+                  title="STASIS_CORE_04"
+                >
+                  <svg viewBox="0 0 90 90" class="tle-vault-svg">
+                    <circle cx="45" cy="45" r="38" fill="#020b14" stroke="#06b6d4" stroke-width="4"/>
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="24"
+                      fill="none"
+                      stroke="#eab308"
+                      stroke-width="2"
+                      stroke-dasharray="6 4"
+                    />
+                    <line x1="45" y1="12" x2="45" y2="78" stroke="#22d3ee" stroke-width="3"/>
+                    <line x1="12" y1="45" x2="78" y2="45" stroke="#22d3ee" stroke-width="3"/>
+                    <circle cx="45" cy="45" r="9" fill="#06b6d4"/>
+                  </svg>
+                  <span class="tle-reticle-tag">[ ⛶ STASIS_CORE_04 ]</span>
+                </button>
+
+                <div class="tle-r2-fireplace">
+                  <div class="tle-mantle-shelf">
+                    <span>❄️</span>
+                    <span>⚗️</span>
+                    <span>❄️</span>
+                  </div>
+                  <div class="tle-fire-hearth">
+                    <div class="tle-fire-flames">🧊</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right-Center: Hydraulic Thermal Valve Manifold -->
+              <button
+                type="button"
+                class="tle-r2-bookshelf tle-iso-hotspot tle-iso-depth-card"
+                id="r2-bookshelf-btn"
+                data-object-id="r2-bookshelf"
+                title="THERMAL_VALVES_03"
+              >
+                <div class="tle-shelf-row">
+                  <span class="tle-spine tle-spine-blue"></span>
+                  <span class="tle-spine tle-spine-red"></span>
+                  <span class="tle-spine tle-spine-gold"></span>
+                  <span class="tle-spine tle-spine-green"></span>
+                </div>
+                <div class="tle-shelf-row">
+                  <span class="tle-spine tle-spine-purple"></span>
+                  <span class="tle-spine tle-spine-gold"></span>
+                  <span class="tle-spine tle-spine-red"></span>
+                </div>
+                <span class="tle-reticle-tag">[ ⛶ THERMAL_VALVES_03 ]</span>
+              </button>
+
+              <!-- Far Right: Cryo-Containment Airlock Door -->
+              <div class="tle-door-zone tle-iso-blast-door">
+                <button
+                  type="button"
+                  class="tle-door-portal-Light tle-portal-cyber"
+                  data-object-id="r2-door"
+                  title="ENTER_SECTOR_03"
+                >
+                  <span class="tle-portal-sparkle">⚡</span>
+                  <span class="tle-portal-text">SECTOR 03<br/>ENTER ➔</span>
+                </button>
+                <button
+                  type="button"
+                  class="tle-exit-door-btn tle-r2-door-btn tle-iso-hotspot"
+                  id="r2-door-btn"
+                  data-object-id="r2-door"
+                  title="CRYO_AIRLOCK_02"
+                >
+                  <div class="tle-exit-panel"></div>
+                  <div class="tle-exit-panel tle-exit-panel-mid"></div>
+                  <div class="tle-exit-panel"></div>
+                  <span class="tle-door-handle"></span>
+                  <span class="tle-door-badge" id="r2-door-badge">🔒</span>
+                  <span class="tle-reticle-tag">[ ⛶ CRYO_AIRLOCK_02 ]</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- ===================================================================
+                 ROOM 3: QUANTUM SINGULARITY CORE (Isometric 3D Non-Euclidean Bay)
+                 =================================================================== -->
+            <div class="tle-scene tle-scene-hard tle-iso-scene hidden" id="scene-hard">
+              <div class="tle-r3-wall tle-iso-wall-back">
+                <div class="tle-r3-grid-lines"></div>
+                <div class="tle-r3-neon-arch"></div>
+                <div class="tle-r3-magnetic-ring tle-ring-outer" aria-hidden="true"></div>
+                <div class="tle-r3-magnetic-ring tle-ring-inner" aria-hidden="true"></div>
+                <div class="tle-r3-anomaly tle-anomaly-1" aria-hidden="true">✦</div>
+                <div class="tle-r3-anomaly tle-anomaly-2" aria-hidden="true">◈</div>
+              </div>
+              <div class="tle-r3-floor tle-iso-floor"></div>
+
+              <!-- Left: Harmonic Frequency Emitter Matrix -->
+              <button
+                type="button"
+                class="tle-r3-breaker tle-iso-hotspot tle-iso-depth-card"
+                id="r3-breaker-btn"
+                data-object-id="r3-breaker"
+                title="HARMONIC_COIL_01"
+              >
+                <div class="tle-breaker-mini-grid">
+                  <span class="tle-bm-dot tle-bm-on"></span>
+                  <span class="tle-bm-dot"></span>
+                  <span class="tle-bm-dot tle-bm-on"></span>
+                  <span class="tle-bm-dot"></span>
+                  <span class="tle-bm-dot"></span>
+                  <span class="tle-bm-dot"></span>
+                  <span class="tle-bm-dot tle-bm-on"></span>
+                  <span class="tle-bm-dot"></span>
+                  <span class="tle-bm-dot tle-bm-on"></span>
+                </div>
+                <span class="tle-reticle-tag">[ ⛶ HARMONIC_COIL_01 ]</span>
+              </button>
+
+              <!-- Center-Left Foreground: Floating Magnetic Holo-Projection Console -->
+              <button
+                type="button"
+                class="tle-r3-holo-table tle-iso-hotspot tle-iso-depth-card"
+                id="r3-holo-btn"
+                data-object-id="r3-holo-table"
+                title="HOLO_CONTAINMENT_02"
+              >
+                <div class="tle-holo-beam">
+                  <span class="tle-holo-letters">O · P · L · O</span>
+                </div>
+                <div class="tle-holo-base">
+                  <span class="tle-reticle-tag">[ ⛶ HOLO_CONTAINMENT_02 ]</span>
+                </div>
+              </button>
+
+              <!-- Center Back Wall: Pulsing Violet Laser Emitter Coils -->
+              <button
+                type="button"
+                class="tle-r3-laser-panel tle-iso-hotspot tle-iso-depth-card"
+                id="r3-laser-btn"
+                data-object-id="r3-laser-grid"
+                title="VIOLET_EMITTER_03"
+              >
+                <svg viewBox="0 0 180 120" class="tle-laser-preview-svg">
+                  <rect width="180" height="120" rx="8" fill="#05020c" />
+                  <line
+                    x1="16"
+                    y1="28"
+                    x2="75"
+                    y2="28"
+                    stroke="#d946ef"
+                    stroke-width="3"
+                    stroke-dasharray="4 2"
+                  />
+                  <line
+                    x1="75"
+                    y1="28"
+                    x2="75"
+                    y2="92"
+                    stroke="#d946ef"
+                    stroke-width="3"
+                    stroke-dasharray="4 2"
+                  />
+                  <line
+                    x1="75"
+                    y1="92"
+                    x2="155"
+                    y2="92"
+                    stroke="#a855f7"
+                    stroke-width="3"
+                  />
+                  <circle cx="16" cy="28" r="6" fill="#d946ef" />
+                  <circle cx="155" cy="92" r="7" fill="#a855f7" />
+                </svg>
+                <span class="tle-reticle-tag">[ ⛶ VIOLET_EMITTER_03 ]</span>
+              </button>
+
+              <!-- Right-Center: Singularity Reactor Core -->
+              <button
+                type="button"
+                class="tle-r3-cryo tle-iso-hotspot tle-iso-depth-card"
+                id="r3-cryo-btn"
+                data-object-id="r3-cryo-core"
+                title="SINGULARITY_CORE_04"
+              >
+                <div class="tle-cryo-tube">
+                  <div class="tle-cryo-plasma">⚛️</div>
+                </div>
+                <span class="tle-reticle-tag">[ ⛶ SINGULARITY_CORE_04 ]</span>
+              </button>
+
+              <!-- Far Right: Event-Horizon Quantum Portal -->
+              <div class="tle-door-zone tle-iso-blast-door">
+                <button
+                  type="button"
+                  class="tle-door-portal-Light tle-portal-victory"
+                  data-object-id="r3-door"
+                  title="ESCAPE_SINGULARITY"
+                >
+                  <span class="tle-portal-sparkle">🏆</span>
+                  <span class="tle-portal-text">ESCAPE ➔</span>
+                </button>
+                <button
+                  type="button"
+                  class="tle-exit-door-btn tle-r3-door-btn tle-iso-hotspot"
+                  id="r3-door-btn"
+                  data-object-id="r3-door"
+                  title="EVENT_HORIZON_03"
+                >
+                  <div class="tle-exit-panel"></div>
+                  <div class="tle-exit-panel tle-exit-panel-mid"></div>
+                  <div class="tle-exit-panel"></div>
+                  <span class="tle-door-handle"></span>
+                  <span class="tle-door-badge" id="r3-door-badge">🔒</span>
+                  <span class="tle-reticle-tag">[ ⛶ EVENT_HORIZON_03 ]</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Bottom Floating Glass Inventory & Clues Bar -->
+            <aside class="tle-bottom-dock" id="inventory-clues-dock">
+              <div class="tle-inventory-panel">
+                <div class="tle-dock-label-col">
+                  <span class="tle-dock-label">TEMPORARY INVENTORY</span>
+                  <span class="tle-dock-sub">Physical items — wiped on loop reset</span>
+                </div>
+                <div class="tle-inv-slots" id="inventory-list"></div>
+              </div>
+
+              <div class="tle-dock-divider"></div>
+
+              <div class="tle-clues-panel">
+                <div class="tle-dock-label-col">
+                  <span class="tle-dock-label">PERMANENT KNOWLEDGE / CLUES</span>
+                  <span class="tle-dock-sub">Neural logs — retained across loops</span>
+                </div>
+                <ul class="tle-clues-list" id="clues-list"></ul>
+              </div>
+            </aside>
+          </div>
+
+          <!-- Top Floating Feedback Toast (z-index 95 so never behind modals) -->
+          <div class="tle-feedback-toast tle-banner-hidden" id="action-feedback-text">
+            ${state.feedbackMessage}
+          </div>
+
+          <!-- PUBG-STYLE TACTICAL SLIDE-IN SIDE DRAWER (Rematch Invite / Rejected Alert) -->
+          <aside class="tle-pubg-side-drawer tle-side-hidden" id="pubg-side-drawer">
+            <div class="tle-pubg-side-head">
+              <span class="tle-pubg-icon" id="pubg-side-icon">⚔️</span>
+              <div class="tle-pubg-text-col">
+                <strong id="pubg-side-title">Rematch Invite Sent</strong>
+                <span id="pubg-side-sub">
+                  ${state.player1Name} invites ${state.player2Name} for a rematch
+                </span>
+              </div>
+            </div>
+            <div class="tle-pubg-side-actions" id="pubg-side-actions">
+              <button type="button" class="tle-pubg-btn tle-pubg-accept" id="btn-pubg-accept">
+                ✓ Accept
+              </button>
+              <button type="button" class="tle-pubg-btn tle-pubg-reject" id="btn-pubg-reject">
+                ✕ Reject
+              </button>
+            </div>
+            <div class="tle-pubg-timer-bar" id="pubg-timer-bar"></div>
+          </aside>
+
+          <!-- Interactive Mini-Puzzle / Tactical Inspector Overlay -->
+          <div class="tle-overlay tactical-inspect-view hidden" id="inspector-modal">
+            <div class="tle-modal-card tle-puzzle-modal tle-tactical-modal">
+              <div class="tle-tactical-modal-header">
+                <span class="tle-tactical-bracket">[ ⛶ TACTICAL_INSPECT_VIEW ]</span>
+                <span class="tle-tactical-sync-tag">NEURAL_SYNC // ACTIVE</span>
+              </div>
+              <h3 id="inspector-title">Inspect</h3>
+              <div class="tle-inspector-body" id="inspector-body"></div>
+
+              <!-- 4-Digit Passcode Keypad -->
+              <div class="tle-passcode-area hidden" id="terminal-code-group">
+                <div id="passcode-modal-alert"></div>
+                <div class="tle-keypad-grid">
+                  <button type="button" class="tle-kp-btn" data-digit="1">1</button>
+                  <button type="button" class="tle-kp-btn" data-digit="2">2</button>
+                  <button type="button" class="tle-kp-btn" data-digit="3">3</button>
+                  <button type="button" class="tle-kp-btn" data-digit="4">4</button>
+                  <button type="button" class="tle-kp-btn" data-digit="5">5</button>
+                  <button type="button" class="tle-kp-btn" data-digit="6">6</button>
+                  <button type="button" class="tle-kp-btn" data-digit="7">7</button>
+                  <button type="button" class="tle-kp-btn" data-digit="8">8</button>
+                  <button type="button" class="tle-kp-btn" data-digit="9">9</button>
+                  <button type="button" class="tle-kp-btn" id="btn-clear-code">CLR</button>
+                  <button type="button" class="tle-kp-btn" data-digit="0">0</button>
+                  <button type="button" class="tle-kp-btn tle-kp-enter" id="btn-kp-enter">
+                    OK
+                  </button>
+                </div>
+                <div class="tle-code-input-row">
+                  <input
+                    type="password"
+                    inputmode="numeric"
+                    maxlength="4"
+                    placeholder="****"
+                    class="tle-code-input"
+                    id="terminal-code-input"
+                    aria-label="Passcode"
+                  />
+                  <button type="button" class="tle-primary-btn" id="btn-submit-code">
+                    Enter
+                  </button>
+                </div>
+              </div>
+
+              <div class="tle-modal-actions">
+                <button type="button" class="tle-secondary-btn" id="btn-close-inspector">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- MINIMAL, CLEAN 2-PLAYER LOBBY MODAL -->
+          <div class="tle-overlay tle-blur-backdrop hidden" id="ready-lobby-modal">
+            <div class="tle-modal-card tle-center-popup tle-lobby-card">
+              <div class="tle-lobby-header-pill" id="lobby-room-code">${state.roomCode}</div>
+              <h2>Lobby</h2>
+
+              <div class="tle-lobby-players-grid">
+                <div class="tle-lobby-player-box" id="lobby-p1-box">
+                  <div class="tle-lobby-pname" id="lobby-p1-name">${state.player1Name}</div>
+                  <button type="button" class="tle-ready-toggle-btn" id="btn-toggle-p1-ready">
+                    Not Ready
+                  </button>
+                </div>
+
+                <div class="tle-lobby-player-box" id="lobby-p2-box">
+                  <div class="tle-lobby-pname" id="lobby-p2-name">${state.player2Name}</div>
+                  <button type="button" class="tle-ready-toggle-btn" id="btn-toggle-p2-ready">
+                    Ready
+                  </button>
+                </div>
+              </div>
+
+              <p class="tle-whatsapp-hint" id="lobby-wait-hint">Player not ready</p>
+
+              <div class="tle-modal-actions">
+                <button type="button" class="tle-primary-btn tle-btn-lg" id="btn-host-start-match" disabled>
+                  Start
+                </button>
+                <button type="button" class="tle-secondary-btn" id="btn-close-lobby">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SYNCHRONIZED 5 - 4 - 3 - 2 - 1 - GO! COUNTDOWN OVERLAY -->
+          <div class="tle-overlay tle-blur-backdrop hidden" id="countdown-overlay">
+            <div class="tle-countdown-box">
+              <div class="tle-countdown-number" id="countdown-number">5</div>
+            </div>
+          </div>
+
+          <!-- CENTER POPUP WHEN A LOOP ENDS -->
+          <div class="tle-overlay tle-blur-backdrop hidden" id="loop-end-modal">
+            <div class="tle-modal-card tle-center-popup">
+              <div class="tle-popup-icon">⏳</div>
+              <h2 id="loop-end-title">Loop #1 Ended</h2>
+              <div class="tle-modal-actions">
+                <button type="button" class="tle-primary-btn tle-btn-lg" id="btn-popup-restart">
+                  ↺ Restart
+                </button>
+                <button type="button" class="tle-secondary-btn tle-btn-lg" id="btn-popup-exit">
+                  🚪 Exit
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- AESTHETIC, BRIEF "GAME END" MODAL (YOU WON / YOU LOST + REMATCH INVITE) -->
+          <div class="tle-overlay tle-blur-backdrop hidden" id="pause-modal">
+            <div class="tle-modal-card tle-center-popup tle-game-end-card">
+              <div class="tle-game-end-badge" id="game-end-badge">GAME END</div>
+              <h2 class="tle-verdict-title" id="modal-title">YOU WON</h2>
+              <div class="tle-scoreboard-box" id="scoreboard-box"></div>
+              <div class="tle-modal-actions">
+                <button type="button" class="tle-primary-btn" id="btn-invite-rematch">
+                  ⚔️ Invite ${state.player2Name}
+                </button>
+                <button type="button" class="tle-secondary-btn" id="btn-resume">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  `;
+
+  const rootEl = container.querySelector("#tle-root");
+  const blurTarget = container.querySelector("#room-blur-target");
+  const roomBannerEl = container.querySelector("#hud-room");
+  const greenEscapeBanner = container.querySelector("#green-escape-banner");
+  const feedbackEl = container.querySelector("#action-feedback-text");
+
+  const pubgSideDrawer = container.querySelector("#pubg-side-drawer");
+  const pubgSideIcon = container.querySelector("#pubg-side-icon");
+  const pubgSideTitle = container.querySelector("#pubg-side-title");
+  const pubgSideSub = container.querySelector("#pubg-side-sub");
+  const pubgSideActions = container.querySelector("#pubg-side-actions");
+
+  const sceneBasic = container.querySelector("#scene-basic");
+  const sceneMedium = container.querySelector("#scene-medium");
+  const sceneHard = container.querySelector("#scene-hard");
+
+  const readyLobbyModal = container.querySelector("#ready-lobby-modal");
+  const lobbyP1Box = container.querySelector("#lobby-p1-box");
+  const lobbyP2Box = container.querySelector("#lobby-p2-box");
+  const lobbyWaitHint = container.querySelector("#lobby-wait-hint");
+  const toggleP1ReadyBtn = container.querySelector("#btn-toggle-p1-ready");
+  const toggleP2ReadyBtn = container.querySelector("#btn-toggle-p2-ready");
+  const hostStartMatchBtn = container.querySelector("#btn-host-start-match");
+
+  const countdownOverlay = container.querySelector("#countdown-overlay");
+  const countdownNumberEl = container.querySelector("#countdown-number");
+
+  const loopEndModal = container.querySelector("#loop-end-modal");
+  const loopEndTitle = container.querySelector("#loop-end-title");
+  const popupRestartBtn = container.querySelector("#btn-popup-restart");
+  const popupExitBtn = container.querySelector("#btn-popup-exit");
+
+  const pauseModal = container.querySelector("#pause-modal");
+  const modalTitle = container.querySelector("#modal-title");
+  const scoreboardBox = container.querySelector("#scoreboard-box");
+
+  const inspectorModal = container.querySelector("#inspector-modal");
+  const inspectorTitle = container.querySelector("#inspector-title");
+  const inspectorBody = container.querySelector("#inspector-body");
+  const terminalGroup = container.querySelector("#terminal-code-group");
+  const passcodeAlertEl = container.querySelector("#passcode-modal-alert");
+  const codeInput = container.querySelector("#terminal-code-input");
+
+  function flashRoomBanner(text) {
+    if (!roomBannerEl) return;
+    roomBannerEl.textContent = text;
+    roomBannerEl.classList.remove("tle-banner-hidden");
+    if (bannerTimeoutId !== null) {
+      window.clearTimeout(bannerTimeoutId);
+    }
+    bannerTimeoutId = window.setTimeout(() => {
+      roomBannerEl.classList.add("tle-banner-hidden");
+    }, 1400);
+  }
+
+  function showGreenEscapeBanner(text) {
+    if (!greenEscapeBanner) return;
+    greenEscapeBanner.textContent = text;
+    greenEscapeBanner.classList.remove("tle-banner-hidden");
+    if (greenEventTimeoutId !== null) {
+      window.clearTimeout(greenEventTimeoutId);
+    }
+    greenEventTimeoutId = window.setTimeout(() => {
+      greenEscapeBanner.classList.add("tle-banner-hidden");
+    }, 2200);
+  }
+
+  function flashFeedbackToast(text) {
+    state.feedbackMessage = text;
+    if (!feedbackEl) return;
+    feedbackEl.textContent = text;
+    feedbackEl.classList.remove("tle-banner-hidden");
+    if (toastTimeoutId !== null) {
+      window.clearTimeout(toastTimeoutId);
+    }
+    toastTimeoutId = window.setTimeout(() => {
+      feedbackEl.classList.add("tle-banner-hidden");
+    }, 2200);
+  }
+
+  /** Shows the PUBG-style tactical slide-in side notification on the right edge. */
+  function openPubgRematchDrawer() {
+    if (!pubgSideDrawer) return;
+    if (sideInviteTimeoutId !== null) {
+      window.clearTimeout(sideInviteTimeoutId);
+    }
+    pubgSideDrawer.classList.remove("tle-side-hidden", "tle-pubg-rejected");
+    if (pubgSideIcon) pubgSideIcon.textContent = "⚔️";
+    if (pubgSideTitle) {
+      pubgSideTitle.textContent = `${state.player1Name} invites you for a rematch`;
+    }
+    if (pubgSideSub) {
+      pubgSideSub.textContent = `Waiting for ${state.player2Name}...`;
+    }
+    pubgSideActions?.classList.remove("hidden");
+  }
+
+  /** Shows the compact PUBG-style slide-in "Invitation Rejected" alert on the right side. */
+  function showPubgRejectedDrawer() {
+    if (!pubgSideDrawer) return;
+    pubgSideDrawer.classList.remove("tle-side-hidden");
+    pubgSideDrawer.classList.add("tle-pubg-rejected");
+    if (pubgSideIcon) pubgSideIcon.textContent = "🚫";
+    if (pubgSideTitle) pubgSideTitle.textContent = "Invitation Rejected";
+    if (pubgSideSub) {
+      pubgSideSub.textContent = `${state.player2Name} declined the rematch`;
+    }
+    pubgSideActions?.classList.add("hidden");
+    if (sideInviteTimeoutId !== null) {
+      window.clearTimeout(sideInviteTimeoutId);
+    }
+    sideInviteTimeoutId = window.setTimeout(() => {
+      pubgSideDrawer.classList.add("tle-side-hidden");
+    }, 3000);
+  }
+
+  function addClue(clue) {
+    if (!state.clues.includes(clue)) {
+      state.clues = [...state.clues, clue];
+    }
+  }
+
+  function addInventoryItem(item) {
+    if (!state.inventory.includes(item)) {
+      state.inventory = [...state.inventory, item];
+      state.activeItem = item;
+    }
+  }
+
+  function openInspector(title, html, showTerminal = false) {
+    if (inspectorTitle) inspectorTitle.textContent = title;
+    if (inspectorBody) inspectorBody.innerHTML = html;
+    terminalGroup?.classList.toggle("hidden", !showTerminal);
+    if (passcodeAlertEl) passcodeAlertEl.innerHTML = "";
+    inspectorModal?.classList.remove("hidden");
+    if (showTerminal) {
+      if (codeInput) codeInput.value = "";
+      codeInput?.focus();
+    }
+  }
+
+  /** 5 - 4 - 3 - 2 - 1 - GO! Countdown */
+  function startFiveSecondCountdown() {
+    readyLobbyModal?.classList.add("hidden");
+    countdownOverlay?.classList.remove("hidden");
+    let count = 5;
+    state.countdownSeconds = count;
+    if (countdownNumberEl) {
+      countdownNumberEl.textContent = String(count);
+    }
+    renderState();
+
+    if (countdownIntervalId !== null) {
+      window.clearInterval(countdownIntervalId);
+    }
+    countdownIntervalId = window.setInterval(() => {
+      count -= 1;
+      if (count > 0) {
+        if (countdownNumberEl) {
+          countdownNumberEl.textContent = String(count);
+        }
+      } else if (count === 0) {
+        if (countdownNumberEl) {
+          countdownNumberEl.textContent = "GO";
+        }
+      } else {
+        if (countdownIntervalId !== null) {
+          window.clearInterval(countdownIntervalId);
+          countdownIntervalId = null;
+        }
+        countdownOverlay?.classList.add("hidden");
+        state.countdownSeconds = null;
+        state.matchStarted = true;
+        state.timeLeftSeconds = 60;
+        state.timerRunning = true;
+        callbacks.onMatchStart?.();
+        renderState();
+      }
+    }, 850);
+  }
+
+  /** Room 2 Puzzle: Coffee Table Letter Tile Unscrambler ("TIME") */
+  function openCoffeeTableLetterPuzzle() {
+    const tiles = ["M", "E", "T", "I", "S", "R"];
+
+    const renderModalContent = () => {
+      const currentWord = state.r2WordInput.join("");
+      const wordDisplay = [0, 1, 2, 3]
+        .map((idx) => {
+          const ch = state.r2WordInput[idx] ?? "_";
+          const cls = ch !== "_" ? "tle-word-slot-filled" : "";
+          return `<span class="tle-word-slot ${cls}">${ch}</span>`;
+        })
+        .join("");
+
+      const tileBtns = tiles
+        .map(
+          (letter, idx) =>
+            `<button type="button" class="tle-letter-tile" ` +
+            `data-r2-letter="${letter}" data-r2-idx="${idx}">${letter}</button>`,
+        )
+        .join("");
+
+      const riddleSub = `<p class="tle-zoom-sub"><em>"Silent hands that count every 60s loop..."</em></p>`;
+
+      const feedbackBanner = state.r2TableSolved
+        ? `<div class="tle-modal-alert tle-modal-alert-success">` +
+          `✅ Drawer opened! Bookmark inside:<br/>` +
+          `<em>"1st: Ruby Blood · 2nd: Alchemist Gold · 3rd: Forest Leaf"</em></div>`
+        : currentWord.length === 4 && currentWord !== "TIME"
+          ? `<div class="tle-modal-alert tle-modal-alert-error">` +
+            `❌ "${currentWord}" didn't unlock the drawer</div>`
+          : "";
+
+      openInspector(
+        "☕ Coffee Table",
+        `<div class="tle-zoom-card">` +
+          riddleSub +
+          feedbackBanner +
+          `<div class="tle-word-slots-row">${wordDisplay}</div>` +
+          `<div class="tle-letter-tiles-grid">${tileBtns}</div>` +
+          `<div class="tle-mini-actions">` +
+          `<button type="button" class="tle-secondary-btn" id="r2-clear-word">Clear</button>` +
+          `</div>` +
+          `</div>`,
+      );
+
+      const letterEls = inspectorBody?.querySelectorAll("[data-r2-letter]");
+      if (letterEls) {
+        for (const btn of letterEls) {
+          btn.addEventListener("click", () => {
+            if (state.r2TableSolved) return;
+            const ch = btn.dataset.r2Letter;
+            if (!ch || state.r2WordInput.length >= 4) return;
+            state.r2WordInput = [...state.r2WordInput, ch];
+            if (state.r2WordInput.join("") === "TIME") {
+              state.r2TableSolved = true;
+              addInventoryItem("Winding Key");
+              addClue("DECRYPTED: VALVE_SEQ = RED > GOLD > GREEN");
+              if (isCurrentRoomAllSolved()) {
+                state.doorUnlocked = true;
+              }
+              renderState();
+            }
+            renderModalContent();
+          });
+        }
+      }
+
+      inspectorBody
+        ?.querySelector("#r2-clear-word")
+        ?.addEventListener("click", () => {
+          state.r2WordInput = [];
+          renderModalContent();
+        });
+    };
+
+    renderModalContent();
+  }
+
+  /** Room 2 Puzzle: Bookshelf (Creative riddle + in-modal error!) */
+  function openBookshelfPuzzle() {
+    const books = [
+      { id: "BLUE", label: "📘 Sapphire Tome", color: "#2563eb" },
+      { id: "RED", label: "📕 Ruby Blood Tome", color: "#dc2626" },
+      { id: "GOLD", label: "📙 Alchemist Gold Tome", color: "#d97706" },
+      { id: "GREEN", label: "📗 Forest Leaf Tome", color: "#16a34a" },
+      { id: "PURPLE", label: "📓 Amethyst Tome", color: "#7c3aed" },
+    ];
+
+    const renderBooksModal = () => {
+      const riddleSub = state.r2TableSolved
+        ? `<p class="tle-zoom-sub"><em>Bookmark: "Ruby Blood → Alchemist Gold → Forest Leaf"</em></p>`
+        : `<p class="tle-zoom-sub">` +
+          `<em>Three tomes hide a latch... a bookmark in the Coffee Table knows their order.</em></p>`;
+
+      const errorAlert = state.r2BooksError
+        ? `<div class="tle-modal-alert tle-modal-alert-error">${state.r2BooksError}</div>`
+        : "";
+
+      const successAlert = state.r2BooksSolved
+        ? `<div class="tle-modal-alert tle-modal-alert-success">` +
+          `✅ Hidden Plaque Revealed:<br/><em>"Dawn: 30 · Zenith: 70 · Dusk: 15"</em></div>`
+        : "";
+
+      const bookButtons = books
+        .map((b) => {
+          const isPulled = state.r2BooksSequence.includes(b.id);
+          return (
+            `<button type="button" class="tle-book-pull-btn ${isPulled ? "tle-book-pulled" : ""}" ` +
+            `style="border-color:${b.color}" data-book-color="${b.id}">` +
+            `<span>${b.label}</span>` +
+            `</button>`
+          );
+        })
+        .join("");
+
+      openInspector(
+        "📚 Arcane Bookshelf",
+        `<div class="tle-zoom-card">` +
+          riddleSub +
+          errorAlert +
+          successAlert +
+          `<div class="tle-book-pull-list">${bookButtons}</div>` +
+          `<div class="tle-mini-actions">` +
+          `<button type="button" class="tle-secondary-btn" id="r2-reset-books">Reset</button>` +
+          `</div>` +
+          `</div>`,
+      );
+
+      const bBtns = inspectorBody?.querySelectorAll("[data-book-color]");
+      if (bBtns) {
+        for (const btn of bBtns) {
+          btn.addEventListener("click", () => {
+            if (state.r2BooksSolved) return;
+            const col = btn.dataset.bookColor;
+            if (!col || state.r2BooksSequence.includes(col)) return;
+            state.r2BooksError = "";
+            state.r2BooksSequence = [...state.r2BooksSequence, col];
+
+            if (state.r2BooksSequence.length === 3) {
+              if (state.r2BooksSequence.join("-") === "RED-GOLD-GREEN") {
+                state.r2BooksSolved = true;
+                state.r2BooksError = "";
+                addInventoryItem("Ruby Lens");
+                addClue("DECRYPTED: PIPE_PSI = 30-70-15");
+                if (isCurrentRoomAllSolved()) {
+                  state.doorUnlocked = true;
+                }
+                renderState();
+              } else {
+                state.r2BooksSequence = [];
+                state.r2BooksError = "❌ Wrong book order!";
+              }
+            }
+            renderBooksModal();
+          });
+        }
+      }
+
+      inspectorBody
+        ?.querySelector("#r2-reset-books")
+        ?.addEventListener("click", () => {
+          state.r2BooksSequence = [];
+          state.r2BooksError = "";
+          renderBooksModal();
+        });
+    };
+
+    renderBooksModal();
+  }
+
+  /** Room 2 Puzzle: Rotary Dial Vault */
+  function openRotaryVaultPuzzle() {
+    const renderVaultModal = () => {
+      const [d0, d1, d2] = state.r2DialValues;
+
+      const riddleSub = state.r2BooksSolved
+        ? `<p class="tle-zoom-sub"><em>Engraved Plaque: "Dawn: 30 · Zenith: 70 · Dusk: 15"</em></p>`
+        : `<p class="tle-zoom-sub">` +
+          `<em>Three celestial dials: Dawn · Zenith · Dusk (hidden behind the Bookshelf)</em></p>`;
+
+      const errorAlert = state.r2VaultError
+        ? `<div class="tle-modal-alert tle-modal-alert-error">${state.r2VaultError}</div>`
+        : "";
+
+      const successAlert = state.r2VaultSolved
+        ? `<div class="tle-modal-alert tle-modal-alert-success">🔓 Vault Open!</div>`
+        : "";
+
+      const dialsHtml = [d0, d1, d2]
+        .map(
+          (val, idx) =>
+            `<div class="tle-dial-col">` +
+            `<button type="button" class="tle-dial-step" ` +
+            `data-dial-idx="${idx}" data-dial-delta="5">▲</button>` +
+            `<div class="tle-dial-wheel">${val}</div>` +
+            `<button type="button" class="tle-dial-step" ` +
+            `data-dial-idx="${idx}" data-dial-delta="-5">▼</button>` +
+            `</div>`,
+        )
+        .join("");
+
+      openInspector(
+        "⚙️ Astrolabe Vault",
+        `<div class="tle-zoom-card">` +
+          riddleSub +
+          errorAlert +
+          successAlert +
+          `<div class="tle-dials-row">${dialsHtml}</div>` +
+          `<div class="tle-mini-actions">` +
+          `<button type="button" class="tle-primary-btn" id="r2-unlock-vault">Unlock</button>` +
+          `</div>` +
+          `</div>`,
+      );
+
+      const stepBtns = inspectorBody?.querySelectorAll("[data-dial-idx]");
+      if (stepBtns) {
+        for (const btn of stepBtns) {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.dialIdx ?? "0");
+            const delta = Number(btn.dataset.dialDelta ?? "5");
+            const nextVals = [...state.r2DialValues];
+            nextVals[idx] = (nextVals[idx] + delta + 100) % 100;
+            state.r2DialValues = nextVals;
+            state.r2VaultError = "";
+            renderVaultModal();
+          });
+        }
+      }
+
+      inspectorBody
+        ?.querySelector("#r2-unlock-vault")
+        ?.addEventListener("click", () => {
+          const [v0, v1, v2] = state.r2DialValues;
+          if (v0 === 30 && v1 === 70 && v2 === 15) {
+            state.r2VaultSolved = true;
+            state.r2VaultError = "";
+            addInventoryItem("Parlor Emblem");
+            if (isCurrentRoomAllSolved()) {
+              state.doorUnlocked = true;
+              inspectorModal?.classList.add("hidden");
+              flashFeedbackToast("🔓 Gate opened!");
+            } else {
+              state.r2VaultError = "🔒 Solve all puzzles in the room to unseal the gate!";
+            }
+            renderState();
+            renderVaultModal();
+          } else {
+            state.r2VaultError = "❌ Wrong combination!";
+            renderVaultModal();
+          }
+        });
+    };
+
+    renderVaultModal();
+  }
+
+  /** Room 3 Puzzle: 3x3 Power Grid */
+  function openCircuitBreakerPuzzle() {
+    const renderBreakerModal = () => {
+      addClue("DECRYPTED: DIODE_CORNERS = ↖ ↗ ↙ ↘");
+      const cellsHtml = state.r3GridCells
+        .map(
+          (isOn, idx) =>
+            `<button type="button" class="tle-circuit-cell ${isOn ? "tle-circuit-on" : ""}" ` +
+            `data-cell-idx="${idx}">` +
+            `${isOn ? "⚡" : "○"}` +
+            `</button>`,
+        )
+        .join("");
+
+      const statusAlert = state.r3BreakerSolved
+        ? `<div class="tle-modal-alert tle-modal-alert-success">` +
+          `✅ Power Stabilized! Holo-Log: <em>"Endless 60s cycle (O-P-L-O)"</em></div>`
+        : "";
+
+      openInspector(
+        "⚡ Power Grid",
+        `<div class="tle-zoom-card">` +
+          `<p class="tle-zoom-sub"><em>Schematic: "Charge only the 4 outer corner nodes (↖ ↗ ↙ ↘)"</em></p>` +
+          statusAlert +
+          `<div class="tle-circuit-grid">${cellsHtml}</div>` +
+          `</div>`,
+      );
+
+      const cellBtns = inspectorBody?.querySelectorAll("[data-cell-idx]");
+      if (cellBtns) {
+        for (const btn of cellBtns) {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.cellIdx ?? "0");
+            state.r3GridCells[idx] = !state.r3GridCells[idx];
+            const target = [true, false, true, false, false, false, true, false, true];
+            const solved = state.r3GridCells.every((v, i) => v === target[i]);
+            if (solved && !state.r3BreakerSolved) {
+              state.r3BreakerSolved = true;
+              addInventoryItem("Optic Mirror");
+              addClue("DECRYPTED: CYCLE_CIPHER = O-P-L-O");
+              if (isCurrentRoomAllSolved()) {
+                state.doorUnlocked = true;
+              }
+              renderState();
+            }
+            renderBreakerModal();
+          });
+        }
+      }
+    };
+
+    renderBreakerModal();
+  }
+
+  /** Room 3 Puzzle: Holo-Table ("LOOP") */
+  function openHoloTablePuzzle() {
+    const letters = ["O", "P", "L", "O", "X", "Z"];
+
+    const renderHoloModal = () => {
+      const currentWord = state.r3HoloInput.join("");
+
+      const errorAlert =
+        currentWord.length === 4 && currentWord !== "LOOP"
+          ? `<div class="tle-modal-alert tle-modal-alert-error">❌ Wrong sequence</div>`
+          : "";
+
+      const successAlert = state.r3HoloSolved
+        ? `<div class="tle-modal-alert tle-modal-alert-success">` +
+          `✅ Optics Blueprint: <strong>M1 [＼] · M2 [＼] · M3 [／]</strong></div>`
+        : "";
+
+      const slots = [0, 1, 2, 3]
+        .map((i) => {
+          const ch = state.r3HoloInput[i] ?? "_";
+          const cls = ch !== "_" ? "tle-word-slot-filled" : "";
+          return `<span class="tle-word-slot tle-holo-slot ${cls}">${ch}</span>`;
+        })
+        .join("");
+
+      const btns = letters
+        .map(
+          (ch, idx) =>
+            `<button type="button" class="tle-letter-tile tle-holo-tile" ` +
+            `data-r3-ch="${ch}" data-r3-i="${idx}">${ch}</button>`,
+        )
+        .join("");
+
+      openInspector(
+        "🌐 Holo-Table",
+        `<div class="tle-zoom-card">` +
+          `<p class="tle-zoom-sub"><em>"What 4-letter cycle resets every 60 seconds?"</em></p>` +
+          errorAlert +
+          successAlert +
+          `<div class="tle-word-slots-row">${slots}</div>` +
+          `<div class="tle-letter-tiles-grid">${btns}</div>` +
+          `<div class="tle-mini-actions">` +
+          `<button type="button" class="tle-secondary-btn" id="r3-clear-holo">Reset</button>` +
+          `</div>` +
+          `</div>`,
+      );
+
+      const chBtns = inspectorBody?.querySelectorAll("[data-r3-ch]");
+      if (chBtns) {
+        for (const btn of chBtns) {
+          btn.addEventListener("click", () => {
+            if (state.r3HoloSolved) return;
+            const ch = btn.dataset.r3Ch;
+            if (!ch || state.r3HoloInput.length >= 4) return;
+            state.r3HoloInput = [...state.r3HoloInput, ch];
+            if (state.r3HoloInput.join("") === "LOOP") {
+              state.r3HoloSolved = true;
+              addInventoryItem("Plasma Cell");
+              addClue("DECRYPTED: OPTIC_VECTORS = [＼][＼][／]");
+              if (isCurrentRoomAllSolved()) {
+                state.doorUnlocked = true;
+              }
+              renderState();
+            }
+            renderHoloModal();
+          });
+        }
+      }
+
+      inspectorBody
+        ?.querySelector("#r3-clear-holo")
+        ?.addEventListener("click", () => {
+          state.r3HoloInput = [];
+          renderHoloModal();
+        });
+    };
+
+    renderHoloModal();
+  }
+
+  /** Room 3 Puzzle: Live Laser & Rotatable Mirror Grid */
+  function openLaserMirrorPuzzle() {
+    const renderLaserModal = () => {
+      const [m0, m1, m2] = state.r3MirrorAngles;
+      const hit1 = m0 === 1;
+      const hit2 = hit1 && m1 === 1;
+      const hitTarget = hit2 && m2 === 0;
+
+      const blueprintSub = state.r3HoloSolved
+        ? `<p class="tle-zoom-sub"><em>Optics Blueprint: M1 [＼] · M2 [＼] · M3 [／]</em></p>`
+        : `<p class="tle-zoom-sub"><em>Rotate mirrors M1, M2, M3 so the laser beam hits 🎯</em></p>`;
+
+      const successAlert = state.r3LaserSolved
+        ? `<div class="tle-modal-alert tle-modal-alert-success">` +
+          `🎯 Cryo-Core Code: <strong>2026</strong></div>`
+        : "";
+
+      const beamColor = hitTarget ? "#22d3ee" : "#ef4444";
+      const dash = 'stroke="#ef4444" stroke-width="3" stroke-dasharray="4 3"';
+      const seg1 = `<line x1="25" y1="35" x2="110" y2="35" stroke="${beamColor}" stroke-width="4" />`;
+      const seg2 = hit1
+        ? `<line x1="110" y1="35" x2="110" y2="115" stroke="${beamColor}" stroke-width="4" />`
+        : `<line x1="110" y1="35" x2="195" y2="35" ${dash} />`;
+      const seg3 = hit2
+        ? `<line x1="110" y1="115" x2="210" y2="115" stroke="${beamColor}" stroke-width="4" />`
+        : hit1
+          ? `<line x1="110" y1="115" x2="30" y2="115" ${dash} />`
+          : "";
+      const seg4 = hitTarget
+        ? `<line x1="210" y1="115" x2="210" y2="35" stroke="#22d3ee" stroke-width="4" />`
+        : hit2
+          ? `<line x1="210" y1="115" x2="210" y2="155" ${dash} />`
+          : "";
+
+      const mirrorChar = (v) => (v === 1 ? "＼" : "／");
+      const targetFill = hitTarget ? "#22d3ee" : "#334155";
+
+      openInspector(
+        "🔴 Laser Grid",
+        `<div class="tle-zoom-card">` +
+          blueprintSub +
+          successAlert +
+          `<svg viewBox="0 0 260 160" class="tle-laser-interactive-svg">` +
+          `<rect width="260" height="160" rx="10" fill="#070b14" stroke="#334155" />` +
+          seg1 +
+          seg2 +
+          seg3 +
+          seg4 +
+          `<circle cx="25" cy="35" r="8" fill="#ef4444" />` +
+          `<circle cx="210" cy="35" r="10" fill="${targetFill}" stroke="#22d3ee" stroke-width="2" />` +
+          `<text x="102" y="24" fill="#94a3b8" font-size="10">M1</text>` +
+          `<text x="82" y="120" fill="#94a3b8" font-size="10">M2</text>` +
+          `<text x="224" y="120" fill="#94a3b8" font-size="10">M3</text>` +
+          `<text x="203" y="39" fill="#0f172a" font-size="11" font-weight="bold">🎯</text>` +
+          `</svg>` +
+          `<div class="tle-mirror-controls">` +
+          `<button type="button" class="tle-mirror-btn" data-mirror-idx="0">M1 [${mirrorChar(m0)}]</button>` +
+          `<button type="button" class="tle-mirror-btn" data-mirror-idx="1">M2 [${mirrorChar(m1)}]</button>` +
+          `<button type="button" class="tle-mirror-btn" data-mirror-idx="2">M3 [${mirrorChar(m2)}]</button>` +
+          `</div>` +
+          `</div>`,
+      );
+
+      const mBtns = inspectorBody?.querySelectorAll("[data-mirror-idx]");
+      if (mBtns) {
+        for (const btn of mBtns) {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.mirrorIdx ?? "0");
+            const nextAngles = [...state.r3MirrorAngles];
+            nextAngles[idx] = nextAngles[idx] === 0 ? 1 : 0;
+            state.r3MirrorAngles = nextAngles;
+
+            if (
+              nextAngles[0] === 1 &&
+              nextAngles[1] === 1 &&
+              nextAngles[2] === 0 &&
+              !state.r3LaserSolved
+            ) {
+              state.r3LaserSolved = true;
+              addInventoryItem("Quantum Keycard");
+              addClue("DECRYPTED: CORE_FREQ = 2026");
+              if (isCurrentRoomAllSolved()) {
+                state.doorUnlocked = true;
+              }
+              renderState();
+            }
+            renderLaserModal();
+          });
+        }
+      }
+    };
+
+    renderLaserModal();
+  }
+
+  /** Transitions to a room while keeping total loop count and permanent neural clues! */
+  function transitionToRoom(diff, resetTotalLoops = false) {
+    const viewport = container.querySelector("#game-viewport");
+    if (viewport) {
+      viewport.classList.remove("tle-room-transitioning");
+      void viewport.offsetWidth;
+      viewport.classList.add("tle-room-transitioning");
+      window.setTimeout(() => {
+        viewport.classList.remove("tle-room-transitioning");
+      }, 650);
+    }
+
+    state = {
+      ...state,
+      roomId: ROOM_TITLES[diff],
+      difficulty: diff,
+      timeLeftSeconds: 60,
+      loopDurationSeconds: 60,
+      loopCount: resetTotalLoops ? 1 : state.loopCount,
+      timerRunning: true,
+      loopExpired: false,
+      escaped: false,
+      activeItem: null,
+      lampOn: true,
+      bookRead: false,
+      paintingClicks: 0,
+      keyRevealed: false,
+      keyCollected: false,
+      cabinetUnlocked: false,
+      photoInspected: false,
+      codeEntered: false,
+      r2GramophoneRead: false,
+      r2WordInput: [],
+      r2TableSolved: false,
+      r2BooksSequence: [],
+      r2BooksSolved: false,
+      r2BooksError: "",
+      r2DialValues: [10, 25, 40],
+      r2VaultSolved: false,
+      r2VaultError: "",
+      r3GridCells: [false, true, false, false, false, false, false, true, false],
+      r3BreakerSolved: false,
+      r3HoloInput: [],
+      r3HoloSolved: false,
+      r3HoloError: "",
+      r3MirrorAngles: [0, 0, 0],
+      r3LaserSolved: false,
+      r3LaserError: "",
+      r3CoreUnlocked: false,
+      doorUnlocked: false,
+      clues: resetTotalLoops ? [] : state.clues,
+      inventory: [],
+    };
+    loopEndModal?.classList.add("hidden");
+    pauseModal?.classList.add("hidden");
+    inspectorModal?.classList.add("hidden");
+    callbacks.onDifficultyChange?.(diff);
+    flashRoomBanner(ROOM_TITLES[diff]);
+    renderState();
+  }
+
+  function stepThroughOpenDoor() {
+    const finishedRoomNum =
+      state.difficulty === "basic" ? 1 : state.difficulty === "medium" ? 2 : 3;
+    showGreenEscapeBanner(`✨ ${state.player1Name} escaped Room ${finishedRoomNum}`);
+    callbacks.onEscape?.(state.loopCount, state.difficulty);
+
+    if (state.difficulty === "basic") {
+      transitionToRoom("medium", false);
+    } else if (state.difficulty === "medium") {
+      transitionToRoom("hard", false);
+    } else {
+      state.escaped = true;
+      state.timerRunning = false;
+      showScoreboardModal();
+    }
+  }
+
+  function handleObjectClick(objectId) {
+    if (!state.timerRunning && !state.escaped) {
+      state.timerRunning = true;
+    }
+    state.selectedObjectId = objectId;
+
+    switch (objectId) {
+      // ==================== ROOM 1 ====================
+      case "window":
+        flashFeedbackToast("ENV_VIEWPORT_00 // Rain streaks across reinforced glass.");
+        break;
+
+      case "lamp":
+        state.lampOn = !state.lampOn;
+        break;
+
+      case "book":
+        state.bookRead = true;
+        addClue("DECRYPTED: AZURE_PULSE x4");
+        if (isCurrentRoomAllSolved()) state.doorUnlocked = true;
+        openInspector(
+          "OBJ_LOGBOOK_00 // TACTICAL SCAN",
+          `<div class="tle-zoom-card">` +
+            `<p class="tle-zoom-sub">Surface scan detected scratched tally marks:</p>` +
+            `<p class="tle-zoom-handwriting"><strong>|||| — AZURE_PULSE x4</strong></p>` +
+            `</div>`,
+        );
+        break;
+
+      case "painting":
+        if (!state.keyRevealed) {
+          state.paintingClicks += 1;
+          if (state.paintingClicks >= 4) {
+            state.keyRevealed = true;
+          }
+        }
+        break;
+
+      case "key":
+        if (state.keyRevealed && !state.keyCollected) {
+          state.keyCollected = true;
+          addInventoryItem("Golden Key");
+          if (isCurrentRoomAllSolved()) state.doorUnlocked = true;
+        }
+        break;
+
+      case "cabinet":
+        if (state.keyCollected) {
+          state.cabinetUnlocked = true;
+          addClue("DECRYPTED: SCAN_ARCHIVE_03_YEAR");
+          if (isCurrentRoomAllSolved()) state.doorUnlocked = true;
+          openInspector(
+            "SEC_LOCKER_02 // DECRYPTED LOG",
+            `<div class="tle-zoom-card">` +
+              `<p class="tle-zoom-handwriting">"Cross-reference ARCHIVE_FRAME_03 timestamp year"</p>` +
+              `</div>`,
+          );
+        } else {
+          flashFeedbackToast("🔒 SEC_LOCKER_02 // Physical key required");
+        }
+        break;
+
+      case "photo":
+        state.photoInspected = true;
+        addClue("NEURAL_LOG: ARCHIVE_YEAR = 1998");
+        if (isCurrentRoomAllSolved()) state.doorUnlocked = true;
+        openInspector(
+          "ARCHIVE_FRAME_03 // METADATA SCAN",
+          `<div class="tle-zoom-card">` +
+            `<p class="tle-zoom-sub">Etched micro-serial uncovered on frame reverse:</p>` +
+            `<div class="tle-zoom-photo-year">🏛️ <span>1998</span></div>` +
+            `</div>`,
+        );
+        break;
+
+      case "computer":
+        if (!state.codeEntered) {
+          openInspector("CONSOLE_TERMINAL // KEYPAD", "", true);
+        }
+        break;
+
+      case "door":
+        if (isCurrentRoomAllSolved()) {
+          stepThroughOpenDoor();
+        } else {
+          flashFeedbackToast("🔒 Locked — Solve all puzzles to escape");
+        }
+        break;
+
+      // ==================== ROOM 2 ====================
+      case "r2-gramophone":
+        state.r2GramophoneRead = true;
+        addClue("DECRYPTED: CRYO_CIPHER = M-E-T-I");
+        openInspector(
+          "ACOUSTIC_LOG_01 // FREQUENCY TRACE",
+          `<div class="tle-zoom-card">` +
+            `<p class="tle-zoom-handwriting">"I have no voice, yet I tick away every loop.<br/>` +
+            `Align the 4 cryo-tiles on CRYO_MATRIX_02: <strong>M - E - T - I</strong>"</p>` +
+            `</div>`,
+        );
+        break;
+
+      case "r2-coffee-table":
+        openCoffeeTableLetterPuzzle();
+        break;
+
+      case "r2-bookshelf":
+        openBookshelfPuzzle();
+        break;
+
+      case "r2-vault":
+        openRotaryVaultPuzzle();
+        break;
+
+      case "r2-door":
+        if (isCurrentRoomAllSolved()) {
+          stepThroughOpenDoor();
+        } else {
+          flashFeedbackToast("🔒 Locked — Solve all puzzles to escape");
+        }
+        break;
+
+      // ==================== ROOM 3 ====================
+      case "r3-breaker":
+        openCircuitBreakerPuzzle();
+        break;
+
+      case "r3-holo-table":
+        openHoloTablePuzzle();
+        break;
+
+      case "r3-laser-grid":
+        openLaserMirrorPuzzle();
+        break;
+
+      case "r3-cryo-core":
+        if (!state.r3CoreUnlocked) {
+          const hintLine = state.r3LaserSolved
+            ? `<p class="tle-zoom-sub"><em>Laser Sensor Code: 2026</em></p>`
+            : `<p class="tle-zoom-sub"><em>Bounce the Laser Grid into 🎯 to reveal the 4-digit code</em></p>`;
+          openInspector("🧬 Cryo-Core", hintLine, true);
+        }
+        break;
+
+      case "r3-door":
+        if (isCurrentRoomAllSolved()) {
+          stepThroughOpenDoor();
+        } else {
+          flashFeedbackToast("🔒 Locked — Solve all puzzles to escape");
+        }
+        break;
+    }
+
+    callbacks.onObjectInteract?.(objectId, "interact");
+    renderState();
+  }
+
+  function submitPasscode() {
+    const entered = codeInput?.value.trim() ?? "";
+
+    if (state.difficulty === "basic") {
+      if (entered === "1998") {
+        state.codeEntered = true;
+        if (isCurrentRoomAllSolved()) {
+          state.doorUnlocked = true;
+          inspectorModal?.classList.add("hidden");
+          flashFeedbackToast("🔓 Door opened!");
+        } else if (passcodeAlertEl) {
+          passcodeAlertEl.innerHTML =
+            `<div class="tle-modal-alert tle-modal-alert-error">` +
+            `🔒 Solve all puzzles in the room to unseal the door!</div>`;
+        }
+      } else if (passcodeAlertEl) {
+        passcodeAlertEl.innerHTML =
+          `<div class="tle-modal-alert tle-modal-alert-error">❌ Wrong code</div>`;
+      }
+    } else if (state.difficulty === "hard") {
+      if (entered === "2026") {
+        state.r3CoreUnlocked = true;
+        if (isCurrentRoomAllSolved()) {
+          state.doorUnlocked = true;
+          inspectorModal?.classList.add("hidden");
+          flashFeedbackToast("🔓 Airlock opened!");
+        } else if (passcodeAlertEl) {
+          passcodeAlertEl.innerHTML =
+            `<div class="tle-modal-alert tle-modal-alert-error">` +
+            `🔒 Solve all puzzles in the room to unseal the airlock!</div>`;
+        }
+      } else if (passcodeAlertEl) {
+        passcodeAlertEl.innerHTML =
+          `<div class="tle-modal-alert tle-modal-alert-error">❌ Wrong code</div>`;
+      }
+    }
+    renderState();
+  }
+
+  /** Brief, aesthetic "Game End" modal showing "YOU WON" / "YOU LOST" + Total Loops + Invite button. */
+  function showScoreboardModal(forceLost = false) {
+    if (!modalTitle || !pauseModal) return;
+    const myLoops = Math.max(1, state.loopCount);
+    const friendLoops = state.partnerLoopScore ?? DEFAULT_PARTNER_LOOPS[state.difficulty];
+    const iWon = !forceLost && myLoops <= friendLoops;
+
+    modalTitle.textContent = iWon ? "🏆 YOU WON" : "💀 YOU LOST";
+    modalTitle.classList.toggle("tle-verdict-won", iWon);
+    modalTitle.classList.toggle("tle-verdict-lost", !iWon);
+
+    if (scoreboardBox) {
+      scoreboardBox.innerHTML =
+        `<div class="tle-stat-grid">` +
+        `<div class="tle-stat-card ${iWon ? "tle-stat-winner" : ""}">` +
+        `<span class="tle-stat-name">${state.player1Name}</span>` +
+        `<strong class="tle-stat-loops">${myLoops} Total Loops</strong>` +
+        `</div>` +
+        `<div class="tle-stat-card ${!iWon ? "tle-stat-winner" : ""}">` +
+        `<span class="tle-stat-name">${state.player2Name}</span>` +
+        `<strong class="tle-stat-loops">${friendLoops} Total Loops</strong>` +
+        `</div>` +
+        `</div>`;
+    }
+
+    pauseModal.classList.remove("hidden");
+    renderState();
+  }
+
+  /** Triggers a 0.4s VHS/static glitch rewind animation on loop reset (00:00). */
+  function triggerVhsGlitchRewind() {
+    const viewport = container.querySelector("#game-viewport");
+    const vhsLayer = container.querySelector("#vhs-rewind-layer");
+    if (viewport) {
+      viewport.classList.remove("vhs-glitch-rewind");
+      void viewport.offsetWidth;
+      viewport.classList.add("vhs-glitch-rewind");
+    }
+    vhsLayer?.classList.remove("hidden");
+    window.setTimeout(() => {
+      viewport?.classList.remove("vhs-glitch-rewind");
+      vhsLayer?.classList.add("hidden");
+    }, 400);
+  }
+
+  function expireLoop() {
+    triggerVhsGlitchRewind();
+    const endedLoop = Math.max(1, state.loopCount);
+    state = {
+      ...state,
+      timeLeftSeconds: 0,
+      timerRunning: false,
+      loopExpired: true,
+      activeItem: null,
+      bookRead: false,
+      paintingClicks: 0,
+      keyRevealed: false,
+      keyCollected: false,
+      cabinetUnlocked: false,
+      photoInspected: false,
+      codeEntered: false,
+      r2GramophoneRead: false,
+      r2WordInput: [],
+      r2TableSolved: false,
+      r2BooksSequence: [],
+      r2BooksSolved: false,
+      r2BooksError: "",
+      r2DialValues: [10, 25, 40],
+      r2VaultSolved: false,
+      r2VaultError: "",
+      r3GridCells: [false, true, false, false, false, false, false, true, false],
+      r3BreakerSolved: false,
+      r3HoloInput: [],
+      r3HoloSolved: false,
+      r3HoloError: "",
+      r3MirrorAngles: [0, 0, 0],
+      r3LaserSolved: false,
+      r3LaserError: "",
+      r3CoreUnlocked: false,
+      doorUnlocked: false,
+      inventory: [],
+    };
+    if (codeInput) codeInput.value = "";
+    inspectorModal?.classList.add("hidden");
+
+    if (loopEndTitle) {
+      loopEndTitle.textContent = `Loop #${endedLoop} Ended`;
+    }
+    loopEndModal?.classList.remove("hidden");
+    renderState();
+  }
+
+  function resetLoop() {
+    triggerVhsGlitchRewind();
+    const nextLoop = state.loopCount + 1;
+    state = {
+      ...state,
+      timeLeftSeconds: 60,
+      loopCount: nextLoop,
+      score: nextLoop,
+      timerRunning: true,
+      loopExpired: false,
+      activeItem: null,
+      bookRead: false,
+      paintingClicks: 0,
+      keyRevealed: false,
+      keyCollected: false,
+      cabinetUnlocked: false,
+      photoInspected: false,
+      codeEntered: false,
+      r2GramophoneRead: false,
+      r2WordInput: [],
+      r2TableSolved: false,
+      r2BooksSequence: [],
+      r2BooksSolved: false,
+      r2BooksError: "",
+      r2DialValues: [10, 25, 40],
+      r2VaultSolved: false,
+      r2VaultError: "",
+      r3GridCells: [false, true, false, false, false, false, false, true, false],
+      r3BreakerSolved: false,
+      r3HoloInput: [],
+      r3HoloSolved: false,
+      r3HoloError: "",
+      r3MirrorAngles: [0, 0, 0],
+      r3LaserSolved: false,
+      r3LaserError: "",
+      r3CoreUnlocked: false,
+      doorUnlocked: false,
+      escaped: false,
+      inventory: [],
+    };
+    if (codeInput) codeInput.value = "";
+    inspectorModal?.classList.add("hidden");
+    loopEndModal?.classList.add("hidden");
+    pauseModal?.classList.add("hidden");
+    const loopBadge = container.querySelector("#hud-loop");
+    if (loopBadge) {
+      loopBadge.classList.remove("tle-loop-glitch");
+      void loopBadge.offsetWidth;
+      loopBadge.classList.add("tle-loop-glitch");
+      window.setTimeout(() => {
+        loopBadge.classList.remove("tle-loop-glitch");
+      }, 650);
+    }
+    callbacks.onLoopReset?.(state.loopCount);
+    renderState();
+  }
+
+  const sceneObjects = container.querySelectorAll("[data-object-id]");
+  for (const btn of sceneObjects) {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.objectId;
+      if (id) handleObjectClick(id);
+    });
+  }
+
+  const diffButtons = container.querySelectorAll(".tle-diff-btn");
+  for (const dBtn of diffButtons) {
+    dBtn.addEventListener("click", () => {
+      const diff = dBtn.dataset.diff;
+      if (diff) transitionToRoom(diff, false);
+    });
+  }
+
+  // Subtle Riddle Hint button (never gives away raw steps, gives creative riddles!)
+  container.querySelector("#btn-hint")?.addEventListener("click", () => {
+    if (state.difficulty === "basic") {
+      if (!state.bookRead) {
+        flashFeedbackToast("💡 Whisper: The open pages on the mahogany desk hold the first secret.");
+      } else if (!state.keyCollected) {
+        flashFeedbackToast("💡 Whisper: Four touches upon the azure peaks reveal what is hidden.");
+      } else if (!state.cabinetUnlocked || !state.photoInspected) {
+        flashFeedbackToast("💡 Whisper: Unlock the tall wardrobe and study the sepia memory's year.");
+      } else {
+        flashFeedbackToast("💡 Whisper: Key the photograph's year into the glowing terminal.");
+      }
+    } else if (state.difficulty === "medium") {
+      if (!state.r2TableSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: Listen to the brass Gramophone, then spell what ticks on the Coffee Table.",
+        );
+      } else if (!state.r2BooksSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: Pull the 3 tomes in the bookmark's order: Ruby → Gold → Forest Leaf.",
+        );
+      } else {
+        flashFeedbackToast(
+          "💡 Whisper: Set the Astrolabe Vault wheels to Dawn (30), Zenith (70), Dusk (15).",
+        );
+      }
+    } else {
+      if (!state.r3BreakerSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: On the left Power Grid, light only the 4 outer corners (↖ ↗ ↙ ↘).",
+        );
+      } else if (!state.r3HoloSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: On the Holo-Table, unscramble O-P-L-O into the 60s cycle.",
+        );
+      } else if (!state.r3LaserSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: Angle the 3 laser mirrors to [＼], [＼], [／] to hit 🎯.",
+        );
+      } else {
+        flashFeedbackToast("💡 Whisper: Enter 2026 on the Cryo-Core console.");
+      }
+    }
+  });
+
+  // Clicking friend's badge simulates friend escaping a room
+  container.querySelector("#btn-sim-friend-escape")?.addEventListener("click", () => {
+    const rNum =
+      state.player2Room === "basic" ? 1 : state.player2Room === "medium" ? 2 : 3;
+    showGreenEscapeBanner(`✨ ${state.player2Name} escaped Room ${rNum}`);
+    if (state.player2Room === "basic") {
+      state.player2Room = "medium";
+    } else if (state.player2Room === "medium") {
+      state.player2Room = "hard";
+    } else {
+      state.escaped = true;
+      state.timerRunning = false;
+      showScoreboardModal(true);
+    }
+    renderState();
+  });
+
+  // Rematch Invite Flow -> Opens PUBG-style slide-in tactical drawer on the right edge
+  container.querySelector("#btn-invite-rematch")?.addEventListener("click", () => {
+    callbacks.onRematchInvite?.();
+    openPubgRematchDrawer();
+  });
+
+  // Accepting rematch -> Both enter Lobby, reset ready states & loops, ready up and start again!
+  container.querySelector("#btn-pubg-accept")?.addEventListener("click", () => {
+    pubgSideDrawer?.classList.add("tle-side-hidden");
+    pauseModal?.classList.add("hidden");
+    state.player1Ready = false;
+    state.player2Ready = false;
+    state.player2Room = "basic";
+    transitionToRoom("basic", true);
+    state.timerRunning = false;
+    readyLobbyModal?.classList.remove("hidden");
+    renderState();
+  });
+
+  // Rejecting rematch -> PUBG-style compact side drawer slides in showing "Invitation Rejected"
+  container.querySelector("#btn-pubg-reject")?.addEventListener("click", () => {
+    showPubgRejectedDrawer();
+  });
+
+  container.querySelector("#btn-open-lobby")?.addEventListener("click", () => {
+    readyLobbyModal?.classList.remove("hidden");
+    renderState();
+  });
+
+  container.querySelector("#btn-close-lobby")?.addEventListener("click", () => {
+    readyLobbyModal?.classList.add("hidden");
+    renderState();
+  });
+
+  toggleP1ReadyBtn?.addEventListener("click", () => {
+    state.player1Ready = !state.player1Ready;
+    callbacks.onReadyChange?.(state.player1Ready);
+    renderState();
+  });
+
+  toggleP2ReadyBtn?.addEventListener("click", () => {
+    state.player2Ready = !state.player2Ready;
+    renderState();
+  });
+
+  hostStartMatchBtn?.addEventListener("click", () => {
+    if (state.player1Ready && state.player2Ready) {
+      startFiveSecondCountdown();
+    }
+  });
+
+  const kpButtons = container.querySelectorAll(".tle-kp-btn[data-digit]");
+  for (const kp of kpButtons) {
+    kp.addEventListener("click", () => {
+      if (!codeInput) return;
+      const d = kp.dataset.digit ?? "";
+      if (codeInput.value.length < 4) {
+        codeInput.value += d;
+      }
+      if (codeInput.value.length === 4) {
+        submitPasscode();
+      }
+    });
+  }
+
+  container.querySelector("#btn-clear-code")?.addEventListener("click", () => {
+    if (codeInput) codeInput.value = "";
+    if (passcodeAlertEl) passcodeAlertEl.innerHTML = "";
+  });
+
+  container.querySelector("#btn-kp-enter")?.addEventListener("click", () => {
+    submitPasscode();
+  });
+
+  container.querySelector("#btn-submit-code")?.addEventListener("click", () => {
+    submitPasscode();
+  });
+
+  codeInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") submitPasscode();
+  });
+
+  container.querySelector("#btn-close-inspector")?.addEventListener("click", () => {
+    inspectorModal?.classList.add("hidden");
+  });
+
+  container.querySelector("#btn-start-restart")?.addEventListener("click", () => {
+    if (state.loopExpired || state.timeLeftSeconds <= 0) {
+      resetLoop();
+    } else if (!state.timerRunning) {
+      state.timerRunning = true;
+      renderState();
+    }
+  });
+
+  container.querySelector("#btn-stop-loop")?.addEventListener("click", () => {
+    if (state.timerRunning) {
+      state.timerRunning = false;
+      renderState();
+    }
+  });
+
+  container.querySelector("#btn-reset-loop")?.addEventListener("click", () => {
+    resetLoop();
+  });
+
+  popupRestartBtn?.addEventListener("click", () => {
+    resetLoop();
+  });
+
+  popupExitBtn?.addEventListener("click", () => {
+    transitionToRoom("basic", true);
+  });
+
+  container.querySelector("#btn-pause-menu")?.addEventListener("click", () => {
+    showScoreboardModal(false);
+  });
+
+  container.querySelector("#btn-resume")?.addEventListener("click", () => {
+    pauseModal?.classList.add("hidden");
+    renderState();
+  });
+
+  function renderSlotItemSvg(item) {
+    switch (item) {
+      case "Golden Key":
+      case "Winding Key":
+        return `<span class="tle-slot-emoji">🗝️</span>`;
+      case "Ruby Lens":
+        return `<span class="tle-slot-emoji">📕</span>`;
+      case "Parlor Emblem":
+        return `<span class="tle-slot-emoji">💎</span>`;
+      case "Optic Mirror":
+        return `<span class="tle-slot-emoji">🪞</span>`;
+      case "Plasma Cell":
+        return `<span class="tle-slot-emoji">🧪</span>`;
+      case "Quantum Keycard":
+        return `<span class="tle-slot-emoji">💳</span>`;
+    }
+  }
+
+  function renderState() {
+    const viewport = container.querySelector("#game-viewport");
+    const timerVal = container.querySelector("#hud-timer-val");
+    const timerProgress = container.querySelector("#hud-timer-progress");
+    const loopVal = container.querySelector("#hud-loop");
+    const roomIndEl = container.querySelector("#hud-room-indicator");
+    const camLabelEl = container.querySelector("#hud-cam-label");
+    const p1NameEl = container.querySelector("#hud-p1-name");
+    const p2NameEl = container.querySelector("#hud-p2-name");
+    const startRestartBtn = container.querySelector("#btn-start-restart");
+    const stopBtn = container.querySelector("#btn-stop-loop");
+
+    const isUrgent = state.timeLeftSeconds < 15 && state.timerRunning;
+    const isFrostDecay =
+      state.difficulty === "medium" && state.timeLeftSeconds <= 30 && state.timerRunning;
+    const isGravityWarp =
+      state.difficulty === "hard" && state.timeLeftSeconds <= 15 && state.timerRunning;
+    const isPopupOpen =
+      !loopEndModal?.classList.contains("hidden") ||
+      !pauseModal?.classList.contains("hidden") ||
+      !readyLobbyModal?.classList.contains("hidden") ||
+      !countdownOverlay?.classList.contains("hidden");
+
+    rootEl?.setAttribute("data-room-diff", state.difficulty);
+    rootEl?.classList.toggle("room-1-office", state.difficulty === "basic");
+    rootEl?.classList.toggle("room-2-cryolab", state.difficulty === "medium");
+    rootEl?.classList.toggle("room-3-quantum", state.difficulty === "hard");
+    rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
+    blurTarget?.classList.toggle("tle-room-blurred", Boolean(isPopupOpen));
+    viewport?.classList.toggle("emergency-strobe", isUrgent);
+    viewport?.classList.toggle("frost-decay", isFrostDecay);
+    viewport?.classList.toggle("gravity-warp", isGravityWarp);
+
+    if (timerProgress) {
+      const pct = Math.max(0, Math.min(100, (state.timeLeftSeconds / state.loopDurationSeconds) * 100));
+      timerProgress.style.width = `${pct}%`;
+      timerProgress.classList.toggle("tle-prog-urgent", isUrgent);
+    }
+
+    if (camLabelEl) {
+      camLabelEl.textContent =
+        state.difficulty === "basic"
+          ? "ROOM_CAM_04 // ANOMALY DETECTED"
+          : state.difficulty === "medium"
+            ? "ROOM_CAM_05 // CRYO-CONTAINMENT"
+            : "ROOM_CAM_06 // SINGULARITY CORE";
+    }
+
+    sceneBasic?.classList.toggle("hidden", state.difficulty !== "basic");
+    sceneMedium?.classList.toggle("hidden", state.difficulty !== "medium");
+    sceneHard?.classList.toggle("hidden", state.difficulty !== "hard");
+
+    for (const dBtn of diffButtons) {
+      dBtn.classList.toggle("tle-diff-active", dBtn.dataset.diff === state.difficulty);
+    }
+
+    if (timerVal) {
+      timerVal.textContent = formatTime(state.timeLeftSeconds);
+    }
+    if (loopVal) {
+      loopVal.textContent = `LOOP #${String(state.loopCount).padStart(2, "0")}`;
+    }
+    if (roomIndEl) {
+      roomIndEl.textContent = ROOM_TITLES[state.difficulty];
+    }
+    if (p1NameEl) {
+      p1NameEl.textContent = state.player1Name;
+    }
+    if (p2NameEl) {
+      p2NameEl.textContent = state.player2Name;
+    }
+
+    // Minimal Lobby Ready / Not Ready state
+    lobbyP1Box?.classList.toggle("tle-lobby-box-ready", state.player1Ready);
+    lobbyP2Box?.classList.toggle("tle-lobby-box-ready", state.player2Ready);
+    if (toggleP1ReadyBtn) {
+      toggleP1ReadyBtn.textContent = state.player1Ready ? "Ready" : "Not Ready";
+      toggleP1ReadyBtn.classList.toggle("tle-ready-active", state.player1Ready);
+    }
+    if (toggleP2ReadyBtn) {
+      toggleP2ReadyBtn.textContent = state.player2Ready ? "Ready" : "Not Ready";
+      toggleP2ReadyBtn.classList.toggle("tle-ready-active", state.player2Ready);
+    }
+    const bothReady = state.player1Ready && state.player2Ready;
+    if (hostStartMatchBtn) {
+      hostStartMatchBtn.disabled = !bothReady;
+    }
+    if (lobbyWaitHint) {
+      lobbyWaitHint.textContent = bothReady ? "" : "Player not ready";
+    }
+
+    if (startRestartBtn) {
+      if (state.loopExpired || state.timeLeftSeconds <= 0) {
+        startRestartBtn.textContent = "↺ Restart";
+        startRestartBtn.classList.add("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = false;
+      } else if (state.timerRunning) {
+        startRestartBtn.textContent = "▶ Running";
+        startRestartBtn.classList.remove("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = true;
+      } else if (state.timeLeftSeconds < state.loopDurationSeconds) {
+        startRestartBtn.textContent = "▶ Resume";
+        startRestartBtn.classList.remove("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = false;
+      } else {
+        startRestartBtn.textContent = "▶ Start";
+        startRestartBtn.classList.remove("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = false;
+      }
+    }
+    if (stopBtn) {
+      stopBtn.disabled = !state.timerRunning;
+    }
+
+    const allSolved = isCurrentRoomAllSolved();
+    if (allSolved) {
+      state.doorUnlocked = true;
+    }
+
+    // Room 1 visual states
+    const paintingBtn = container.querySelector("#obj-painting");
+    const keyBtn = container.querySelector("#obj-key");
+    paintingBtn?.classList.toggle("tle-painting-open", state.keyRevealed);
+    keyBtn?.classList.toggle("hidden", !state.keyRevealed || state.keyCollected);
+
+    const cabinetBtn = container.querySelector("#obj-cabinet");
+    const cabinetBadge = container.querySelector("#state-cabinet");
+    cabinetBtn?.classList.toggle("tle-cabinet-open", state.cabinetUnlocked);
+    if (cabinetBadge) {
+      cabinetBadge.textContent = state.cabinetUnlocked ? "🔓" : "🔒";
+    }
+
+    const monitorScreen = container.querySelector("#monitor-screen");
+    const monitorLock = container.querySelector("#state-computer");
+    const monitorPassbox = container.querySelector("#monitor-passbox");
+    monitorScreen?.classList.toggle("tle-monitor-unlocked", state.codeEntered);
+    if (monitorLock) {
+      monitorLock.textContent = state.codeEntered ? "🔓" : "🔒";
+    }
+    if (monitorPassbox) {
+      monitorPassbox.textContent = state.codeEntered ? "OPEN" : "* * * *";
+    }
+
+    const doorBtn = container.querySelector("#obj-door");
+    const r1Open = state.difficulty === "basic" && allSolved;
+    doorBtn?.classList.toggle("tle-door-swung-open", r1Open);
+
+    // Room 2 visual states
+    const r2DoorBtn = container.querySelector("#r2-door-btn");
+    const r2Open = state.difficulty === "medium" && allSolved;
+    r2DoorBtn?.classList.toggle("tle-door-swung-open", r2Open);
+
+    // Room 3 visual states
+    const r3DoorBtn = container.querySelector("#r3-door-btn");
+    const r3Open = state.difficulty === "hard" && allSolved;
+    r3DoorBtn?.classList.toggle("tle-door-swung-open", r3Open);
+
+    // Inventory Slots
+    const invContainer = container.querySelector("#inventory-list");
+    if (invContainer) {
+      const slotsHtml[] = [];
+      for (let i = 0; i < 4; i++) {
+        const item = state.inventory[i];
+        if (item) {
+          const isEquipped = state.activeItem === item;
+          slotsHtml.push(
+            `<button type="button" class="tle-inv-slot tle-inv-slot-filled ${
+              isEquipped ? "tle-inv-slot-active" : ""
+            }" data-inv-item="${item}" title="${item}">` +
+              renderSlotItemSvg(item) +
+              `</button>`,
+          );
+        } else {
+          slotsHtml.push(`<div class="tle-inv-slot"></div>`);
+        }
+      }
+      invContainer.innerHTML = slotsHtml.join("");
+    }
+
+    // Persistent Clues
+    const cluesList = container.querySelector("#clues-list");
+    if (cluesList) {
+      if (state.clues.length === 0) {
+        const defaultHint =
+          state.difficulty === "basic"
+            ? "Inspect the open journal on the desk..."
+            : state.difficulty === "medium"
+              ? "Inspect the brass Gramophone on the left for the first riddle..."
+              : "Inspect the left Power Grid schematic to start...";
+        cluesList.innerHTML = `<li class="tle-clue-empty">${defaultHint}</li>`;
+      } else {
+        cluesList.innerHTML = state.clues
+          .map((clue) => `<li class="tle-clue-item">${clue}</li>`)
+          .join("");
+      }
+    }
+  }
+
+  function update(partialState) {
+    const prevTime = state.timeLeftSeconds;
+    state = {
+      ...state,
+      ...partialState,
+      clues: partialState.clues ? [...partialState.clues] : state.clues,
+      inventory: partialState.inventory ? [...partialState.inventory] : state.inventory,
+    };
+
+    if (
+      partialState.timeLeftSeconds !== undefined &&
+      partialState.timeLeftSeconds <= 0 &&
+      prevTime > 0 &&
+      !state.escaped
+    ) {
+      expireLoop();
+      return;
+    }
+
+    renderState();
+  }
+
+  renderState();
+
+  const viewportElement = container.querySelector("#game-viewport") ?? container;
+  const dockElement = container.querySelector("#inventory-clues-dock") ?? container;
+
+  return {
+    update,
+    resetLoop,
+    getState: () => ({ ...state }),
+    viewportElement,
+    dockElement,
+  };
+}
+
+
+const root = document.getElementById("app");
+renderGameScreen(root, {
+  roomId: "ROOM 01 // OFFICE",
+  timeLeftSeconds: 60,
+  loopDurationSeconds: 60,
+  loopCount: 4,
+  connectedPlayers: 2,
+  player1Name: "You",
+  player2Name: "Drek"
+});
+  </script>
+</body>
+</html>
