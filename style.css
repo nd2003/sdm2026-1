@@ -1,61 +1,93 @@
 /* Owner: UI (see README) */
 * { box-sizing: border-box; }
 body {
-  margin: 0; font-family: system-ui, sans-serif; background: #111; color: #eee;
-  display: grid; gap: 12px; padding: 12px; max-width: 1000px; margin-inline: auto;
-  grid-template-columns: 1fr 260px;
+  margin: 0 auto; padding: 16px; max-width: 1040px; min-height: 100vh;
+  font-family: system-ui, sans-serif; color: #eee; background: radial-gradient(circle at 50% 0, #232030, #0c0b10 70%);
+  display: grid; gap: 12px; align-content: start;
+  grid-template-columns: minmax(0, 1fr) 270px;
   grid-template-areas: "hud hud" "room journal" "message journal" "inventory journal";
 }
-h2 { margin: 0 0 8px; font-size: 1rem; }
+h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 
 /* HUD */
-#hud { grid-area: hud; display: flex; justify-content: space-between; font-size: 1.4rem; font-weight: bold; }
+#hud { grid-area: hud; display: flex; justify-content: space-between; align-items: center; }
+#timer, #loop-count { padding: 6px 14px; border-radius: 999px; background: #ffffff14; font-weight: bold; font-size: 1.3rem; }
 #timer { font-variant-numeric: tabular-nums; }
-#timer.low { color: #f55; animation: pulse 1s infinite; }
-@keyframes pulse { 50% { opacity: .4; } }
+#timer.low { color: #fff; background: #c22; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .55; } }
 
-/* Room */
+/* Room: a wall and a floor, objects placed on them by id */
 #room {
-  grid-area: room; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px;
-  border-radius: 8px; background: linear-gradient(#3a2f2a 0 65%, #1f1a17 65%);  /* wall + floor */
+  grid-area: room; position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 10px;
+  container-type: inline-size;  /* lets object sizes scale with the room (cqw) */
+  background:
+    linear-gradient(#0000 62%, #0000 62%),
+    repeating-linear-gradient(90deg, #4a3b33 0 12cqw, #45372f 12cqw 24cqw) top / 100% 62% no-repeat,  /* wallpaper */
+    linear-gradient(#2a1f19 0 1.2cqw, #0000 0) 0 62% / 100% 100% no-repeat,                             /* skirting board */
+    repeating-linear-gradient(90deg, #5a4030 0 9cqw, #523a2b 9cqw 9.3cqw) bottom / 100% 38% no-repeat;  /* floorboards */
+  box-shadow: inset 0 0 60px #000c, 0 8px 24px #0008;
 }
 .obj {
-  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px;
-  background: #0003; border: 2px solid transparent; border-radius: 8px; color: inherit; font: inherit;
-  cursor: pointer; transition: transform .4s, border-color .2s, background .2s;
+  position: absolute; transform: translateX(-50%);  /* left = centre of object */
+  display: flex; flex-direction: column; align-items: center; gap: .3cqw;
+  padding: .6cqw; border: 2px solid transparent; border-radius: 8px;
+  background: none; color: inherit; font: inherit; cursor: pointer; transition: filter .2s, border-color .2s;
 }
-.obj:hover, .obj:focus-visible { border-color: #fc6; outline: none; background: #0005; }
-.obj .art { font-size: 3rem; line-height: 1; transition: transform .4s; }
-.obj .label { font-size: .8rem; opacity: .8; }
+.obj:hover, .obj:focus-visible { outline: none; border-color: #fc6; background: #ffcc6614; filter: drop-shadow(0 0 8px #fc69); }
+.obj .art { font-size: 7cqw; line-height: 1; transition: transform .5s; filter: drop-shadow(0 .6cqw .4cqw #0009); }
+.obj .label { position: relative; z-index: 1; font-size: clamp(10px, 1.5cqw, 13px); padding: 1px 6px; border-radius: 999px; background: #000a; white-space: nowrap; }
 
-#obj-painting { background: #1e4fd0; border-color: #6af; }  /* clearly BLUE */
-#obj-painting.moved .art { transform: translateX(40%) rotate(12deg); }
-#obj-painting.moved .label::after { content: " (moved)"; }
+/* wall */
+#obj-clock    { left: 9%;  top: 10%; }
+#obj-painting { left: 30%; top: 7%; }
+#obj-photo    { left: 52%; top: 14%; }
+#obj-photo .art { font-size: 5.5cqw; }
+/* floor */
+#obj-door     { left: 84%; top: 14%; }
+#obj-door .art { font-size: 21cqw; }
+#obj-shelf    { left: 9%;  top: 40%; }
+#obj-shelf .art { font-size: 10cqw; }
+#obj-cabinet  { left: 29%; top: 44%; }
+#obj-cabinet .art { font-size: 10cqw; }
+#obj-computer { left: 50%; top: 58%; }
+#obj-note     { left: 64%; top: 72%; }
+#obj-note .art { font-size: 4.5cqw; }
+#obj-lamp     { left: 66%; top: 44%; }
 
-#obj-cabinet.open { background: #5a3d1a; }
-#obj-cabinet.open .art { transform: perspective(200px) rotateY(-35deg); }
-#obj-cabinet.open .label::after { content: " (open)"; }
+/* the painting: a framed, clearly BLUE canvas */
+#obj-painting .art {
+  font-size: 8cqw; padding: 1.2cqw 2cqw; background: linear-gradient(#5b8cff, #1e4fd0 60%, #123a9e);
+  border: 1.2cqw solid #b8862b; box-shadow: inset 0 0 0 .3cqw #6b4a12;
+}
+#obj-painting.moved .art { transform: translate(35%, 10%) rotate(14deg); }
 
-#obj-door.unlocked { border-color: #4c4; box-shadow: 0 0 16px #4c4; }
-#obj-door.unlocked .label::after { content: " (unlocked)"; }
+/* states */
+#obj-cabinet.open .art { transform: perspective(300px) rotateY(-40deg); filter: drop-shadow(0 0 1.5cqw #fc6); }
+#obj-door.unlocked .art { filter: drop-shadow(0 0 2cqw #4f4); }
+#obj-painting.moved .label::after { content: " · moved"; }
+#obj-cabinet.open .label::after { content: " · open"; }
+#obj-door.unlocked .label::after { content: " · unlocked"; color: #6f6; }
 
 /* Message */
-#message { grid-area: message; min-height: 2.5em; padding: 8px 12px; background: #222; border-left: 4px solid #fc6; border-radius: 4px; }
+#message { grid-area: message; min-height: 2.6em; padding: 10px 14px; background: #1c1a22; border-left: 4px solid #fc6; border-radius: 6px; }
 #message:empty::before { content: "Click something in the room."; opacity: .5; }
 
 /* Inventory (lost every loop) */
-#inventory { grid-area: inventory; padding: 8px 12px; background: #222; border-radius: 4px; }
+#inventory { grid-area: inventory; display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #1c1a22; border-radius: 6px; }
+#inventory h2::after { content: ":"; }
 #inventory ul { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
-#inventory li { padding: 4px 8px; background: #333; border-radius: 4px; }
+#inventory li { padding: 4px 10px; background: #fc62; border: 1px solid #fc6; border-radius: 6px; }
 
-/* Journal: a notebook that survives the reset */
+/* Journal: a notebook that survives the reset. Text sits on 24px ruled lines. */
 #journal {
-  grid-area: journal; padding: 12px 12px 12px 36px; border-radius: 4px; color: #222;
-  font-family: "Bradley Hand", "Segoe Print", cursive;
-  background: #f5ecd0 repeating-linear-gradient(transparent 0 23px, #9bc 23px 24px);
-  box-shadow: inset 28px 0 0 -26px #e66, 2px 2px 8px #000a;  /* red margin line */
+  grid-area: journal; align-self: stretch; padding: 24px 14px 24px 40px; border-radius: 4px 10px 10px 4px;
+  color: #23314f; font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive; line-height: 24px;
+  background: #f6edd2 repeating-linear-gradient(#0000 0 23px, #a9c2d6 23px 24px);
+  box-shadow: inset 32px 0 0 -30px #e66, inset 8px 0 12px -6px #0003, 4px 6px 16px #000a;  /* red margin + spine */
+  transform: rotate(.6deg);
 }
-#journal ol { margin: 0; padding-left: 16px; line-height: 24px; }
+#journal h2 { font-family: inherit; color: #8a2b2b; }
+#journal ol { margin: 0; padding-left: 18px; }
 .empty { margin: 0; opacity: .6; font-style: italic; }
 
 /* Loop-reset flash */
@@ -67,12 +99,13 @@ h2 { margin: 0 0 8px; font-size: 1rem; }
 @keyframes flash { 0% { opacity: 1; } 60% { opacity: .85; background: #111; color: #fc6; } 100% { opacity: 0; background: #111; } }
 
 /* Win screen */
-#win { position: fixed; inset: 0; display: grid; place-items: center; background: #000d; text-align: center; }
+#win { position: fixed; inset: 0; display: grid; place-items: center; background: #000d; text-align: center; padding: 16px; }
 #win[hidden] { display: none; }
-#win button { font: inherit; padding: 8px 16px; cursor: pointer; }
+#win > div { padding: 24px 32px; border-radius: 12px; background: #1c1a22; border: 1px solid #fc6; }
+#win button { font: inherit; font-weight: bold; padding: 8px 18px; border: 0; border-radius: 6px; background: #fc6; color: #111; cursor: pointer; }
 
-@media (max-width: 640px) {
-  body { grid-template-columns: 1fr; grid-template-areas: "hud" "room" "message" "inventory" "journal"; }
-  #room { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 700px) {
+  body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "room" "message" "inventory" "journal"; }
+  #journal { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
