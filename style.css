@@ -5,7 +5,7 @@ body {
   font-family: system-ui, sans-serif; color: #eee; background: radial-gradient(circle at 50% 0, #232030, #0c0b10 70%);
   display: grid; gap: 12px; align-content: start;
   grid-template-columns: minmax(0, 1fr) 270px;
-  grid-template-areas: "hud hud" "room journal" "message journal" "inventory journal";
+  grid-template-areas: "hud hud" "lobby lobby" "room opponent" "room journal" "message journal" "inventory journal";
 }
 h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 
@@ -119,7 +119,7 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 #win button { font: inherit; font-weight: bold; padding: 8px 18px; border: 0; border-radius: 6px; background: #fc6; color: #111; cursor: pointer; }
 
 @media (max-width: 700px) {
-  body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "room" "message" "inventory" "journal"; }
+  body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "lobby" "opponent" "room" "message" "inventory" "journal"; grid-template-rows: none; }
   #journal { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -156,3 +156,39 @@ body.hurry #room { animation: hurry 1s infinite; }
 #hud::before { content: "Time Loop Escape"; order: 1; font-weight: bold; letter-spacing: .08em; text-transform: uppercase; font-size: .85rem; opacity: .6; }
 #loop-count { order: 2; }
 @media (max-width: 420px) { #hud::before { display: none; } }
+
+/* --- Two-player race: lobby, opponent panel, race result --- */
+/* lobby hides the game; the game hides the lobby */
+body[data-phase="lobby"] :is(#hud, #opponent, #room, #message, #inventory, #journal) { display: none; }
+#lobby { grid-area: lobby; }
+#lobby:empty, #opponent:empty { display: none; }
+#lobby .card {
+  max-width: 440px; margin: 10vh auto 0; padding: 28px; border-radius: 14px; background: #1c1a22; border: 1px solid #fc65;
+  box-shadow: 0 12px 40px #000a; text-align: center;
+}
+#lobby h1 { margin: 0 0 8px; letter-spacing: .06em; text-transform: uppercase; color: #fc6; }
+#lobby p { margin: 0 0 18px; opacity: .8; line-height: 1.4; }
+#lobby label { display: block; text-align: left; font-size: .85rem; opacity: .7; margin-bottom: 4px; }
+#lobby .row { display: flex; gap: 8px; }
+#lobby input { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid #555; background: #0f0e13; color: inherit; }
+#lobby input:focus-visible { outline: 2px solid #fc6; border-color: transparent; }
+#lobby button, #win button { font: inherit; font-weight: bold; padding: 10px 20px; border: 0; border-radius: 8px; background: #fc6; color: #111; cursor: pointer; }
+#lobby button:focus-visible, #win button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.wait { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 3px solid #fc63; border-top-color: #fc6; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* opponent panel: their name, loop and 5 progress steps */
+#opponent { grid-area: opponent; padding: 10px 12px; border-radius: 8px; background: #1c1a22; border: 1px solid #e5535355; }
+#opponent h2 { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+#opponent small { font-weight: normal; opacity: .7; }
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.steps li { padding-top: 10px; font-size: .7rem; text-align: center; opacity: .5; background: linear-gradient(#444, #444) top / 100% 6px no-repeat; border-radius: 3px; }
+.steps li.done { opacity: 1; background-image: linear-gradient(#e55, #e55); }
+#opponent.bump { animation: bump .6s ease-out; }
+@keyframes bump { 30% { box-shadow: 0 0 0 3px #e55, 0 0 24px #e558; } }
+
+/* race result */
+#win .first { border-color: #fc6; box-shadow: 0 0 60px #fc64; }
+#win .second { border-color: #e55; }
+#win p { opacity: .85; }

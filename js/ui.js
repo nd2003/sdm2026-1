@@ -6,11 +6,37 @@ function render() {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };  // restart a CSS animation
 
+  // Phase: CSS shows the lobby or the game from body[data-phase]
+  const phase = game.phase || "lobby";
+  document.body.dataset.phase = phase;
+
+  // Lobby: name + Join, then "waiting" once connect() has set playerName
+  const lobby = $("lobby");
+  set(lobby, "innerHTML", phase !== "lobby" ? "" : game.playerName
+    ? `<div class="card"><h1>Time Loop Escape</h1><p class="wait" role="status"><span class="spinner" aria-hidden="true"></span>Waiting for an opponent, ${esc(game.playerName)}…</p></div>`
+    : `<form class="card"><h1>Time Loop Escape</h1>
+        <p>Race another player out of a room that resets every 60 seconds. Your items vanish each loop. Your clues don't.</p>
+        <label for="player-name">Your name</label>
+        <div class="row"><input id="player-name" required maxlength="20" autocomplete="nickname" placeholder="e.g. Abdallah"><button>Join</button></div></form>`);
+  const form = lobby.querySelector("form");
+  if (form && !form.onsubmit) {
+    form.onsubmit = (e) => { e.preventDefault(); const name = $("player-name").value.trim(); if (name) connect(name); };
+    setTimeout(() => $("player-name")?.focus());
+  }
+
+  // Opponent panel: name, loop, progress as 5 steps (1 clue, 2 key, 3 cabinet, 4 door unlocked, 5 escaped)
+  const o = game.opponent, opp = $("opponent");
+  set(opp, "innerHTML", !o ? "" : `<h2>⚔️ ${esc(o.name)} <small>Loop ${o.loop}</small></h2>
+    <ol class="steps" aria-label="${esc(o.name)}: step ${o.step} of 5">`
+    + ["Clue", "Key", "Cabinet", "Door", "Out"].map((s, i) => `<li${i < o.step ? ' class="done"' : ""}>${s}</li>`).join("") + "</ol>");
+  if (o && o.step > (opp._step ?? o.step)) replay(opp, "bump");  // flashes when they get closer
+  opp._step = o ? o.step : 0;
+
   // HUD
   const t = Math.max(0, Math.ceil(game.timeLeft));
   set($("timer"), "textContent", "⏳ " + t + "s");
   $("timer").classList.toggle("low", t <= 10);
-  document.body.classList.toggle("hurry", t <= 10 && !game.won);  // whole room goes red in the last 10s
+  document.body.classList.toggle("hurry", t <= 10 && !game.won && phase === "playing");  // whole room goes red in the last 10s
   $("hud").style.setProperty("--time", t / 60);  // drives the shrinking time bar
   set($("loop-count"), "textContent", "Loop " + game.loop);
 
@@ -64,20 +90,26 @@ function render() {
   }
   document.body.dataset.loop = game.loop;
 
-  // Win screen
+  // End screen: race result once the server picks a winner; "checking" while we wait for it after walking out
+  const over = phase === "over", showEnd = over || game.won;
   let win = $("win");
-  if (game.won && !win) {
+  if (showEnd && !win) {
     win = document.createElement("div");
     win.id = "win";
     win.setAttribute("role", "dialog");
-    win.setAttribute("aria-label", "You escaped");
+    win.setAttribute("aria-label", "Race result");
     document.body.append(win);
-    setTimeout(() => win.querySelector("button")?.focus());  // keyboard users land on "Play again"
   }
   if (win) {
-    win.hidden = !game.won;
-    set(win, "innerHTML", `<div><h1>🎉 You escaped!</h1><p>It took you ${game.loop} loop${game.loop === 1 ? "" : "s"}, with ${t}s left on the clock.</p>`
-      + `<button type="button" onclick="location.reload()">Play again</button></div>`);
+    win.hidden = !showEnd;
+    const first = game.winner === game.playerName;
+    const loops = `${game.loop} loop${game.loop === 1 ? "" : "s"}`;
+    set(win, "innerHTML", !over
+      ? `<div><h1>🚪 You're out!</h1><p class="wait"><span class="spinner" aria-hidden="true"></span>Checking who escaped first…</p></div>`
+      : `<div class="${first ? "first" : "second"}"><h1>${first ? "🏆 You escaped first!" : `😵 ${esc(game.winner || "Your opponent")} escaped first`}</h1>`
+        + `<p>${first ? `It took you ${loops}.` : `You were on loop ${game.loop}. So close.`}</p>`
+        + `<button type="button" onclick="location.reload()">Play again</button></div>`);
+    if (over && !win._focused) { win._focused = true; setTimeout(() => win.querySelector("button")?.focus()); }  // keyboard users land on "Play again"
   }
 }
 
@@ -85,4 +117,5 @@ function render() {
 if (typeof onObjectClick === "undefined") {
   window.onObjectClick = (id) => { game.message = "Clicked " + id; render(); };
 }
+if (typeof connect === "undefined") window.connect = (name) => { game.playerName = name; game.phase = "playing"; game.opponent = { name: "Bot", loop: 1, step: 2 }; render(); };
 if (typeof startLoop === "undefined") { buildRoom(); render(); }
