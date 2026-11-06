@@ -66,11 +66,54 @@ body {
   background: rgba(88, 28, 135, 0.45);
   border: 1px solid rgba(192, 132, 252, 0.45);
   color: #e9d5ff;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 5px 10px;
+  letter-spacing: 0.06em;
+  padding: 4px 9px;
   border-radius: 999px;
+}
+
+.tle-score-cluster {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tle-best-pill {
+  background: rgba(234, 179, 8, 0.16);
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  color: #fef08a;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.tle-diff-group {
+  display: inline-flex;
+  background: rgba(20, 16, 36, 0.9);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.tle-diff-btn {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.tle-diff-btn.tle-diff-active {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
 }
 
 .tle-header-center {
@@ -281,7 +324,7 @@ body {
   pointer-events: none;
 }
 
-/* Warm Lamp Light Cone */
+/* Warm or UV Lamp Light Cone */
 .tle-lamp-cone {
   position: absolute;
   top: 28%;
@@ -291,11 +334,44 @@ body {
   background: radial-gradient(ellipse at 32% 20%, rgba(251, 191, 36, 0.26) 0%, transparent 70%);
   pointer-events: none;
   z-index: 4;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.25s ease, background 0.3s ease;
+}
+
+.tle-uv-room .tle-lamp-cone {
+  width: 650px;
+  height: 420px;
+  background: radial-gradient(ellipse at 35% 25%, rgba(168, 85, 247, 0.38) 0%, transparent 75%);
 }
 
 .tle-lamp-off .tle-lamp-cone {
   opacity: 0.05;
+}
+
+.tle-uv-wall-secret {
+  position: absolute;
+  top: 7%;
+  left: 52%;
+  font-family: "Courier New", monospace;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #e879f9;
+  text-shadow: 0 0 12px #a855f7;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.tle-uv-room .tle-uv-wall-secret {
+  opacity: 1;
+}
+
+.tle-fuse-spark {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 1.1rem;
+  filter: drop-shadow(0 0 8px #facc15);
 }
 
 /* Feedback & Reset Toasts */
@@ -652,6 +728,13 @@ body {
   box-shadow: 0 0 22px rgba(74, 222, 128, 0.65);
 }
 
+.tle-monitor-screen.tle-monitor-unpowered {
+  background: #090a10;
+  border-color: #475569;
+  box-shadow: none;
+  opacity: 0.75;
+}
+
 .tle-monitor-lock {
   font-size: 1rem;
 }
@@ -953,11 +1036,22 @@ body {
   gap: 16px;
 }
 
+.tle-dock-label-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .tle-dock-label {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #f8fafc;
+}
+
+.tle-dock-sub {
+  font-size: 0.68rem;
+  color: #a78bfa;
 }
 
 .tle-inv-slots {
@@ -967,26 +1061,71 @@ body {
 }
 
 .tle-inv-slot {
-  width: 58px;
-  height: 58px;
+  position: relative;
+  width: 62px;
+  height: 62px;
   border-radius: 12px;
   background: rgba(36, 30, 58, 0.7);
   border: 1.5px solid rgba(148, 163, 184, 0.25);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
+  color: #f8fafc;
+  padding: 4px;
 }
 
 .tle-inv-slot-filled {
   border-color: #a855f7;
   box-shadow: 0 0 14px rgba(168, 85, 247, 0.5);
   background: rgba(59, 39, 102, 0.55);
+  cursor: pointer;
+}
+
+.tle-inv-slot-active {
+  border-color: #facc15;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.65);
 }
 
 .tle-slot-key-svg {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
+}
+
+.tle-slot-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.tle-slot-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #e9d5ff;
+  margin-top: 2px;
+}
+
+.tle-scoreboard-box {
+  background: rgba(30, 24, 50, 0.85);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tle-score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.tle-score-row strong {
+  color: #fef08a;
 }
 
 .tle-dock-divider {

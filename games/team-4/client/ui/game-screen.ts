@@ -1,4 +1,7 @@
+export type DifficultyLevel = "basic" | "medium" | "hard";
+
 export type RoomObjectId =
+  | "window"
   | "book"
   | "lamp"
   | "painting"
@@ -8,58 +11,88 @@ export type RoomObjectId =
   | "computer"
   | "door";
 
+export type InventoryItemId = "Golden Key" | "UV Bulb" | "Power Fuse" | "Exit Keycard";
+
 export interface GameScreenState {
   roomId?: string;
+  difficulty?: DifficultyLevel;
   timeLeftSeconds?: number;
   loopDurationSeconds?: number;
   loopCount?: number;
+  bestLoopScore?: number | null;
+  partnerLoopScore?: number | null;
   connectedPlayers?: number;
   maxPlayers?: number;
   score?: number;
   statusText?: string;
   selectedObjectId?: RoomObjectId | null;
+  activeItem?: InventoryItemId | null;
   lampOn?: boolean;
+  uvLampInstalled?: boolean;
   paintingClicks?: number;
   keyRevealed?: boolean;
   keyCollected?: boolean;
+  fuseCollected?: boolean;
+  computerPowered?: boolean;
   cabinetUnlocked?: boolean;
+  uvBulbCollected?: boolean;
+  codeEntered?: boolean;
+  keycardCollected?: boolean;
   doorUnlocked?: boolean;
   escaped?: boolean;
   timerRunning?: boolean;
   loopExpired?: boolean;
   clues?: string[];
-  inventory?: string[];
+  inventory?: InventoryItemId[];
   feedbackMessage?: string;
   onObjectInteract?: (
     objectId: RoomObjectId,
     action: "select" | "inspect" | "interact",
   ) => void;
   onLoopReset?: (newLoopCount: number) => void;
+  onDifficultyChange?: (difficulty: DifficultyLevel) => void;
+  onEscape?: (loopsTaken: number, difficulty: DifficultyLevel) => void;
 }
 
 interface InternalGameScreenState {
   roomId: string;
+  difficulty: DifficultyLevel;
   timeLeftSeconds: number;
   loopDurationSeconds: number;
   loopCount: number;
+  bestLoopScore: number | null;
+  partnerLoopScore: number | null;
   connectedPlayers: number;
   maxPlayers: number;
   score: number;
   statusText: string;
   selectedObjectId: RoomObjectId | null;
+  activeItem: InventoryItemId | null;
   lampOn: boolean;
+  uvLampInstalled: boolean;
   paintingClicks: number;
   keyRevealed: boolean;
   keyCollected: boolean;
+  fuseCollected: boolean;
+  computerPowered: boolean;
   cabinetUnlocked: boolean;
+  uvBulbCollected: boolean;
+  codeEntered: boolean;
+  keycardCollected: boolean;
   doorUnlocked: boolean;
   escaped: boolean;
   timerRunning: boolean;
   loopExpired: boolean;
   clues: string[];
-  inventory: string[];
+  inventory: InventoryItemId[];
   feedbackMessage: string;
 }
+
+const DIFFICULTY_SECONDS: Record<DifficultyLevel, number> = {
+  basic: 60,
+  medium: 50,
+  hard: 40,
+};
 
 const VALID_PASSCODES = new Set(["1998", "1984"]);
 
@@ -76,23 +109,38 @@ export function renderGameScreen(
   const callbacks = {
     onObjectInteract: initialState?.onObjectInteract,
     onLoopReset: initialState?.onLoopReset,
+    onDifficultyChange: initialState?.onDifficultyChange,
+    onEscape: initialState?.onEscape,
   };
+
+  const initialDiff: DifficultyLevel = initialState?.difficulty ?? "basic";
+  const defaultDuration = initialState?.loopDurationSeconds ?? DIFFICULTY_SECONDS[initialDiff];
 
   let state: InternalGameScreenState = {
     roomId: initialState?.roomId ?? "ROOM-04",
-    timeLeftSeconds: initialState?.timeLeftSeconds ?? 60,
-    loopDurationSeconds: initialState?.loopDurationSeconds ?? 60,
+    difficulty: initialDiff,
+    timeLeftSeconds: initialState?.timeLeftSeconds ?? defaultDuration,
+    loopDurationSeconds: defaultDuration,
     loopCount: initialState?.loopCount ?? 1,
+    bestLoopScore: initialState?.bestLoopScore ?? null,
+    partnerLoopScore: initialState?.partnerLoopScore ?? null,
     connectedPlayers: initialState?.connectedPlayers ?? 2,
     maxPlayers: initialState?.maxPlayers ?? 2,
-    score: initialState?.score ?? 0,
-    statusText: initialState?.statusText ?? "Loop Active",
+    score: initialState?.score ?? 1,
+    statusText: initialState?.statusText ?? "Ready",
     selectedObjectId: initialState?.selectedObjectId ?? null,
+    activeItem: initialState?.activeItem ?? null,
     lampOn: initialState?.lampOn ?? true,
+    uvLampInstalled: initialState?.uvLampInstalled ?? false,
     paintingClicks: initialState?.paintingClicks ?? 0,
     keyRevealed: initialState?.keyRevealed ?? false,
     keyCollected: initialState?.keyCollected ?? false,
+    fuseCollected: initialState?.fuseCollected ?? false,
+    computerPowered: initialState?.computerPowered ?? initialDiff === "basic",
     cabinetUnlocked: initialState?.cabinetUnlocked ?? false,
+    uvBulbCollected: initialState?.uvBulbCollected ?? false,
+    codeEntered: initialState?.codeEntered ?? false,
+    keycardCollected: initialState?.keycardCollected ?? false,
     doorUnlocked: initialState?.doorUnlocked ?? false,
     escaped: initialState?.escaped ?? false,
     timerRunning: initialState?.timerRunning ?? false,
@@ -101,7 +149,7 @@ export function renderGameScreen(
     inventory: initialState?.inventory ? [...initialState.inventory] : [],
     feedbackMessage:
       initialState?.feedbackMessage ??
-      "Press ▶ Start to begin the 60-second time loop, then explore the room!",
+      "Select a difficulty (Basic / Medium / Hard) and press ▶ Start to begin Loop #1!",
   };
 
   container.innerHTML = `
@@ -109,13 +157,27 @@ export function renderGameScreen(
       <!-- Top Header Bar -->
       <header class="tle-header">
         <div class="tle-header-left">
-          <button type="button" class="tle-icon-btn" id="btn-pause-menu" title="Pause Game">
+          <button type="button" class="tle-icon-btn" id="btn-pause-menu" title="Pause & Scoreboard">
             <span>⏸</span>
           </button>
           <button type="button" class="tle-icon-btn" id="btn-hint" title="Show Hint">
             <span>💡</span>
           </button>
-          <span class="tle-loop-pill" id="hud-loop">LOOP #${state.loopCount}</span>
+
+          <!-- Difficulty Level Selector: Basic / Medium / Hard -->
+          <div class="tle-diff-group" role="group" aria-label="Difficulty Level">
+            <button type="button" class="tle-diff-btn" data-diff="basic">Basic</button>
+            <button type="button" class="tle-diff-btn" data-diff="medium">Medium</button>
+            <button type="button" class="tle-diff-btn" data-diff="hard">Hard</button>
+          </div>
+
+          <!-- Loop Counter = Player Score -->
+          <div class="tle-score-cluster">
+            <span class="tle-loop-pill" id="hud-loop">LOOP #${state.loopCount}</span>
+            <span class="tle-best-pill" id="hud-score-val" title="Fewer loops to escape = better score!">
+              🏆 Score: --
+            </span>
+          </div>
         </div>
 
         <div class="tle-header-center">
@@ -163,7 +225,7 @@ export function renderGameScreen(
             type="button"
             class="tle-ctrl-btn tle-ctrl-restart"
             id="btn-reset-loop"
-            title="Restart the Loop"
+            title="Restart the Loop (increments Loop Score counter)"
           >
             ↺ Restart
           </button>
@@ -179,7 +241,7 @@ export function renderGameScreen(
         <div class="tle-room-stage" id="game-viewport">
           <!-- Loop Reset Flash Banner -->
           <div class="tle-toast tle-toast-reset hidden" id="loop-reset-banner">
-            ⏳ TIME LOOP RESET — Inventory items vanished, but your discovered CLUES remain!
+            ⏰ TIME'S UP — Inventory items vanished, but your CLUES remain! Press ↺ Restart for next loop.
           </div>
 
           <!-- Feedback Subtitle Toast -->
@@ -188,34 +250,44 @@ export function renderGameScreen(
           </div>
 
           <!-- Room Architecture: Left Wall, Back Wall, Floor, Window & Rain -->
-          <div class="tle-wall-back"></div>
-          <div class="tle-wall-left">
-            <!-- Rainy Night Window with Venetian Blinds -->
-            <div class="tle-window-frame">
-              <div class="tle-window-sky">
-                <div class="tle-rain-layer"></div>
-                <div class="tle-window-trees"></div>
-              </div>
-              <div class="tle-window-blinds"></div>
+          <div class="tle-wall-back">
+            <!-- Hidden UV Wall Clue (visible when UV Bulb is installed in Lamp) -->
+            <div class="tle-uv-wall-secret" id="uv-wall-secret">
+              UV INK REVEALED: "PHOTO YEAR = 1998"
             </div>
-            <!-- Hanging Ivy Left -->
+          </div>
+
+          <div class="tle-wall-left">
+            <!-- Rainy Night Window with Venetian Blinds (Clickable for Power Fuse in Medium/Hard) -->
+            <button
+              type="button"
+              class="tle-window-frame"
+              id="obj-window"
+              data-object-id="window"
+              title="Inspect Window Blinds"
+            >
+              <span class="tle-window-sky">
+                <span class="tle-rain-layer"></span>
+              </span>
+              <span class="tle-window-blinds"></span>
+              <span class="tle-fuse-spark hidden" id="window-fuse-badge">🔋</span>
+            </button>
             <div class="tle-ivy-left" aria-hidden="true">🌿</div>
           </div>
           <div class="tle-floor"></div>
 
-          <!-- Warm Lamp Light Cone Overlay -->
+          <!-- Warm or UV Lamp Light Cone Overlay -->
           <div class="tle-lamp-cone" id="lamp-cone"></div>
 
           <!-- 1. BLUE MOUNTAIN PAINTING + HIDDEN WALL SAFE (Left-Center Wall) -->
           <div class="tle-painting-zone">
-            <!-- Wall Safe Behind Painting -->
             <div class="tle-wall-safe" id="wall-safe">
               <button
                 type="button"
                 class="tle-safe-key-btn hidden"
                 id="obj-key"
                 data-object-id="key"
-                title="Collect Cabinet Key"
+                title="Collect Golden Key"
               >
                 <svg viewBox="0 0 64 64" class="tle-svg-key">
                   <circle cx="20" cy="20" r="10" fill="none" stroke="#fbbf24" stroke-width="5" />
@@ -227,7 +299,6 @@ export function renderGameScreen(
               </button>
             </div>
 
-            <!-- Framed Blue Mountain Landscape Painting -->
             <button
               type="button"
               class="tle-painting-btn"
@@ -272,22 +343,20 @@ export function renderGameScreen(
                 <div class="tle-cabinet-door tle-door-left">
                   <div class="tle-door-panel"></div>
                   <div class="tle-door-panel"></div>
-                  <span class="tle-handle"></span>
                 </div>
                 <div class="tle-cabinet-door tle-door-right">
                   <div class="tle-door-panel"></div>
                   <div class="tle-door-panel"></div>
-                  <span class="tle-handle"></span>
                 </div>
               </div>
               <div class="tle-cabinet-interior" id="cabinet-interior">
-                <span class="tle-interior-scroll">📜 Clue Found!</span>
+                <span class="tle-interior-scroll" id="cabinet-interior-label">📜 Clue Inside</span>
               </div>
               <span class="tle-glow-badge" id="state-cabinet">🔒</span>
             </button>
           </div>
 
-          <!-- 3. CORK BULLETIN BOARD WITH 1998 PHOTOGRAPH (Right-Center Wall) -->
+          <!-- 3. CORK BULLETIN BOARD WITH PHOTOGRAPH (Right-Center Wall) -->
           <button
             type="button"
             class="tle-corkboard-btn"
@@ -334,7 +403,6 @@ export function renderGameScreen(
               <div class="tle-desk-leg tle-leg-l"></div>
               <div class="tle-desk-leg tle-leg-r"></div>
             </div>
-            <div class="tle-office-chair" aria-hidden="true"></div>
           </div>
 
           <!-- 5. PANELED EXIT DOOR (Far Right Wall) -->
@@ -357,13 +425,12 @@ export function renderGameScreen(
           <!-- 6. FOREGROUND LEFT STUDY DESK, LAMP & OPEN BOOK -->
           <div class="tle-left-desk-zone">
             <div class="tle-left-desk-surface">
-              <!-- Articulated Brass Desk Lamp -->
               <button
                 type="button"
                 class="tle-lamp-btn"
                 id="obj-lamp"
                 data-object-id="lamp"
-                title="Toggle Desk Lamp"
+                title="Desk Lamp (Fit UV Bulb in Medium/Hard)"
               >
                 <span class="tle-lamp-shade"></span>
                 <span class="tle-lamp-bulb" id="lamp-bulb"></span>
@@ -371,13 +438,11 @@ export function renderGameScreen(
                 <span class="tle-lamp-base"></span>
               </button>
 
-              <!-- Stack of Vintage Books -->
               <div class="tle-book-stack" aria-hidden="true">
                 <div class="tle-stacked-book tle-book-top"></div>
                 <div class="tle-stacked-book tle-book-bot"></div>
               </div>
 
-              <!-- Open Clue Book with Magnifying Glass -->
               <button
                 type="button"
                 class="tle-open-book-btn"
@@ -392,20 +457,25 @@ export function renderGameScreen(
                 <span class="tle-magnifier-badge">🔍</span>
               </button>
             </div>
-            <div class="tle-fg-chair" aria-hidden="true"></div>
           </div>
 
-          <!-- Bottom Floating Glass Inventory & Clues Bar -->
+          <!-- Bottom Floating Glass Inventory (4 Creative Slots) & Clues Bar -->
           <aside class="tle-bottom-dock" id="inventory-clues-dock">
             <div class="tle-inventory-panel">
-              <span class="tle-dock-label">INVENTORY:</span>
+              <div class="tle-dock-label-col">
+                <span class="tle-dock-label">INVENTORY:</span>
+                <span class="tle-dock-sub" id="inv-active-label">Click slot to equip</span>
+              </div>
               <div class="tle-inv-slots" id="inventory-list"></div>
             </div>
 
             <div class="tle-dock-divider"></div>
 
             <div class="tle-clues-panel">
-              <span class="tle-dock-label">CLUES:</span>
+              <div class="tle-dock-label-col">
+                <span class="tle-dock-label">CLUES:</span>
+                <span class="tle-dock-sub">Kept across loops</span>
+              </div>
               <ul class="tle-clues-list" id="clues-list"></ul>
             </div>
           </aside>
@@ -445,7 +515,7 @@ export function renderGameScreen(
                     aria-label="Enter 4-digit computer password"
                   />
                   <button type="button" class="tle-primary-btn" id="btn-submit-code">
-                    Unlock Door
+                    Enter
                   </button>
                 </div>
               </div>
@@ -460,19 +530,19 @@ export function renderGameScreen(
         </div>
       </main>
 
-      <!-- Pause / Escape Victory Overlay -->
+      <!-- Pause / Multiplayer Loop Scoreboard Overlay -->
       <div class="tle-overlay hidden" id="pause-modal">
         <div class="tle-modal-card">
-          <h3 id="modal-title">Game Paused</h3>
+          <h3 id="modal-title">Time Loop Scoreboard</h3>
           <p id="modal-desc">
-            You have 60 seconds to escape the room. When the timer reaches 00:00, the room and
-            inventory items reset—but your discovered CLUES stay with you across every loop!
+            Your score is the number of loops it takes you to escape (lower is better!).
           </p>
+          <div class="tle-scoreboard-box" id="scoreboard-box"></div>
           <div class="tle-modal-actions">
             <button type="button" class="tle-secondary-btn" id="btn-modal-reset">
-              ↺ Restart Loop
+              ↺ Next Loop (+1)
             </button>
-            <button type="button" class="tle-primary-btn" id="btn-resume">Resume</button>
+            <button type="button" class="tle-primary-btn" id="btn-resume">Continue</button>
           </div>
         </div>
       </div>
@@ -483,6 +553,7 @@ export function renderGameScreen(
   const pauseModal = container.querySelector<HTMLElement>("#pause-modal");
   const modalTitle = container.querySelector<HTMLElement>("#modal-title");
   const modalDesc = container.querySelector<HTMLElement>("#modal-desc");
+  const scoreboardBox = container.querySelector<HTMLElement>("#scoreboard-box");
   const inspectorModal = container.querySelector<HTMLElement>("#inspector-modal");
   const inspectorTitle = container.querySelector<HTMLElement>("#inspector-title");
   const inspectorBody = container.querySelector<HTMLElement>("#inspector-body");
@@ -496,9 +567,10 @@ export function renderGameScreen(
     }
   }
 
-  function addInventoryItem(item: string): void {
+  function addInventoryItem(item: InventoryItemId): void {
     if (!state.inventory.includes(item)) {
       state.inventory = [...state.inventory, item];
+      state.activeItem = item;
     }
   }
 
@@ -512,36 +584,108 @@ export function renderGameScreen(
     }
   }
 
+  function switchDifficulty(diff: DifficultyLevel): void {
+    const duration = DIFFICULTY_SECONDS[diff];
+    state = {
+      ...state,
+      difficulty: diff,
+      timeLeftSeconds: duration,
+      loopDurationSeconds: duration,
+      loopCount: 1,
+      score: 1,
+      timerRunning: false,
+      loopExpired: false,
+      escaped: false,
+      activeItem: null,
+      lampOn: true,
+      uvLampInstalled: false,
+      paintingClicks: 0,
+      keyRevealed: false,
+      keyCollected: false,
+      fuseCollected: false,
+      computerPowered: diff === "basic",
+      cabinetUnlocked: false,
+      uvBulbCollected: false,
+      codeEntered: false,
+      keycardCollected: false,
+      doorUnlocked: false,
+      clues: [],
+      inventory: [],
+      feedbackMessage:
+        `Switched to ${diff.toUpperCase()} mode (${duration}s per loop). ` +
+        `Press ▶ Start to begin Loop #1!`,
+    };
+    resetBanner?.classList.add("hidden");
+    inspectorModal?.classList.add("hidden");
+    callbacks.onDifficultyChange?.(diff);
+    renderState();
+  }
+
   function handleObjectClick(objectId: RoomObjectId): void {
     state.selectedObjectId = objectId;
 
     switch (objectId) {
-      case "lamp":
-        state.lampOn = !state.lampOn;
-        state.feedbackMessage = state.lampOn
-          ? "Switched on the brass desk lamp — warm light illuminates the journal."
-          : "Turned off the desk lamp — the room glows in moonlight.";
+      case "window":
+        if (state.difficulty === "basic") {
+          state.feedbackMessage =
+            "Rain lashes against the window blinds outside. Nothing hidden here on Basic mode.";
+        } else if (!state.fuseCollected) {
+          state.fuseCollected = true;
+          addInventoryItem("Power Fuse");
+          state.feedbackMessage =
+            "🔋 Found a Power Fuse hidden inside the window blind casing! Use it on the Computer.";
+        } else {
+          state.feedbackMessage = "You already took the Power Fuse from the window blinds.";
+        }
         break;
 
-      case "book":
+      case "lamp":
+        if (
+          state.difficulty !== "basic" &&
+          state.uvBulbCollected &&
+          !state.uvLampInstalled
+        ) {
+          state.uvLampInstalled = true;
+          state.lampOn = true;
+          state.feedbackMessage =
+            "🔦 Installed the UV Bulb into the Desk Lamp! Purple UV light reveals hidden ink!";
+          addClue("UV Light Active: Inspect Corkboard Photo");
+        } else {
+          state.lampOn = !state.lampOn;
+          state.feedbackMessage = state.lampOn
+            ? state.uvLampInstalled
+              ? "UV Blacklight Lamp switched ON."
+              : "Brass desk lamp switched ON."
+            : "Desk lamp switched OFF.";
+        }
+        break;
+
+      case "book": {
         addClue("BLUE - 4");
+        const extraHint =
+          state.difficulty === "basic"
+            ? ""
+            : "<br/><em>Margin note: Check the window blinds for a spare power fuse.</em>";
+        if (state.difficulty !== "basic") {
+          addClue("Window blinds hide a Power Fuse");
+        }
         state.feedbackMessage = 'Discovered clue in open journal: "BLUE - 4"!';
         openInspector(
           "📖 Open Journal on Desk",
           `<div class="tle-zoom-card">` +
             `<p class="tle-zoom-handwriting">"To whoever wakes here:<br/>` +
             `<strong>BLUE - 4</strong>"</p>` +
-            `<p class="tle-zoom-sub">Find the blue object and interact with it 4 times.</p>` +
+            `<p class="tle-zoom-sub">Interact with the blue object 4 times.${extraHint}</p>` +
             `</div>`,
         );
         break;
+      }
 
       case "painting":
         if (!state.keyRevealed) {
           state.paintingClicks += 1;
           if (state.paintingClicks >= 4) {
             state.keyRevealed = true;
-            state.score += 25;
             state.feedbackMessage =
               "The Blue Painting slides aside and reveals a hidden Golden Key!";
           } else {
@@ -550,7 +694,7 @@ export function renderGameScreen(
           }
         } else {
           state.feedbackMessage =
-            "The Blue Painting has moved aside, exposing the hidden wall recess.";
+            "The Blue Painting has moved aside, exposing the wall safe.";
         }
         break;
 
@@ -558,86 +702,131 @@ export function renderGameScreen(
         if (state.keyRevealed && !state.keyCollected) {
           state.keyCollected = true;
           addInventoryItem("Golden Key");
-          state.score += 25;
           state.feedbackMessage =
-            "Collected the Golden Key! Click the locked wooden cabinet to unlock it.";
+            "🗝️ Collected Golden Key (Slot 1)! Click the locked wooden cabinet.";
         }
         break;
 
       case "cabinet":
         if (state.cabinetUnlocked) {
-          addClue("Find the year on the photograph");
           state.feedbackMessage = 'Cabinet clue: "Find the year on the photograph".';
-          openInspector(
-            "🗄️ Unlocked Wooden Cabinet",
-            `<div class="tle-zoom-card">` +
-              `<p class="tle-zoom-handwriting">"Find the year on the photograph"</p>` +
-              `<p class="tle-zoom-sub">Check the photograph on the corkboard.</p>` +
-              `</div>`,
-          );
         } else if (state.keyCollected || state.inventory.includes("Golden Key")) {
           state.cabinetUnlocked = true;
-          state.score += 50;
           addClue("Find the year on the photograph");
-          addInventoryItem("Cabinet Note");
-          state.feedbackMessage =
-            'Unlocked the wooden cabinet with the Golden Key! Clue added: "Find the year on the photograph".';
-          openInspector(
-            "🔓 Cabinet Unlocked!",
-            `<div class="tle-zoom-card">` +
-              `<p class="tle-zoom-handwriting">"Find the year on the photograph"</p>` +
-              `<p class="tle-zoom-sub">Clue permanently saved across all time loops!</p>` +
-              `</div>`,
-          );
+          if (state.difficulty !== "basic" && !state.uvBulbCollected) {
+            state.uvBulbCollected = true;
+            addInventoryItem("UV Bulb");
+            addClue("Install UV Bulb into Desk Lamp to read invisible ink");
+            state.feedbackMessage =
+              "🔓 Unlocked cabinet! Found a clue AND a 🔦 UV Bulb (Slot 2) — click the Desk Lamp!";
+            openInspector(
+              "🔓 Cabinet Unlocked!",
+              `<div class="tle-zoom-card">` +
+                `<p class="tle-zoom-handwriting">"Find the year on the photograph"</p>` +
+                `<p class="tle-zoom-sub">You also found a <strong>🔦 UV Bulb</strong>! ` +
+                `Click the Desk Lamp to install it and reveal hidden UV ink.</p>` +
+                `</div>`,
+            );
+          } else {
+            state.feedbackMessage =
+              '🔓 Unlocked wooden cabinet! Clue added: "Find the year on the photograph".';
+            openInspector(
+              "🔓 Cabinet Unlocked!",
+              `<div class="tle-zoom-card">` +
+                `<p class="tle-zoom-handwriting">"Find the year on the photograph"</p>` +
+                `<p class="tle-zoom-sub">Clue permanently saved across all time loops!</p>` +
+                `</div>`,
+            );
+          }
         } else {
           state.feedbackMessage =
-            "The wooden cabinet is locked with a brass padlock. You need a key.";
+            "The wooden cabinet is locked with a brass padlock. You need the Golden Key.";
         }
         break;
 
       case "photo":
-        state.feedbackMessage =
-          "You inspect the photograph pinned to the corkboard closely.";
-        openInspector(
-          "📷 Corkboard Photograph",
-          `<div class="tle-zoom-card">` +
-            `<div class="tle-zoom-photo-year">🏛️ <span>1998</span></div>` +
-            `<p class="tle-zoom-sub">A faded photograph of the old building with ` +
-            `handwritten ink along the bottom border.</p>` +
-            `</div>`,
-        );
+        if (state.difficulty !== "basic" && (!state.uvLampInstalled || !state.lampOn)) {
+          state.feedbackMessage =
+            "The date on the photograph is faded/invisible! You need UV light on the Desk Lamp.";
+          openInspector(
+            "📷 Corkboard Photograph (Faded)",
+            `<div class="tle-zoom-card">` +
+              `<div class="tle-zoom-photo-year">🏛️ <span>????</span></div>` +
+              `<p class="tle-zoom-sub">The caption is written in invisible UV ink! ` +
+              `Install the <strong>🔦 UV Bulb</strong> from the cabinet into the Desk Lamp.</p>` +
+              `</div>`,
+          );
+        } else {
+          state.feedbackMessage =
+            "You inspect the photograph pinned to the corkboard closely.";
+          openInspector(
+            "📷 Corkboard Photograph",
+            `<div class="tle-zoom-card">` +
+              `<div class="tle-zoom-photo-year">🏛️ <span>1998</span></div>` +
+              `<p class="tle-zoom-sub">Under the light, the handwritten year ` +
+              `along the bottom border is clearly visible.</p>` +
+              `</div>`,
+          );
+        }
         break;
 
       case "computer":
-        if (state.doorUnlocked) {
-          state.feedbackMessage = "The computer is unlocked and the Exit Door is open!";
+        if (!state.computerPowered) {
+          if (state.fuseCollected || state.inventory.includes("Power Fuse")) {
+            state.computerPowered = true;
+            state.feedbackMessage =
+              "🔋 Inserted Power Fuse! The Computer Terminal boots up — click it to enter passcode.";
+          } else {
+            state.feedbackMessage =
+              "⚡ The Computer Terminal has no power! Find the Power Fuse hidden in the room.";
+          }
+          break;
+        }
+        if (state.codeEntered) {
+          state.feedbackMessage =
+            state.difficulty === "hard" && !state.doorUnlocked
+              ? "Use the 💳 Exit Keycard from your inventory on the Exit Door!"
+              : "The computer unlocked the Exit Door!";
         } else {
           state.feedbackMessage = "The computer terminal requires a 4-digit passcode.";
           openInspector(
             "💻 Locked Computer Terminal",
-            `<p class="tle-zoom-sub">Enter the 4-digit security passcode to unlock the Exit Door:</p>`,
+            `<p class="tle-zoom-sub">Enter the 4-digit security passcode:</p>`,
             true,
           );
         }
         break;
 
       case "door":
+        if (state.difficulty === "hard" && state.codeEntered && !state.doorUnlocked) {
+          if (state.keycardCollected || state.inventory.includes("Exit Keycard")) {
+            state.doorUnlocked = true;
+            state.feedbackMessage =
+              "💳 Swiped Exit Keycard! The Exit Door is unlocked — click again to escape!";
+            break;
+          }
+        }
         if (state.doorUnlocked) {
           state.escaped = true;
-          state.statusText = "Escaped!";
-          state.score += 100;
-          state.feedbackMessage = `🎉 You escaped the Time Loop on Loop #${state.loopCount}!`;
-          const timeLeft = state.timeLeftSeconds;
-          if (modalTitle && modalDesc && pauseModal) {
-            modalTitle.textContent = "🎉 You Escaped the Time Loop!";
-            modalDesc.textContent =
-              `You unlocked the exit door and escaped on Loop #${state.loopCount} ` +
-              `with ${timeLeft} seconds remaining!`;
-            pauseModal.classList.remove("hidden");
+          state.timerRunning = false;
+          state.score = state.loopCount;
+          if (
+            state.bestLoopScore === null ||
+            state.loopCount < state.bestLoopScore
+          ) {
+            state.bestLoopScore = state.loopCount;
           }
+          state.statusText = `Escaped in ${state.loopCount} Loop(s)!`;
+          state.feedbackMessage =
+            `🎉 Escaped on ${state.difficulty.toUpperCase()} in ${state.loopCount} loop(s)! ` +
+            `(Your Score = ${state.loopCount})`;
+          callbacks.onEscape?.(state.loopCount, state.difficulty);
+          showScoreboardModal(true);
         } else {
           state.feedbackMessage =
-            "The Exit Door is electronically locked. Unlock it from the computer first!";
+            state.difficulty === "hard" && state.codeEntered
+              ? "Swipe the 💳 Exit Keycard on the door reader to unseal it!"
+              : "The Exit Door is electronically locked. Unlock it from the computer first!";
         }
         break;
     }
@@ -649,17 +838,52 @@ export function renderGameScreen(
   function submitPasscode(): void {
     const entered = codeInput?.value.trim() ?? "";
     if (VALID_PASSCODES.has(entered)) {
-      state.doorUnlocked = true;
-      state.score += 75;
-      state.statusText = "Door Unlocked";
-      state.feedbackMessage =
-        "🔓 Password accepted! The computer unlocked the Exit Door — click the door to escape!";
+      state.codeEntered = true;
       inspectorModal?.classList.add("hidden");
+      if (state.difficulty === "hard") {
+        state.keycardCollected = true;
+        addInventoryItem("Exit Keycard");
+        state.feedbackMessage =
+          "💳 Passcode accepted! Terminal ejected the Exit Keycard (Slot 4) — click the Exit Door!";
+      } else {
+        state.doorUnlocked = true;
+        state.statusText = "Door Unlocked";
+        state.feedbackMessage =
+          "🔓 Passcode accepted! The Exit Door is unlocked — click the door to escape!";
+      }
     } else {
       state.feedbackMessage =
         "Incorrect passcode. Search the room for clues to find the 4-digit code.";
     }
     renderState();
+  }
+
+  function showScoreboardModal(escapedNow: boolean): void {
+    if (!modalTitle || !modalDesc || !pauseModal) return;
+    if (escapedNow) {
+      modalTitle.textContent = `🎉 Escaped in ${state.loopCount} Loop${state.loopCount === 1 ? "" : "s"}!`;
+      modalDesc.textContent =
+        `Difficulty: ${state.difficulty.toUpperCase()} · ` +
+        `In Time Loop Escape, your score is the total loops needed to escape (lower is better!).`;
+    } else {
+      modalTitle.textContent = "Time Loop Scoreboard & Pause";
+      modalDesc.textContent =
+        "Items reset every loop, but your discovered CLUES stay! Fewer loops = better score.";
+    }
+    if (scoreboardBox) {
+      const myBest =
+        state.bestLoopScore !== null ? `${state.bestLoopScore} Loop(s)` : `${state.loopCount} (In Progress)`;
+      const p2Score =
+        state.partnerLoopScore !== null ? `${state.partnerLoopScore} Loop(s)` : "Waiting for P2...";
+      scoreboardBox.innerHTML =
+        `<div class="tle-score-row"><span>👤 You (Player 1) — Current Loop:</span>` +
+        `<strong>Loop #${state.loopCount}</strong></div>` +
+        `<div class="tle-score-row"><span>🏆 Your Best Escape Score:</span>` +
+        `<strong>${myBest}</strong></div>` +
+        `<div class="tle-score-row"><span>🖥️ Teammate (Player 2):</span>` +
+        `<strong>${p2Score}</strong></div>`;
+    }
+    pauseModal.classList.remove("hidden");
   }
 
   function expireLoop(): void {
@@ -670,15 +894,22 @@ export function renderGameScreen(
       timerRunning: false,
       loopExpired: true,
       statusText: "Loop Expired",
+      activeItem: null,
+      uvLampInstalled: false,
       paintingClicks: 0,
       keyRevealed: false,
       keyCollected: false,
+      fuseCollected: false,
+      computerPowered: state.difficulty === "basic",
       cabinetUnlocked: false,
+      uvBulbCollected: false,
+      codeEntered: false,
+      keycardCollected: false,
       doorUnlocked: false,
       inventory: [],
       feedbackMessage:
-        `⏰ Time's up! Items vanished, but ${clueCount} clue(s) remain. ` +
-        `Press ↺ Restart to run the next loop!`,
+        `⏰ Time's up! All inventory items vanished, but ${clueCount} clue(s) remain. ` +
+        `Press ↺ Restart for Loop #${state.loopCount + 1}!`,
     };
     if (codeInput) codeInput.value = "";
     inspectorModal?.classList.add("hidden");
@@ -693,18 +924,26 @@ export function renderGameScreen(
       ...state,
       timeLeftSeconds: state.loopDurationSeconds,
       loopCount: nextLoop,
+      score: nextLoop,
       timerRunning: true,
       loopExpired: false,
       statusText: "Loop Active",
+      activeItem: null,
+      uvLampInstalled: false,
       paintingClicks: 0,
       keyRevealed: false,
       keyCollected: false,
+      fuseCollected: false,
+      computerPowered: state.difficulty === "basic",
       cabinetUnlocked: false,
+      uvBulbCollected: false,
+      codeEntered: false,
+      keycardCollected: false,
       doorUnlocked: false,
       escaped: false,
       inventory: [],
       feedbackMessage:
-        `⏳ Loop #${nextLoop} running! Room reset, ` +
+        `⏳ Loop #${nextLoop} started! Room & items reset, ` +
         `but your ${clueCount} discovered clue(s) remain!`,
     };
     if (codeInput) codeInput.value = "";
@@ -720,6 +959,15 @@ export function renderGameScreen(
     btn.addEventListener("click", () => {
       const id = btn.dataset.objectId as RoomObjectId | undefined;
       if (id) handleObjectClick(id);
+    });
+  }
+
+  // Wire up difficulty buttons
+  const diffButtons = container.querySelectorAll<HTMLButtonElement>(".tle-diff-btn");
+  for (const dBtn of diffButtons) {
+    dBtn.addEventListener("click", () => {
+      const diff = dBtn.dataset.diff as DifficultyLevel | undefined;
+      if (diff) switchDifficulty(diff);
     });
   }
 
@@ -769,12 +1017,18 @@ export function renderGameScreen(
       state.feedbackMessage = "💡 Hint: Take the Golden Key from the wall recess!";
     } else if (!state.cabinetUnlocked) {
       state.feedbackMessage = "💡 Hint: Use the Golden Key on the locked wooden cabinet.";
-    } else if (!state.doorUnlocked) {
+    } else if (state.difficulty !== "basic" && !state.uvLampInstalled) {
       state.feedbackMessage =
-        "💡 Hint: Follow the clue from the cabinet and inspect the corkboard.";
+        "💡 Hint: Click the Desk Lamp to install the UV Bulb from the cabinet!";
+    } else if (state.difficulty !== "basic" && !state.computerPowered) {
+      state.feedbackMessage =
+        "💡 Hint: Check the rainy window blinds on the left to find the Power Fuse!";
+    } else if (!state.codeEntered) {
+      state.feedbackMessage =
+        "💡 Hint: Inspect the corkboard photograph and enter its year on the computer.";
     } else {
       state.feedbackMessage =
-        "💡 Hint: The Exit Door on the right is unlocked — click it to escape!";
+        "💡 Hint: Click the Exit Door on the right to escape the time loop!";
     }
     renderState();
   });
@@ -786,7 +1040,8 @@ export function renderGameScreen(
       state.timerRunning = true;
       state.statusText = "Loop Active";
       state.feedbackMessage =
-        `▶ Loop #${state.loopCount} timer started! Escape within ${state.timeLeftSeconds}s.`;
+        `▶ Loop #${state.loopCount} (${state.difficulty.toUpperCase()}) started! ` +
+        `Escape in as few loops as possible.`;
       renderState();
     }
   });
@@ -796,7 +1051,7 @@ export function renderGameScreen(
       state.timerRunning = false;
       state.statusText = "Stopped";
       state.feedbackMessage =
-        "⏹ Timer stopped. Press ▶ Start to resume or ↺ Restart to reset the loop.";
+        "⏹ Timer stopped. Press ▶ Start to resume or ↺ Restart to start the next loop.";
       renderState();
     }
   });
@@ -811,13 +1066,7 @@ export function renderGameScreen(
   });
 
   container.querySelector("#btn-pause-menu")?.addEventListener("click", () => {
-    if (modalTitle && modalDesc) {
-      modalTitle.textContent = "Game Paused";
-      modalDesc.textContent =
-        "Explore the room, collect items, and unlock the exit door within 60 seconds. " +
-        "When the timer hits 00:00, items reset—but your discovered CLUES stay!";
-    }
-    pauseModal?.classList.remove("hidden");
+    showScoreboardModal(false);
   });
 
   container.querySelector("#btn-resume")?.addEventListener("click", () => {
@@ -831,17 +1080,45 @@ export function renderGameScreen(
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   }
 
+  function renderSlotItemSvg(item: InventoryItemId): string {
+    switch (item) {
+      case "Golden Key":
+        return (
+          `<svg viewBox="0 0 64 64" class="tle-slot-key-svg">` +
+          `<circle cx="22" cy="22" r="11" fill="none" stroke="#fbbf24" stroke-width="5"/>` +
+          `<line x1="30" y1="30" x2="52" y2="52" stroke="#fbbf24" stroke-width="5"/>` +
+          `<line x1="42" y1="42" x2="36" y2="48" stroke="#f59e0b" stroke-width="4"/>` +
+          `<line x1="49" y1="49" x2="43" y2="55" stroke="#f59e0b" stroke-width="4"/>` +
+          `</svg><span class="tle-slot-tag">Key</span>`
+        );
+      case "UV Bulb":
+        return `<span class="tle-slot-emoji">🔦</span><span class="tle-slot-tag">UV Bulb</span>`;
+      case "Power Fuse":
+        return `<span class="tle-slot-emoji">🔋</span><span class="tle-slot-tag">Fuse</span>`;
+      case "Exit Keycard":
+        return `<span class="tle-slot-emoji">💳</span><span class="tle-slot-tag">Keycard</span>`;
+    }
+  }
+
   function renderState(): void {
     const timerPill = container.querySelector<HTMLElement>("#hud-timer");
     const timerVal = container.querySelector<HTMLElement>("#hud-timer-val");
     const loopVal = container.querySelector<HTMLElement>("#hud-loop");
+    const scoreVal = container.querySelector<HTMLElement>("#hud-score-val");
     const feedbackEl = container.querySelector<HTMLElement>("#action-feedback-text");
     const startRestartBtn = container.querySelector<HTMLButtonElement>("#btn-start-restart");
     const stopBtn = container.querySelector<HTMLButtonElement>("#btn-stop-loop");
+    const activeLabel = container.querySelector<HTMLElement>("#inv-active-label");
+    const fuseBadge = container.querySelector<HTMLElement>("#window-fuse-badge");
 
     const isUrgent = state.timeLeftSeconds <= 15;
     rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
+    rootEl?.classList.toggle("tle-uv-room", state.lampOn && state.uvLampInstalled);
     timerPill?.classList.toggle("tle-timer-urgent", isUrgent);
+
+    for (const dBtn of diffButtons) {
+      dBtn.classList.toggle("tle-diff-active", dBtn.dataset.diff === state.difficulty);
+    }
 
     if (timerVal) {
       timerVal.textContent = formatTime(state.timeLeftSeconds);
@@ -849,9 +1126,27 @@ export function renderGameScreen(
     if (loopVal) {
       loopVal.textContent = `LOOP #${state.loopCount}`;
     }
+    if (scoreVal) {
+      scoreVal.textContent =
+        state.bestLoopScore !== null
+          ? `🏆 Best: ${state.bestLoopScore} Loop${state.bestLoopScore === 1 ? "" : "s"}`
+          : `🎯 Score: ${state.loopCount} Loop${state.loopCount === 1 ? "" : "s"}`;
+    }
     if (feedbackEl) {
       feedbackEl.textContent = state.feedbackMessage;
     }
+    if (activeLabel) {
+      activeLabel.textContent = state.activeItem
+        ? `Equipped: ${state.activeItem}`
+        : "Resets every loop";
+    }
+    if (fuseBadge) {
+      fuseBadge.classList.toggle(
+        "hidden",
+        state.difficulty === "basic" || state.fuseCollected,
+      );
+    }
+
     if (startRestartBtn) {
       if (state.loopExpired || state.timeLeftSeconds <= 0 || state.escaped) {
         startRestartBtn.textContent = "↺ Restart";
@@ -889,12 +1184,21 @@ export function renderGameScreen(
     const monitorScreen = container.querySelector<HTMLElement>("#monitor-screen");
     const monitorLock = container.querySelector<HTMLElement>("#state-computer");
     const monitorPassbox = container.querySelector<HTMLElement>("#monitor-passbox");
-    monitorScreen?.classList.toggle("tle-monitor-unlocked", state.doorUnlocked);
+    monitorScreen?.classList.toggle("tle-monitor-unlocked", state.codeEntered);
+    monitorScreen?.classList.toggle("tle-monitor-unpowered", !state.computerPowered);
     if (monitorLock) {
-      monitorLock.textContent = state.doorUnlocked ? "🔓" : "🔒";
+      monitorLock.textContent = !state.computerPowered
+        ? "⚡"
+        : state.codeEntered
+          ? "🔓"
+          : "🔒";
     }
     if (monitorPassbox) {
-      monitorPassbox.textContent = state.doorUnlocked ? "OPEN" : "* * * *";
+      monitorPassbox.textContent = !state.computerPowered
+        ? "NO PWR"
+        : state.codeEntered
+          ? "OPEN"
+          : "* * * *";
     }
 
     // Exit Door state
@@ -902,37 +1206,47 @@ export function renderGameScreen(
     const doorBadge = container.querySelector<HTMLElement>("#state-door");
     doorBtn?.classList.toggle("tle-door-unlocked", state.doorUnlocked);
     if (doorBadge) {
-      doorBadge.textContent = state.doorUnlocked ? "🔓" : "⇥";
+      doorBadge.textContent = state.doorUnlocked
+        ? "🔓"
+        : state.difficulty === "hard" && state.codeEntered
+          ? "💳"
+          : "⇥";
     }
 
-    // Render 4 Fixed Inventory Slots (matching the screenshot layout)
+    // Render 4 Interactive Inventory Slots (Key, UV Bulb, Power Fuse, Exit Keycard)
     const invContainer = container.querySelector<HTMLElement>("#inventory-list");
     if (invContainer) {
       const slotsHtml: string[] = [];
       for (let i = 0; i < 4; i++) {
         const item = state.inventory[i];
-        if (item === "Golden Key") {
+        if (item) {
+          const isEquipped = state.activeItem === item;
           slotsHtml.push(
-            `<div class="tle-inv-slot tle-inv-slot-filled" title="Golden Key (resets on loop)">` +
-              `<svg viewBox="0 0 64 64" class="tle-slot-key-svg">` +
-              `<circle cx="22" cy="22" r="11" fill="none" stroke="#fbbf24" stroke-width="5"/>` +
-              `<line x1="30" y1="30" x2="52" y2="52" stroke="#fbbf24" stroke-width="5"/>` +
-              `<line x1="42" y1="42" x2="36" y2="48" stroke="#f59e0b" stroke-width="4"/>` +
-              `<line x1="49" y1="49" x2="43" y2="55" stroke="#f59e0b" stroke-width="4"/>` +
-              `</svg></div>`,
-          );
-        } else if (item) {
-          slotsHtml.push(
-            `<div class="tle-inv-slot tle-inv-slot-filled" title="${item}">📜</div>`,
+            `<button type="button" class="tle-inv-slot tle-inv-slot-filled ${
+              isEquipped ? "tle-inv-slot-active" : ""
+            }" data-inv-item="${item}" title="${item} (Click to equip)">` +
+              renderSlotItemSvg(item) +
+              `</button>`,
           );
         } else {
           slotsHtml.push(`<div class="tle-inv-slot"></div>`);
         }
       }
       invContainer.innerHTML = slotsHtml.join("");
+
+      const slotBtns = invContainer.querySelectorAll<HTMLButtonElement>("[data-inv-item]");
+      for (const sBtn of slotBtns) {
+        sBtn.addEventListener("click", () => {
+          const item = sBtn.dataset.invItem as InventoryItemId | undefined;
+          if (!item) return;
+          state.activeItem = item;
+          state.feedbackMessage = `Equipped [${item}] — click the matching object in the room to use it!`;
+          renderState();
+        });
+      }
     }
 
-    // Render Persistent Clues List (matching the screenshot layout)
+    // Render Persistent Clues List
     const cluesList = container.querySelector<HTMLElement>("#clues-list");
     if (cluesList) {
       if (state.clues.length === 0) {
