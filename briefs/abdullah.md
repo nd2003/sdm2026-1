@@ -35,7 +35,20 @@ You own GitHub issues **#2 (Room & objects)** and **#4 (UI)**. You may only edit
 - Room visual states from `game.flags`: painting shifted when `paintingMoved`, cabinet `open` when `cabinetOpen`, door looks unlocked when `doorUnlocked`
 - Win screen when `game.won`. Add a short "the loop resets…" flash when `game.loop` goes up.
 
-## Working without the other half
+## Two-player update (issue #7)
+
+The game is now an **online two-player race**. Read "Two-player race" in `AGENTS.md` first. Add to `render()`:
+
+- `#lobby` (when `phase === "lobby"`): a name input and a Join button that calls `connect(name)`. After joining, show "Waiting for an opponent…" (that's when `playerName` is set but you're still in the lobby). Hide the room until `phase === "playing"`.
+- `#opponent` (while playing): the opponent's name, their loop, and their progress as `step` out of 5 (a bar or 5 dots).
+- When `phase === "over"`: "You escaped first!" if `winner === playerName`, otherwise "<name> escaped first". This replaces the single-player win screen.
+
+Add this to your temp stubs:
+```js
+if (typeof connect === "undefined") window.connect = (name) => { game.playerName = name; game.phase = "playing"; game.opponent = { name: "Bot", loop: 1, step: 2 }; render(); };
+```
+
+
 
 Until Baasanjav's code lands, add temporary stubs at the **bottom of `ui.js`** so you can open `index.html` and click around:
 
@@ -48,6 +61,8 @@ if (typeof startLoop === "undefined") { buildRoom(); render(); }
 ```
 
 ## Done when
+- [ ] The lobby shows on load, Join works, and the room is hidden until the match starts
+- [ ] The opponent panel and the win/lose screen render correctly from `game` (try setting fields in the console)
 - [ ] Opening `index.html` shows the room with all 6 puzzle objects and the decoys, the HUD, the inventory, the journal and the message area
 - [ ] Clicking any object calls `onObjectClick` with the right id
 - [ ] Setting `game.flags.cabinetOpen = true; render()` in the console visibly opens the cabinet (same for the painting and door)

@@ -34,13 +34,15 @@ Claude Code gets the `ponytail` plugin from `.claude/settings.json`, so accept t
 
 ## Stay in your lane
 
-Four people (and their agents) work here at the same time, each in their own files. Only edit the files that belong to the issue you're working on:
+The devs (and their agents) work here at the same time, each in their own files. Only edit the files that belong to the issue you're working on:
 
 | Area | Files | Issue |
 |---|---|---|
 | Core loop | `js/state.js`, `js/main.js` | #1 |
 | Room & objects | `js/room.js`, `assets/` | #2 |
 | Puzzles | `js/puzzles.js` | #3 |
+| Networking (2-player) | `js/net.js` | #6 |
+| Lobby & opponent UI | `js/ui.js`, `style.css` | #7 |
 | UI | `js/ui.js`, `style.css` | #4 |
 
 If the task seems to need a change in someone else's file, don't make it. Stop and tell the human, or write what's needed as a comment on the matching issue.
@@ -68,7 +70,40 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 **Items**: `key`.
 
-**DOM ids**: `#timer`, `#loop-count`, `#room`, `#inventory`, `#journal` (already in `index.html`), plus `#message`. Each object element gets the id `obj-<id>`, for example `#obj-painting`.
+**DOM ids**: `#timer`, `#loop-count`, `#room`, `#inventory`, `#journal`, `#message`, `#lobby`, `#opponent` (all in `index.html`). Each object element gets the id `obj-<id>`, for example `#obj-painting`.
+
+## Two-player race (online)
+
+Two players on two devices. Each one runs their own copy of the room with their own 60s loops, and the **first to walk out the door wins**. The backend (yigitcemakbas, separate) only relays messages and picks the winner. All game logic stays in the browser.
+
+**New state in `game`** (none of it resets on a loop):
+- `phase`: `"lobby"` → `"playing"` → `"over"`
+- `playerName`: your name. `winner`: the winner's name, or `null`.
+- `opponent`: `{ name, loop, step }`, or `null` before the match starts
+
+**Progress steps** (what the opponent sees): 1 = found "BLUE - 4", 2 = got the key, 3 = cabinet open, 4 = door unlocked, 5 = escaped. A loop reset reports step 0.
+
+**`js/net.js`** (owned by the mechanics dev):
+
+| Name | Called by | Does |
+|---|---|---|
+| `connect(name)` | `ui.js` (the lobby's Join button) | Sets `playerName` and connects to `?server=ws://…` from the page URL. With no `?server`, it starts a local **fake opponent** right away so the game is playable offline. |
+| `send(type, data)` | `state.js`, `puzzles.js` | Sends `{type, ...data}` as JSON |
+| `onNetMessage(msg)` | the socket or the fake opponent | Handles the server messages below, then calls `render()` |
+
+**Messages** (JSON over WebSocket; this is the contract with the backend):
+
+| Direction | Message | Meaning |
+|---|---|---|
+| client → server | `{type:"join", name}` | Find me a match |
+| client → server | `{type:"progress", loop, step}` | My progress changed |
+| client → server | `{type:"escaped", loop, timeLeft}` | I walked out the door |
+| server → client | `{type:"start", opponent}` | Match found → `phase = "playing"`, `startLoop()` |
+| server → client | `{type:"progress", loop, step}` | The opponent's progress → `game.opponent` |
+| server → client | `{type:"winner", name}` | The race is over → `phase = "over"`, stop the timer |
+| server → client | `{type:"opponent-left"}` | The opponent quit → you win by default |
+
+`main.js` no longer calls `startLoop()` on load. It calls `buildRoom(); render();` and waits in the lobby.
 
 ## Tech rules
 
