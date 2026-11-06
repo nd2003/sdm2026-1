@@ -173,6 +173,11 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 - Functions: `connect(name, code?, seconds?)`, `makeRoomCode()` (4 letters, for the Create button), `sendChat(text)`, `onInput(text|null)`, `puzzleAnswers(role)` (e.g. `.color` to tint the painting), `rand()`.
 - `game.flags.escaped`: **you** are out and waiting (your timer stops). `game.partner.escaped`: your partner is out.
 - Level object ids: level 2 = `casket-left`, `casket-right`, `keypad`. Level 3 = `lift`. Show each one only when `game.stage` matches.
+- Story props (#15), buttons `#obj-<id>`, each shown only on its level:
+  - Level 1: `phone`, `coat`, `vending`, `scratches`.
+  - Level 2: `fusebox` (new step: the keypad is dead until you throw it; flag `powerOn`), `shoes`, `bricked-door`, `candles`.
+  - Level 3: `gate` (new step: the lift won't move until it's shut; flag `gateClosed`), `indicator`, `emergency-phone`, `graffiti`.
+  - `powerOn` and `gateClosed` reset every loop.
 - Two tabs from disk (`file://`): `BroadcastChannel` can't connect them, so `net.js` falls back to `localStorage` storage events (same messages).
 
 **Settings** (UI only, not `game`): a ⚙ panel with **Flickering light: on/off** (plus reduced motion). Save it in `localStorage` inside try/catch.
