@@ -48,7 +48,7 @@ function onObjectClick(id) {
       break;
     case "computer": {
       const answer = prompt("Password:");
-      if (answer === null) break;  // cancelled: nothing happens
+      if (answer === null) { say("The cursor blinks, waiting for a password."); break; }  // cancelled, or the browser blocked the dialog
       if (answer.trim() === PHOTO_YEAR) {
         setFlag("doorUnlocked", true);
         say("ACCESS GRANTED. Behind you, the door unlocks by itself.");
