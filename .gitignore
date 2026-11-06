@@ -10,3 +10,19 @@ coverage/
 replays/
 playwright-report/
 test-results/
+# Editor: share only the team's VS Code settings and extension list
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# JetBrains IDEs and editor swap files
+.idea/
+*.swp
+
+# OS files
+Thumbs.db
+
+# Tool caches
+.vite/
+*.tsbuildinfo
+.pnpm-store/
