@@ -49,6 +49,8 @@ function buildRoom() {
       <g fill="#1d1c17"><circle cx="11" cy="14" r="1.5"/><circle cx="49" cy="14" r="1.5"/><circle cx="11" cy="30" r="1.5"/><circle cx="49" cy="30" r="1.5"/><circle cx="11" cy="110" r="1.5"/><circle cx="49" cy="110" r="1.5"/><circle cx="11" cy="126" r="1.5"/><circle cx="49" cy="126" r="1.5"/></g>
       <path d="M14 22c1 16 0 24 2 34M36 118c-1 6 0 14 1 21M48 22c-1 12 1 24-1 36" fill="none" stroke="#6b3e20" stroke-opacity=".8" stroke-width="2.5"/>
       <path d="M20 86l5 13M25 84l5 15M30 85l4 12" stroke="#16140f" stroke-width="1.3"/>
+      <g transform="rotate(-2 30 40)"><path d="M13 26h34l1 30-9 2-6-2-20 1z" fill="#a89c7c" stroke="#090806" stroke-width=".8"/><path d="M26 24h8v4h-8z" fill="#c9bf9f" opacity=".7"/>
+      <g font-family="monospace" font-weight="bold" fill="#17140d" font-size="4.6"><text x="16" y="33">NIGHT</text><text x="16" y="38">AUDITORS</text><text x="16" y="43">WANTED</text></g><g font-family="monospace" fill="#2c271c" font-size="3.4"><text x="16" y="48">Floor 14. Cash.</text><text x="16" y="52">No questions.</text></g></g>
       <rect class="bolt" x="27" y="62" width="27" height="7" fill="#22211b" stroke="#090806"/>
       <circle class="lock" cx="46" cy="55" r="2.8" fill="#c6352c"/><circle cx="46" cy="77" r="3.6" fill="#6c5a35" ${ink}/>`)],
     ["shelf", "Bookshelf", S("0 0 80 110", `
@@ -161,7 +163,6 @@ function buildRoom() {
       <g class="figure"><circle cx="1020" cy="520" r="13" fill="#040302"/><path d="M1007 538q13-8 26 0l5 42-4 62-6 46h-16l-6-46-4-62z" fill="#040302"/><path d="M1007 540l-11 70 6 62M1033 540l11 70-6 62" fill="none" stroke="#040302" stroke-width="6" stroke-linecap="round"/></g></g>
     <path d="M210 860H860L990 1040H100z" fill="url(#desktop)" stroke="#090806" stroke-width="4"/><path d="M340 900l60 40M640 880l-40 70M760 950l50 40M300 960h90" stroke="#0d0905" stroke-width="3"/>
     <ellipse cx="620" cy="960" rx="44" ry="14" fill="none" stroke="#120c07" stroke-width="5"/>
-    <g transform="translate(762 892) skewX(-14) rotate(3)"><path d="M0 0H122L128 58 96 64 84 60 0 66z" fill="#a89c7c" stroke="#090806" stroke-width="3"/><text x="8" y="17" font-family="monospace" font-size="13" font-weight="bold" fill="#17140d">NIGHT AUDITORS</text><text x="8" y="31" font-family="monospace" font-size="13" font-weight="bold" fill="#17140d">WANTED</text><text x="8" y="47" font-family="monospace" font-size="10" fill="#2c271c">Floor 14. Cash.</text><text x="8" y="58" font-family="monospace" font-size="10" fill="#2c271c">No questions.</text></g>
   </svg>
   <svg class="walls level-view" data-stage="2" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
     <defs><pattern id="bricks" width="44" height="26" patternUnits="userSpaceOnUse"><rect width="44" height="26" fill="#3a3f42"/><path d="M0 0h44M0 13h44M0 0v13M22 13v13" stroke="#14171a" stroke-width="3"/></pattern></defs>
@@ -200,6 +201,7 @@ function buildRoom() {
     <path d="M122 152c16 8 40 8 56 0-1 26-10 56-28 62-18-6-27-36-28-62z" fill="#020101"/>
     <path d="M128 154l4 24 5-21zM172 154l-4 24-5-21z" fill="#b5ae98"/>
     <path d="M172 196c1 22 2 44 4 44s3-22 2-44z" fill="#6e0d08"/>
+    <g transform="rotate(-6 200 290)"><rect x="176" y="272" width="56" height="34" fill="#a89c7c" stroke="#050303" stroke-width="2"/><rect x="181" y="278" width="14" height="22" fill="#1c1a13"/><path d="M182 281l12 16M194 281l-12 16" stroke="#a89c7c" stroke-width="1.5"/><text x="199" y="285" font-family="monospace" font-size="6" font-weight="bold" fill="#17140d">MERIDIAN</text><text x="199" y="294" font-family="monospace" font-size="6" font-weight="bold" fill="#17140d">TRUST</text></g>
     <g fill="none" stroke="#5c5849" stroke-width="5" stroke-linecap="round"><path d="M30 400c6-40 2-70 12-96M42 304l-16-60M42 304l-2-70M42 304l14-66M42 304l28-52"/><path d="M270 400c-6-40-2-70-12-96M258 304l16-60M258 304l2-70M258 304l-14-66M258 304l-28-52"/></g>
   </svg>
   <svg class="arm" viewBox="0 0 300 360" aria-hidden="true">

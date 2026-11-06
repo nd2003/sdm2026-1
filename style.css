@@ -462,3 +462,4 @@ body.no-flicker :is(.candles, .needle) { animation: none; }
 .ledger .us td { font-weight: 700; }
 .clock-stopped { margin: 8px 0 14px; font-style: italic; }
 #obj-note { left: 41%; }  /* clear of the newspaper ad on the desk */
+#journal li.memory { font-style: italic; color: #5b4a34; }

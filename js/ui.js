@@ -99,7 +99,7 @@ function render() {
   const journal = $("journal");
   const known = journal._count ?? game.clues.length;  // first render: nothing counts as new
   set(journal, "innerHTML", "<h2>Journal</h2>" + (game.clues.length
-    ? "<ol>" + game.clues.map((c) => `<li>${esc(c)}</li>`).join("") + "</ol>"
+    ? "<ol>" + game.clues.map((c) => `<li${c.startsWith("Memory:") ? ' class="memory"' : ""}>${esc(c)}</li>`).join("") + "</ol>"
     : '<p class="empty">Nothing written yet. Clues you find stay here, even when the loop resets.</p>'));
   journal.querySelectorAll("li").forEach((li, i) => { if (i >= known) li.classList.add("new"); });
   if (game.clues.length > known) journal.scrollTop = journal.scrollHeight;  // show the clue just written
@@ -153,7 +153,7 @@ function render() {
     const who = esc(o ? o.name : "Your partner"), loops = `${game.loop} loop${game.loop === 1 ? "" : "s"}`;
     set(win, "innerHTML", `<div class="${game.won ? "first" : "second"}"><h1>${game.won ? "You both got out" : "Your partner left"}</h1>`
       + `<p>${game.won ? `You and ${who} escaped together after ${loops}.` : `${who} is gone, and nobody leaves floor 14 alone.`}</p>`
-      + (game.won ? `<table class="ledger"><caption>Meridian Trust, floor 14. Visitor log, 13 October 1987</caption><tr><th>Name</th><th>In</th><th>Out</th></tr>`
+      + (game.won ? `<table class="ledger"><caption>Meridian Trust, floor 14. Visitor log, 13 October</caption><tr><th>Name</th><th>In</th><th>Out</th></tr>`
         + `<tr class="gone"><td>━━━━━━</td><td>23:59</td><td></td></tr><tr class="gone"><td>━━━━━━</td><td>23:59</td><td></td></tr>`
         + `<tr class="us"><td>${esc(game.playerName)}</td><td>23:59</td><td>signed out</td></tr><tr class="us"><td>${who}</td><td>23:59</td><td>signed out</td></tr></table><p class="clock-stopped">Behind you, the clock stops.</p>` : "")
       + `<button type="button" onclick="location.reload()">Play again</button></div>`);
