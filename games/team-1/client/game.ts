@@ -6,6 +6,7 @@ export type PlayerId = 1 | 2;
 export interface Clue {
   id: string;
   loop: number;
+  icon: string;
   text: string;
   detail: string;
 }
@@ -19,32 +20,51 @@ export interface GameState {
   // Per-loop state (reset each loop)
   paintClicks: number;
   keyVisible: boolean;
-  keyHolder: PlayerId | null; // which player holds the key
+  keyHolder: PlayerId | null;
   cabinetOpen: boolean;
+  safeVisible: boolean;
+  safeOpen: boolean;
   laptopDone: boolean;
 
-  // Persistent across loops
+  // Persistent across loops (inventory)
+  usbHolder: PlayerId | null;
+
+  // Knowledge persists across loops
   clues: Clue[];
   activePlayer: PlayerId;
 }
 
-export const CLUE_DEFS: Record<string, { text: string; detail: string }> = {
+export const CLUE_DEFS: Record<string, { icon: string; text: string; detail: string }> = {
   blue4: {
+    icon: "🎨",
     text: "Blue — 4",
-    detail: "a blue object in the room, interact exactly 4 times",
+    detail: "The blue painting on the wall — click it exactly 4 times.",
   },
   findyear: {
-    text: "Find the year on the photograph",
-    detail: "look for a photograph hidden in the room",
+    icon: "🔑",
+    text: "Key secured. Safe revealed.",
+    detail: "The painting swings open. A key drops — and a wall safe is exposed.",
   },
   year1998: {
+    icon: "📸",
     text: "The year is 1998",
-    detail: "enter 1998 on the laptop to unlock the exit",
+    detail: "Enter 1998 on the laptop to unlock the exit door.",
+  },
+  ciphercard: {
+    icon: "🃏",
+    text: "Cipher: R=2  Y=8  G=4  B=7",
+    detail: "Rainbow order → 2847. That's the vault combination.",
+  },
+  usbfound: {
+    icon: "💾",
+    text: "USB drive secured",
+    detail: "The laptop needs the USB drive inserted before accepting any code.",
   },
 };
 
 export const CODE_ANSWER = "1998";
-export const LOOP_DURATION = 90;
+export const SAFE_CODE = "2847";
+export const LOOP_DURATION = 120;
 
 export function makeState(): GameState {
   return {
@@ -56,7 +76,10 @@ export function makeState(): GameState {
     keyVisible: false,
     keyHolder: null,
     cabinetOpen: false,
+    safeVisible: false,
+    safeOpen: false,
     laptopDone: false,
+    usbHolder: null,
     clues: [],
     activePlayer: 1,
   };
@@ -70,7 +93,7 @@ export function addClue(state: GameState, id: string): boolean {
   if (hasClue(state, id)) return false;
   const def = CLUE_DEFS[id];
   if (!def) return false;
-  state.clues.push({ id, loop: state.loop, text: def.text, detail: def.detail });
+  state.clues.push({ id, loop: state.loop, icon: def.icon, text: def.text, detail: def.detail });
   return true;
 }
 
@@ -85,8 +108,10 @@ export function resetLoop(state: GameState): void {
   state.keyVisible = false;
   state.keyHolder = null;
   state.cabinetOpen = false;
+  state.safeVisible = false;
+  state.safeOpen = false;
   state.laptopDone = false;
-  // clues and activePlayer persist across loops
+  // usbHolder and clues intentionally persist across loops
 }
 
 export function switchPlayer(state: GameState): void {

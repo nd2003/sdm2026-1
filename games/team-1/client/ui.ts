@@ -46,17 +46,19 @@ export function hideReset(): void {
   hide("screen-reset");
 }
 
-export function showWin(loops: number, timeLeft: number): void {
+export function showWin(loops: number, timeLeft: number, clueCount: number): void {
   hide("screen-game");
   show("screen-win");
   el("stat-loops").textContent = String(loops);
   el("stat-time").textContent = `${timeLeft}s`;
+  el("stat-clues").textContent = String(clueCount);
   const msgs: Record<number, string> = {
-    1: "Perfect — both detectives escaped on the first loop.",
-    2: "Two loops. The clues connected. You're out.",
-    3: "Three loops — knowledge built, the year revealed, the door open.",
+    1: "First loop. Both operatives escaped before the reset. Impressive.",
+    2: "Two loops — the cipher decoded, the USB secured. You're out.",
+    3: "Three loops. Every clue collected, every puzzle solved. The cycle breaks.",
   };
-  el("win-msg").textContent = msgs[loops] ?? `After ${loops} loops, both detectives finally break the cycle.`;
+  el("win-msg").textContent =
+    msgs[loops] ?? `After ${loops} loops, the operatives finally break the cycle.`;
 }
 
 // ── HUD ──────────────────────────────────────────────────────────────────────
@@ -86,14 +88,20 @@ export function setPlayerKey(player: PlayerId, has: boolean): void {
   setClass(slotId, "has-item", has);
 }
 
+export function setPlayerUsb(player: PlayerId, has: boolean): void {
+  const usbId = player === 1 ? "p1-usb" : "p2-usb";
+  setClass(usbId, "hidden", !has);
+  if (has) {
+    const slotId = player === 1 ? "p1-slot" : "p2-slot";
+    el(slotId).classList.add("has-item");
+  }
+}
+
 export function updateActivePlayer(player: PlayerId): void {
-  // Top bar badge
   el("apb-p1").classList.toggle("active", player === 1);
   el("apb-p2").classList.toggle("active", player === 2);
-  // Player cards in HUD
   el("player-1-card").classList.toggle("active", player === 1);
   el("player-2-card").classList.toggle("active", player === 2);
-  // Turn labels
   el("p1-turn").textContent = player === 1 ? "Your turn" : "Waiting";
   el("p2-turn").textContent = player === 2 ? "Your turn" : "Waiting";
 }
@@ -103,15 +111,18 @@ export function updateActivePlayer(player: PlayerId): void {
 export function renderClues(clues: Clue[]): void {
   const list = el<HTMLUListElement>("clue-list");
   if (clues.length === 0) {
-    list.innerHTML = `<li class="clue-empty">No clues yet — explore the room.</li>`;
+    list.innerHTML = `<li class="clue-empty">No intel yet — explore the room.</li>`;
     return;
   }
   list.innerHTML = clues
     .map(
       (c) =>
         `<li class="clue-item">
-          <span class="clue-text">${c.text}</span>
-          <span class="clue-detail">${c.detail}</span>
+          <span class="clue-icon">${c.icon}</span>
+          <div class="clue-body">
+            <span class="clue-text">${c.text}</span>
+            <span class="clue-detail">${c.detail}</span>
+          </div>
         </li>`,
     )
     .join("");
@@ -121,14 +132,43 @@ export function renderClues(clues: Clue[]): void {
 
 export function updatePaintCounter(clicks: number): void {
   el("paint-counter").textContent = clicks >= 4 ? "✓" : `${clicks} / 4`;
+  if (clicks >= 4) {
+    el("obj-painting").classList.add("ajar");
+  }
 }
 
 export function showKey(): void {
   show("obj-key");
+  el("obj-key").classList.add("key-drop");
 }
 
 export function hideKey(): void {
   hide("obj-key");
+  el("obj-key").classList.remove("key-drop");
+}
+
+export function showSafe(): void {
+  show("obj-safe");
+  setTimeout(() => el("obj-safe").classList.add("safe-revealed"), 20);
+}
+
+export function hideSafe(): void {
+  el("obj-safe").classList.remove("safe-revealed");
+  setTimeout(() => hide("obj-safe"), 500);
+}
+
+export function openSafeBody(): void {
+  el("obj-safe").classList.add("safe-open");
+}
+
+export function showUsb(): void {
+  show("obj-usb");
+  setTimeout(() => el("obj-usb").classList.add("usb-revealed"), 20);
+}
+
+export function hideUsb(): void {
+  el("obj-usb").classList.remove("usb-revealed");
+  setTimeout(() => hide("obj-usb"), 300);
 }
 
 export function openCabinet(): void {
@@ -141,7 +181,8 @@ export function resetCabinet(): void {
   show("cab-doors");
   hide("cab-interior");
   el("cab-label").textContent = "Wardrobe";
-  el("cab-lock").className = "cab-lock-shape locked";
+  const lock = document.getElementById("cab-lock");
+  if (lock) lock.className = "cab-lock-shape locked";
 }
 
 export function showPhoto(): void {
@@ -162,21 +203,30 @@ export function resetLaptop(): void {
   show("screen-locked");
   hide("screen-open");
   el("obj-door").classList.remove("door-unlocked");
+  el("obj-laptop").classList.remove("usb-inserted");
 }
 
 export function resetPaintCounter(): void {
   el("paint-counter").textContent = "0 / 4";
+  el("obj-painting").classList.remove("ajar");
 }
 
 // ── laptop modal ──────────────────────────────────────────────────────────────
 
-export function openLaptopModal(hint: string): void {
+export function openLaptopModal(hint: string, usbReady: boolean): void {
   el("modal-hint").textContent = hint;
   el<HTMLInputElement>("code-input").value = "";
   el("modal-status").textContent = "";
   el("modal-status").className = "modal-status";
+  const usbLine = document.getElementById("modal-usb-line");
+  if (usbLine) {
+    usbLine.textContent = usbReady ? "▶ USB drive detected ✓" : "▶ USB drive required — insert first.";
+    usbLine.className = usbReady ? "modal-sys-line ok" : "modal-sys-line warn";
+  }
   show("modal-laptop");
-  setTimeout(() => el<HTMLInputElement>("code-input").focus(), 80);
+  if (usbReady) {
+    setTimeout(() => el<HTMLInputElement>("code-input").focus(), 80);
+  }
 }
 
 export function closeLaptopModal(): void {
@@ -193,6 +243,55 @@ export function getCodeInput(): string {
   return el<HTMLInputElement>("code-input").value.trim();
 }
 
+// ── safe modal ────────────────────────────────────────────────────────────────
+
+let safeDigits: string[] = [];
+
+export function openSafeModal(): void {
+  safeDigits = [];
+  renderSafeDisplay();
+  el("safe-status").textContent = "";
+  el("safe-status").className = "modal-status";
+  show("modal-safe");
+}
+
+export function closeSafeModal(): void {
+  hide("modal-safe");
+}
+
+function renderSafeDisplay(): void {
+  const display = el("safe-display");
+  const slots = ["_", "_", "_", "_"];
+  safeDigits.forEach((d, i) => { slots[i] = d; });
+  display.textContent = slots.join("  ");
+}
+
+export function appendSafeDigit(digit: string): void {
+  if (safeDigits.length >= 4) return;
+  safeDigits.push(digit);
+  renderSafeDisplay();
+}
+
+export function clearSafeDigit(): void {
+  safeDigits.pop();
+  renderSafeDisplay();
+}
+
+export function getSafeInput(): string {
+  return safeDigits.join("");
+}
+
+export function setSafeStatus(ok: boolean, text: string): void {
+  const s = el("safe-status");
+  s.textContent = text;
+  s.className = `modal-status ${ok ? "ok" : "err"}`;
+}
+
+export function resetSafeDigits(): void {
+  safeDigits = [];
+  renderSafeDisplay();
+}
+
 // ── toast ─────────────────────────────────────────────────────────────────────
 
 type ToastKind = "info" | "warn" | "success";
@@ -203,7 +302,7 @@ export function toast(message: string, kind: ToastKind = "info"): void {
   div.className = `toast toast-${kind}`;
   div.textContent = message;
   area.appendChild(div);
-  setTimeout(() => div.remove(), 3200);
+  setTimeout(() => div.remove(), 3400);
 }
 
 // ── rain canvas ───────────────────────────────────────────────────────────────
@@ -224,31 +323,25 @@ export function startRain(): void {
   resize();
   new ResizeObserver(resize).observe(cv);
 
-  interface Drop {
-    x: number;
-    y: number;
-    len: number;
-    speed: number;
-    opacity: number;
-  }
+  interface Drop { x: number; y: number; len: number; speed: number; opacity: number }
 
-  const drops: Drop[] = Array.from({ length: 60 }, () => ({
-    x: Math.random() * cv.width,
-    y: Math.random() * cv.height,
-    len: Math.random() * 14 + 6,
-    speed: Math.random() * 3 + 2,
-    opacity: Math.random() * 0.4 + 0.1,
+  const drops: Drop[] = Array.from({ length: 70 }, () => ({
+    x: Math.random() * (cv.width || 200),
+    y: Math.random() * (cv.height || 400),
+    len: Math.random() * 16 + 6,
+    speed: Math.random() * 3.5 + 1.5,
+    opacity: Math.random() * 0.45 + 0.1,
   }));
 
   function frame(): void {
     cx.clearRect(0, 0, cv.width, cv.height);
-    cx.strokeStyle = "rgba(140,180,220,1)";
-    cx.lineWidth = 1;
     for (const d of drops) {
       cx.globalAlpha = d.opacity;
+      cx.strokeStyle = "rgba(140,190,230,1)";
+      cx.lineWidth = 1;
       cx.beginPath();
       cx.moveTo(d.x, d.y);
-      cx.lineTo(d.x - 1, d.y + d.len);
+      cx.lineTo(d.x - 1.5, d.y + d.len);
       cx.stroke();
       d.y += d.speed;
       if (d.y > cv.height) {
@@ -262,7 +355,7 @@ export function startRain(): void {
   requestAnimationFrame(frame);
 }
 
-// ── particle burst on loop reset ──────────────────────────────────────────────
+// ── glitch + particle burst on loop reset ────────────────────────────────────
 
 export function startParticles(): void {
   const canvas = document.getElementById("particle-canvas") as HTMLCanvasElement | null;
@@ -270,46 +363,36 @@ export function startParticles(): void {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  const cv: HTMLCanvasElement = canvas;
-  const cx: CanvasRenderingContext2D = ctx;
-
+  const cv = canvas;
+  const cx = ctx;
   cv.width = window.innerWidth;
   cv.height = window.innerHeight;
 
   interface Particle {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    r: number;
-    a: number;
-    hue: number;
+    x: number; y: number; vx: number; vy: number; r: number; a: number; hue: number;
   }
 
-  const particles: Particle[] = Array.from({ length: 80 }, () => ({
+  const particles: Particle[] = Array.from({ length: 160 }, () => ({
     x: Math.random() * cv.width,
     y: Math.random() * cv.height,
-    vx: (Math.random() - 0.5) * 2,
-    vy: (Math.random() - 0.5) * 2,
-    r: Math.random() * 2 + 1,
-    a: Math.random() * 0.6 + 0.2,
-    hue: 30 + Math.random() * 20, // amber tones
+    vx: (Math.random() - 0.5) * 3,
+    vy: (Math.random() - 0.5) * 3,
+    r: Math.random() * 2.5 + 0.5,
+    a: Math.random() * 0.7 + 0.2,
+    hue: Math.random() < 0.6 ? 35 + Math.random() * 20 : 180 + Math.random() * 20,
   }));
 
-  let frame = 0;
+  let tick = 0;
   function draw(): void {
-    if (frame++ > 90) {
-      cx.clearRect(0, 0, cv.width, cv.height);
-      return;
-    }
+    if (tick++ > 110) { cx.clearRect(0, 0, cv.width, cv.height); return; }
     cx.clearRect(0, 0, cv.width, cv.height);
     for (const p of particles) {
       p.x += p.vx;
       p.y += p.vy;
-      p.a -= 0.01;
+      p.a -= 0.008;
       if (p.a <= 0) continue;
       cx.globalAlpha = p.a;
-      cx.fillStyle = `hsl(${p.hue}, 60%, 55%)`;
+      cx.fillStyle = `hsl(${p.hue}, 70%, 60%)`;
       cx.beginPath();
       cx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       cx.fill();
@@ -318,4 +401,18 @@ export function startParticles(): void {
     requestAnimationFrame(draw);
   }
   requestAnimationFrame(draw);
+}
+
+// ── lamp flicker ──────────────────────────────────────────────────────────────
+
+export function startLampFlicker(): void {
+  const glow = document.getElementById("lamp-glow");
+  if (!glow) return;
+
+  function flicker(): void {
+    const intensity = 0.85 + Math.random() * 0.3;
+    (glow as HTMLElement).style.opacity = String(Math.min(1, intensity));
+    setTimeout(flicker, 80 + Math.random() * 400);
+  }
+  flicker();
 }
