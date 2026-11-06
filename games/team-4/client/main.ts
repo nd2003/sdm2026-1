@@ -8,14 +8,17 @@ function main(): void {
 
   app.style.padding = "0";
   const game = renderGameScreen(app, {
-    roomId: "ROOM-04",
+    roomId: "ROOM 01 // OFFICE",
+    roomCode: "RM-04",
+    player1Name: "You",
+    player2Name: "Drek",
     timeLeftSeconds: 60,
     loopDurationSeconds: 60,
     loopCount: 1,
     connectedPlayers: 2,
     maxPlayers: 2,
-    score: 0,
-    statusText: "Time Loop Active",
+    score: 1,
+    statusText: "Ready",
   });
 
   // 60-second Time Loop countdown: ticks only while timerRunning is true
