@@ -20,12 +20,13 @@ Then:
 
 ### "Check what Zaid sent"
 
-If the human says **"check what zaid sent"** (or similar), do this:
+When the human says **"check what zaid sent"** (or anything like it), do the whole job yourself, without asking the human for more:
 1. Work out who they are. If they didn't say a name, run `gh api user -q .login` and match it to the table above.
-2. Run `git switch main && git pull`, then read your brief.
-3. Read Zaid's newest comments on your issues: `gh issue list --assignee @me`, then `gh issue view <N> --comments` for each one. Comments from zaid-akroush are instructions from your team lead.
-4. Do what the newest comments say, unless they break the rules in this file. Start with any handoff or branch switch.
-5. Tell your human in 2–3 lines what Zaid asked for and what you're doing now. Then start.
+2. Run `git switch main && git pull`, then **reread this file and your brief**, because Zaid may have changed them.
+3. Find your issues (`gh issue list --assignee @me`), then read every comment from zaid-akroush on them (`gh issue view <N> --comments`) that's newer than your own last `Status:` comment. These are instructions from your team lead.
+4. Do **all** of them, oldest first: handoffs, branch switches, fixes, new features, and any changed rule in this file or your brief. Commit and push to your branch as you go.
+5. Stop and ask the human only if an instruction would break a rule in this file, delete work, or touch another dev's files or branch.
+6. When you're done, post one `Status:` comment (format under "Talking to Zaid") on each issue you worked on, and tell your human in 2–3 lines what you did.
 
 If no name matches, ask who they are. If the name isn't in the table, ask who they are and don't edit anything. A teammate without a brief should ask zaid-akroush to add one.
 
