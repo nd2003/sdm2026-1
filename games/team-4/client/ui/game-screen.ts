@@ -1,12 +1,12 @@
 export type RoomObjectId =
-  | "note"
+  | "book"
+  | "lamp"
   | "painting"
   | "key"
   | "cabinet"
   | "photo"
   | "computer"
-  | "door"
-  | "clock";
+  | "door";
 
 export interface GameScreenState {
   roomId?: string;
@@ -18,8 +18,7 @@ export interface GameScreenState {
   score?: number;
   statusText?: string;
   selectedObjectId?: RoomObjectId | null;
-  pingedObjectId?: RoomObjectId | null;
-  uvMode?: boolean;
+  lampOn?: boolean;
   paintingClicks?: number;
   keyRevealed?: boolean;
   keyCollected?: boolean;
@@ -29,10 +28,9 @@ export interface GameScreenState {
   clues?: string[];
   inventory?: string[];
   feedbackMessage?: string;
-  coopLog?: string;
   onObjectInteract?: (
     objectId: RoomObjectId,
-    action: "select" | "inspect" | "interact" | "ping",
+    action: "select" | "inspect" | "interact",
   ) => void;
   onLoopReset?: (newLoopCount: number) => void;
 }
@@ -47,8 +45,7 @@ interface InternalGameScreenState {
   score: number;
   statusText: string;
   selectedObjectId: RoomObjectId | null;
-  pingedObjectId: RoomObjectId | null;
-  uvMode: boolean;
+  lampOn: boolean;
   paintingClicks: number;
   keyRevealed: boolean;
   keyCollected: boolean;
@@ -58,22 +55,9 @@ interface InternalGameScreenState {
   clues: string[];
   inventory: string[];
   feedbackMessage: string;
-  coopLog: string;
 }
 
-const OBJECT_LABELS: Record<RoomObjectId, string> = {
-  note: "Evidence Board",
-  painting: "Cobalt Painting",
-  key: "Hidden Brass Key",
-  cabinet: "Cryo-Steel Safe",
-  photo: "Archive Photo '84",
-  computer: "Chronos Terminal",
-  door: "Temporal Airlock",
-  clock: "Anomaly Chronometer",
-};
-
-const COMPUTER_PASSCODE = "1984";
-const RING_CIRCUMFERENCE = 113.1; // 2 * Math.PI * 18
+const VALID_PASSCODES = new Set(["1998", "1984"]);
 
 export function renderGameScreen(
   container: HTMLElement,
@@ -91,17 +75,16 @@ export function renderGameScreen(
   };
 
   let state: InternalGameScreenState = {
-    roomId: initialState?.roomId ?? "CHAMBER-04",
+    roomId: initialState?.roomId ?? "ROOM-04",
     timeLeftSeconds: initialState?.timeLeftSeconds ?? 60,
     loopDurationSeconds: initialState?.loopDurationSeconds ?? 60,
     loopCount: initialState?.loopCount ?? 1,
     connectedPlayers: initialState?.connectedPlayers ?? 2,
     maxPlayers: initialState?.maxPlayers ?? 2,
     score: initialState?.score ?? 0,
-    statusText: initialState?.statusText ?? "Temporal Loop Stable",
+    statusText: initialState?.statusText ?? "Loop Active",
     selectedObjectId: initialState?.selectedObjectId ?? null,
-    pingedObjectId: initialState?.pingedObjectId ?? null,
-    uvMode: initialState?.uvMode ?? false,
+    lampOn: initialState?.lampOn ?? true,
     paintingClicks: initialState?.paintingClicks ?? 0,
     keyRevealed: initialState?.keyRevealed ?? false,
     keyCollected: initialState?.keyCollected ?? false,
@@ -112,327 +95,362 @@ export function renderGameScreen(
     inventory: initialState?.inventory ? [...initialState.inventory] : [],
     feedbackMessage:
       initialState?.feedbackMessage ??
-      "Explore the chamber, toggle UV Blacklight, or click objects before the 60s loop collapses.",
-    coopLog: initialState?.coopLog ?? "P2 connected · Synchronized on Temporal Frequency 04",
+      "Explore the room: inspect the open book on the desk to find your first clue.",
   };
 
   container.innerHTML = `
-    <div class="game-screen-layout" id="game-screen-root">
-      <!-- Top Chrono HUD -->
-      <header class="game-hud">
-        <div class="hud-group">
-          <span class="hud-badge team-badge">TEAM 4 · CHRONO</span>
-          <span class="hud-meta" id="hud-room">${state.roomId}</span>
-          <span class="hud-pill" id="hud-players">
-            <span class="pulse-dot"></span> ${state.connectedPlayers}/${state.maxPlayers} Co-op
-          </span>
+    <div class="tle-root" id="tle-root">
+      <!-- Top Header Bar -->
+      <header class="tle-header">
+        <div class="tle-header-left">
+          <button type="button" class="tle-icon-btn" id="btn-pause-menu" title="Pause Game">
+            <span>⏸</span>
+          </button>
+          <button type="button" class="tle-icon-btn" id="btn-hint" title="Show Hint">
+            <span>💡</span>
+          </button>
+          <button type="button" class="tle-icon-btn" id="btn-reset-loop" title="Rewind Time Loop">
+            <span>↺</span>
+          </button>
+          <span class="tle-loop-pill" id="hud-loop">LOOP #${state.loopCount}</span>
         </div>
 
-        <div class="hud-center">
-          <div class="chrono-cluster">
-            <div class="chrono-ring-wrap">
-              <svg class="chrono-ring-svg" viewBox="0 0 44 44">
-                <circle class="chrono-ring-bg" cx="22" cy="22" r="18"></circle>
-                <circle
-                  class="chrono-ring-fg"
-                  id="chrono-ring-fg"
-                  cx="22"
-                  cy="22"
-                  r="18"
-                  stroke-dasharray="${RING_CIRCUMFERENCE}"
-                  stroke-dashoffset="0"
-                ></circle>
-              </svg>
-              <span class="chrono-ring-icon">⏳</span>
-            </div>
-            <div class="chrono-readout">
-              <div class="hud-timer-row">
-                <span class="hud-loop-badge" id="hud-loop">LOOP #${state.loopCount}</span>
-                <div class="hud-timer" id="hud-timer">
-                  <span id="hud-timer-val">${formatTime(state.timeLeftSeconds)}</span>
-                </div>
-                <span class="stability-tag" id="stability-tag">STABLE</span>
-              </div>
-              <div class="hud-timer-track" aria-hidden="true">
-                <div class="hud-timer-fill" id="hud-timer-fill"></div>
-              </div>
-              <div class="hud-status" id="hud-status">${state.statusText}</div>
-            </div>
+        <div class="tle-header-center">
+          <span class="tle-title-line"></span>
+          <div class="tle-title-wrap">
+            <svg class="tle-loop-emblem" viewBox="0 0 64 64" aria-hidden="true">
+              <path
+                d="M32 10 A22 22 0 1 1 12 23"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              />
+              <polyline
+                points="7,22 13,24 14,17"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            <h1 class="tle-title">TIME LOOP ESCAPE</h1>
           </div>
+          <span class="tle-title-line"></span>
         </div>
 
-        <div class="hud-group hud-right">
-          <div class="hud-score">PTS <strong id="hud-score-val">${state.score}</strong></div>
-          <button
-            type="button"
-            class="hud-btn hud-btn-uv"
-            id="btn-uv-toggle"
-            title="Toggle UV Blacklight Vision"
-          >
-            🔦 UV Light
-          </button>
-          <button
-            type="button"
-            class="hud-btn"
-            id="btn-reset-loop"
-            title="Trigger manual time loop rewind"
-          >
-            ⏪ Rewind
-          </button>
-          <button type="button" class="hud-btn" id="btn-pause-menu">☰ Menu</button>
+        <div class="tle-header-right">
+          <div class="tle-timer-pill" id="hud-timer">
+            <span class="tle-hourglass">⏳</span>
+            <span id="hud-timer-val">${formatTime(state.timeLeftSeconds)}</span>
+          </div>
         </div>
       </header>
 
-      <!-- Main Body: 3D Chamber Viewport + Sidebar Memory Dock -->
-      <main class="game-body">
-        <section class="game-viewport-wrapper">
-          <div class="game-viewport" id="game-viewport">
-            <!-- Temporal Collapse Rewind Banner -->
-            <div class="loop-reset-banner hidden" id="loop-reset-banner">
-              ⚡ TEMPORAL COLLAPSE — Physical items vanished, but neural clues survived the loop!
-            </div>
+      <!-- Main Illustrated Escape Room Stage -->
+      <main class="tle-stage-wrapper">
+        <div class="tle-room-stage" id="game-viewport">
+          <!-- Loop Reset Flash Banner -->
+          <div class="tle-toast tle-toast-reset hidden" id="loop-reset-banner">
+            ⏳ TIME LOOP RESET — Inventory items vanished, but your discovered CLUES remain!
+          </div>
 
-            <!-- Co-op Partner Comms Bar -->
-            <div class="coop-comms-bar">
-              <span class="coop-Status-pill">📡 CO-OP LINK</span>
-              <span class="coop-log-text" id="coop-log-text">${state.coopLog}</span>
-              <span class="puzzle-chain-pills" id="puzzle-chain-pills"></span>
-            </div>
+          <!-- Feedback Subtitle Toast -->
+          <div class="tle-feedback-toast" id="action-feedback-text">
+            ${state.feedbackMessage}
+          </div>
 
-            <!-- 3D Architectural Escape Room Scene -->
-            <div class="escape-room-scene" id="escape-room-scene">
-              <!-- Perspective Room Geometry -->
-              <div class="room-wall-left"></div>
-              <div class="room-wall-right"></div>
-              <div class="room-wall-back">
-                <div class="room-ceiling-trim">TEMPORAL CONTAINMENT CHAMBER · SECTOR 04</div>
-                <!-- Hidden UV Graffiti only visible in UV Mode -->
-                <div class="uv-graffiti uv-graffiti-left">
-                  UV ECHO #1: "FOUR TAPS ON COBALT REVEALS THE KEY"
-                </div>
-                <div class="uv-graffiti uv-graffiti-right">
-                  UV ECHO #2: "THE ARCHIVE YEAR OPENS THE TERMINAL"
-                </div>
+          <!-- Room Architecture: Left Wall, Back Wall, Floor, Window & Rain -->
+          <div class="tle-wall-back"></div>
+          <div class="tle-wall-left">
+            <!-- Rainy Night Window with Venetian Blinds -->
+            <div class="tle-window-frame">
+              <div class="tle-window-sky">
+                <div class="tle-rain-layer"></div>
+                <div class="tle-window-trees"></div>
               </div>
-              <div class="room-floor-area">
-                <div class="floor-grid-lines"></div>
-              </div>
+              <div class="tle-window-blinds"></div>
+            </div>
+            <!-- Hanging Ivy Left -->
+            <div class="tle-ivy-left" aria-hidden="true">🌿</div>
+          </div>
+          <div class="tle-floor"></div>
 
-              <!-- glowing circuit trace between Terminal PC and Airlock Door -->
-              <div class="power-conduit-line" id="power-conduit-line"></div>
+          <!-- Warm Lamp Light Cone Overlay -->
+          <div class="tle-lamp-cone" id="lamp-cone"></div>
 
-              <!-- Object 0: Anomaly Chronometer above Airlock -->
+          <!-- 1. BLUE MOUNTAIN PAINTING + HIDDEN WALL SAFE (Left-Center Wall) -->
+          <div class="tle-painting-zone">
+            <!-- Wall Safe Behind Painting -->
+            <div class="tle-wall-safe" id="wall-safe">
               <button
                 type="button"
-                class="room-object pos-clock"
-                data-object-id="clock"
-                id="obj-clock"
-              >
-                <span class="obj-hotspot"></span>
-                <span class="obj-icon">🕰️</span>
-                <span class="obj-title">Chronometer</span>
-                <span class="obj-state" id="state-clock">60s Cycle</span>
-              </button>
-
-              <!-- Object 1: Evidence Board & Sticky Note (Left Wall) -->
-              <button
-                type="button"
-                class="room-object pos-note"
-                data-object-id="note"
-                id="obj-note"
-              >
-                <span class="obj-hotspot"></span>
-                <span class="obj-icon">📌</span>
-                <span class="obj-title">Evidence Board</span>
-                <span class="obj-state" id="state-note">Clue: BLUE-4</span>
-              </button>
-
-              <!-- Object 2: Cobalt Blue Painting (Upper Left Wall) -->
-              <button
-                type="button"
-                class="room-object room-object-blue pos-painting"
-                data-object-id="painting"
-                id="obj-painting"
-              >
-                <span class="obj-hotspot"></span>
-                <span class="uv-fingerprint">🐾 4x</span>
-                <span class="obj-icon">🖼️</span>
-                <span class="obj-title">Cobalt Painting</span>
-                <span class="obj-state" id="state-painting">0/4 Taps</span>
-              </button>
-
-              <!-- Object 3: Hidden Brass Key (Wall Recess behind Painting) -->
-              <button
-                type="button"
-                class="room-object room-object-gold pos-key hidden"
-                data-object-id="key"
+                class="tle-safe-key-btn hidden"
                 id="obj-key"
+                data-object-id="key"
+                title="Collect Cabinet Key"
               >
-                <span class="obj-hotspot"></span>
-                <span class="obj-icon">🗝️</span>
-                <span class="obj-title">Brass Key</span>
-                <span class="obj-state" id="state-key">Collect</span>
-              </button>
-
-              <!-- Object 4: Temporal Airlock Exit Door (Center Back Wall) -->
-              <button
-                type="button"
-                class="room-object room-object-door pos-door"
-                data-object-id="door"
-                id="obj-door"
-              >
-                <span class="door-frame-header">EXIT AIRLOCK 04</span>
-                <span class="door-light" id="door-light"></span>
-                <span class="obj-icon" id="door-icon">🚪</span>
-                <span class="obj-title">Temporal Airlock</span>
-                <span class="obj-state" id="state-door">SEALED</span>
-              </button>
-
-              <!-- Object 5: Archive Photograph (Right Wall) -->
-              <button
-                type="button"
-                class="room-object pos-photo"
-                data-object-id="photo"
-                id="obj-photo"
-              >
-                <span class="obj-hotspot"></span>
-                <span class="obj-icon">📷</span>
-                <span class="obj-title">Archive Photo</span>
-                <span class="obj-state" id="state-photo">Inspect Year</span>
-              </button>
-
-              <!-- Object 6: Chronos CRT Terminal (Bottom Left Desk) -->
-              <button
-                type="button"
-                class="room-object room-object-terminal pos-computer"
-                data-object-id="computer"
-                id="obj-computer"
-              >
-                <span class="obj-hotspot"></span>
-                <span class="obj-icon">🖥️</span>
-                <span class="obj-title">Chronos Terminal</span>
-                <span class="obj-state" id="state-computer">Passcode Req.</span>
-              </button>
-
-              <!-- Object 7: Cryo-Steel Safe Cabinet (Bottom Right) -->
-              <button
-                type="button"
-                class="room-object pos-cabinet"
-                data-object-id="cabinet"
-                id="obj-cabinet"
-              >
-                <span class="obj-hotspot"></span>
-                <span class="obj-icon">🗄️</span>
-                <span class="obj-title">Cryo-Steel Safe</span>
-                <span class="obj-state" id="state-cabinet">Key Locked</span>
+                <svg viewBox="0 0 64 64" class="tle-svg-key">
+                  <circle cx="20" cy="20" r="10" fill="none" stroke="#fbbf24" stroke-width="5" />
+                  <line x1="27" y1="27" x2="52" y2="52" stroke="#fbbf24" stroke-width="5" />
+                  <line x1="42" y1="42" x2="36" y2="48" stroke="#f59e0b" stroke-width="4" />
+                  <line x1="49" y1="49" x2="43" y2="55" stroke="#f59e0b" stroke-width="4" />
+                </svg>
+                <span class="tle-key-sparkle">✨ Take Key</span>
               </button>
             </div>
 
-            <!-- Interactive Bottom Deck: Inspector + Tactile Keypad + Action Buttons -->
-            <footer class="room-action-bar">
-              <div class="action-feedback-group">
-                <span class="selected-object-pill" id="selected-object-pill">Selected: None</span>
-                <p class="action-feedback-text" id="action-feedback-text">${state.feedbackMessage}</p>
+            <!-- Framed Blue Mountain Landscape Painting -->
+            <button
+              type="button"
+              class="tle-painting-btn"
+              id="obj-painting"
+              data-object-id="painting"
+              title="Blue Mountain Painting"
+            >
+              <svg viewBox="0 0 160 200" class="tle-painting-svg" aria-hidden="true">
+                <defs>
+                  <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1e3a8a" />
+                    <stop offset="55%" stop-color="#3b82f6" />
+                    <stop offset="100%" stop-color="#1d4ed8" />
+                  </linearGradient>
+                </defs>
+                <rect width="160" height="200" fill="url(#skyGrad)" />
+                <polygon points="0,130 45,65 95,130" fill="#1e40af" />
+                <polygon points="55,135 115,55 160,135" fill="#1d4ed8" />
+                <polygon points="0,165 65,95 160,155 160,200 0,200" fill="#172554" />
+                <path
+                  d="M 75 135 Q 90 165 55 200 L 95 200 Q 115 165 88 135 Z"
+                  fill="#60a5fa"
+                  opacity="0.65"
+                />
+              </svg>
+              <span class="tle-painting-badge" id="state-painting">0/4</span>
+              <span class="tle-cursor-hint" aria-hidden="true">👆</span>
+            </button>
+          </div>
+
+          <!-- 2. WOODEN DOUBLE-DOOR WARDROBE / CABINET (Center Wall) -->
+          <div class="tle-cabinet-zone">
+            <div class="tle-cabinet-ivy" aria-hidden="true">🌿🌱🌿</div>
+            <button
+              type="button"
+              class="tle-cabinet-btn"
+              id="obj-cabinet"
+              data-object-id="cabinet"
+              title="Locked Wooden Cabinet"
+            >
+              <div class="tle-cabinet-top-trim"></div>
+              <div class="tle-cabinet-doors" id="cabinet-doors">
+                <div class="tle-cabinet-door tle-door-left">
+                  <div class="tle-door-panel"></div>
+                  <div class="tle-door-panel"></div>
+                  <span class="tle-handle"></span>
+                </div>
+                <div class="tle-cabinet-door tle-door-right">
+                  <div class="tle-door-panel"></div>
+                  <div class="tle-door-panel"></div>
+                  <span class="tle-handle"></span>
+                </div>
+              </div>
+              <div class="tle-cabinet-interior" id="cabinet-interior">
+                <span class="tle-interior-scroll">📜 Clue Found!</span>
+              </div>
+              <span class="tle-glow-badge" id="state-cabinet">🔒</span>
+            </button>
+          </div>
+
+          <!-- 3. CORK BULLETIN BOARD WITH 1998 PHOTOGRAPH (Right-Center Wall) -->
+          <button
+            type="button"
+            class="tle-corkboard-btn"
+            id="obj-photo"
+            data-object-id="photo"
+            title="Inspect Corkboard & Photograph"
+          >
+            <div class="tle-polaroid">
+              <div class="tle-pin"></div>
+              <div class="tle-polaroid-art">
+                <svg viewBox="0 0 100 65" class="tle-building-svg" aria-hidden="true">
+                  <rect width="100" height="65" fill="#cbd5e1" />
+                  <polygon points="15,26 50,8 85,26" fill="#475569" />
+                  <rect x="20" y="26" width="60" height="32" fill="#64748b" />
+                  <rect x="28" y="32" width="8" height="26" fill="#334155" />
+                  <rect x="46" y="32" width="8" height="26" fill="#334155" />
+                  <rect x="64" y="32" width="8" height="26" fill="#334155" />
+                </svg>
+              </div>
+              <div class="tle-polaroid-caption">1998</div>
+            </div>
+            <div class="tle-sticky tle-sticky-1"></div>
+            <div class="tle-sticky tle-sticky-2"></div>
+            <div class="tle-sticky tle-sticky-3"></div>
+          </button>
+
+          <!-- 4. COMPUTER DESK & LOCKED MONITOR (Below Corkboard) -->
+          <div class="tle-computer-desk-zone">
+            <button
+              type="button"
+              class="tle-monitor-btn"
+              id="obj-computer"
+              data-object-id="computer"
+              title="Computer Terminal"
+            >
+              <div class="tle-monitor-screen" id="monitor-screen">
+                <span class="tle-monitor-lock" id="state-computer">🔒</span>
+                <div class="tle-monitor-passbox" id="monitor-passbox">* * * *</div>
+              </div>
+              <div class="tle-monitor-stand"></div>
+            </button>
+            <div class="tle-pencil-cup" aria-hidden="true">✏️</div>
+            <div class="tle-right-desk">
+              <div class="tle-desk-leg tle-leg-l"></div>
+              <div class="tle-desk-leg tle-leg-r"></div>
+            </div>
+            <div class="tle-office-chair" aria-hidden="true"></div>
+          </div>
+
+          <!-- 5. PANELED EXIT DOOR (Far Right Wall) -->
+          <div class="tle-door-zone">
+            <button
+              type="button"
+              class="tle-exit-door-btn"
+              id="obj-door"
+              data-object-id="door"
+              title="Exit Door"
+            >
+              <div class="tle-exit-panel"></div>
+              <div class="tle-exit-panel tle-exit-panel-mid"></div>
+              <div class="tle-exit-panel"></div>
+              <span class="tle-door-handle"></span>
+              <span class="tle-door-badge" id="state-door">⇥</span>
+            </button>
+          </div>
+
+          <!-- 6. FOREGROUND LEFT STUDY DESK, LAMP & OPEN BOOK -->
+          <div class="tle-left-desk-zone">
+            <div class="tle-left-desk-surface">
+              <!-- Articulated Brass Desk Lamp -->
+              <button
+                type="button"
+                class="tle-lamp-btn"
+                id="obj-lamp"
+                data-object-id="lamp"
+                title="Toggle Desk Lamp"
+              >
+                <span class="tle-lamp-shade"></span>
+                <span class="tle-lamp-bulb" id="lamp-bulb"></span>
+                <span class="tle-lamp-arm"></span>
+                <span class="tle-lamp-base"></span>
+              </button>
+
+              <!-- Stack of Vintage Books -->
+              <div class="tle-book-stack" aria-hidden="true">
+                <div class="tle-stacked-book tle-book-top"></div>
+                <div class="tle-stacked-book tle-book-bot"></div>
               </div>
 
-              <div class="action-buttons-group">
-                <!-- Interactive Keypad Pill when Computer is active -->
-                <div class="terminal-code-group hidden" id="terminal-code-group">
-                  <div class="keypad-mini-btns">
-                    <button type="button" class="kp-digit" data-digit="1">1</button>
-                    <button type="button" class="kp-digit" data-digit="9">9</button>
-                    <button type="button" class="kp-digit" data-digit="8">8</button>
-                    <button type="button" class="kp-digit" data-digit="4">4</button>
-                  </div>
+              <!-- Open Clue Book with Magnifying Glass -->
+              <button
+                type="button"
+                class="tle-open-book-btn"
+                id="obj-book"
+                data-object-id="book"
+                title="Inspect Open Journal"
+              >
+                <div class="tle-book-pages">
+                  <div class="tle-page-left"></div>
+                  <div class="tle-page-right"></div>
+                </div>
+                <span class="tle-magnifier-badge">🔍</span>
+              </button>
+            </div>
+            <div class="tle-fg-chair" aria-hidden="true"></div>
+          </div>
+
+          <!-- Bottom Floating Glass Inventory & Clues Bar -->
+          <aside class="tle-bottom-dock" id="inventory-clues-dock">
+            <div class="tle-inventory-panel">
+              <span class="tle-dock-label">INVENTORY:</span>
+              <div class="tle-inv-slots" id="inventory-list"></div>
+            </div>
+
+            <div class="tle-dock-divider"></div>
+
+            <div class="tle-clues-panel">
+              <span class="tle-dock-label">CLUES:</span>
+              <ul class="tle-clues-list" id="clues-list"></ul>
+            </div>
+          </aside>
+
+          <!-- Close-Up Inspector / Computer Passcode Overlay -->
+          <div class="tle-overlay hidden" id="inspector-modal">
+            <div class="tle-modal-card">
+              <h3 id="inspector-title">Inspect</h3>
+              <div class="tle-inspector-body" id="inspector-body"></div>
+
+              <!-- Computer Passcode Entry Box -->
+              <div class="tle-passcode-area hidden" id="terminal-code-group">
+                <div class="tle-keypad-row">
+                  <button type="button" class="tle-kp-btn" data-digit="1">1</button>
+                  <button type="button" class="tle-kp-btn" data-digit="9">9</button>
+                  <button type="button" class="tle-kp-btn" data-digit="8">8</button>
+                  <button type="button" class="tle-kp-btn" data-digit="4">4</button>
+                  <button type="button" class="tle-kp-btn" id="btn-clear-code">CLR</button>
+                </div>
+                <div class="tle-code-input-row">
                   <input
                     type="text"
                     maxlength="4"
-                    placeholder="CODE"
-                    class="terminal-code-input"
+                    placeholder="1998"
+                    class="tle-code-input"
                     id="terminal-code-input"
                     aria-label="Enter 4-digit computer password"
                   />
-                  <button type="button" class="hud-btn hud-btn-primary" id="btn-submit-code">
-                    Unlock
+                  <button type="button" class="tle-primary-btn" id="btn-submit-code">
+                    Unlock Door
                   </button>
                 </div>
+              </div>
 
-                <button type="button" class="hud-btn" id="btn-ping" title="Ping object for Player 2">
-                  📡 Ping P2
-                </button>
-                <button type="button" class="hud-btn" id="btn-inspect">🔍 Inspect</button>
-                <button type="button" class="hud-btn hud-btn-primary" id="btn-interact">
-                  ⚡ Interact
+              <div class="tle-modal-actions">
+                <button type="button" class="tle-secondary-btn" id="btn-close-inspector">
+                  Close
                 </button>
               </div>
-            </footer>
-          </div>
-        </section>
-
-        <!-- Sidebar Memory & Inventory Dock -->
-        <aside class="game-sidebar-dock" id="inventory-clues-dock">
-          <div class="dock-header">
-            <span>Neural Memory & Loop Bag</span>
-            <span class="dock-tag">SYNCED</span>
-          </div>
-
-          <!-- Escape Sequence Progress Tracker -->
-          <div class="dock-section dock-progress-section">
-            <div class="dock-section-title">
-              <span>🔓 Escape Sequence</span>
-              <span class="dock-badge-step" id="escape-step-count">0/4 Steps</span>
             </div>
-            <div class="sequence-steps" id="sequence-steps"></div>
           </div>
-
-          <div class="dock-section">
-            <div class="dock-section-title">
-              <span>🧠 Neural Clues</span>
-              <span class="dock-badge-keep">Persists Loops</span>
-            </div>
-            <ul class="dock-list" id="clues-list"></ul>
-          </div>
-
-          <div class="dock-section">
-            <div class="dock-section-title">
-              <span>🎒 Physical Items</span>
-              <span class="dock-badge-reset">Wiped at 00:00</span>
-            </div>
-            <ul class="dock-list" id="inventory-list"></ul>
-          </div>
-        </aside>
+        </div>
       </main>
 
-      <!-- Pause / Victory Modal -->
-      <div class="game-modal-overlay hidden" id="pause-modal">
-        <div class="game-modal-card">
-          <h3 id="modal-title">Temporal Chamber Paused</h3>
+      <!-- Pause / Escape Victory Overlay -->
+      <div class="tle-overlay hidden" id="pause-modal">
+        <div class="tle-modal-card">
+          <h3 id="modal-title">Game Paused</h3>
           <p id="modal-desc">
-            You and your partner have 60 seconds per loop. Physical items vanish when the loop
-            resets, but discovered clues stay in your Neural Memory forever!
+            You have 60 seconds to escape the room. When the timer reaches 00:00, the room and
+            inventory items reset—but your discovered CLUES stay with you across every loop!
           </p>
-          <div class="modal-actions">
-            <button type="button" class="hud-btn" id="btn-modal-reset">⏪ Rewind Loop</button>
-            <button type="button" class="hud-btn hud-btn-primary" id="btn-resume">Resume</button>
+          <div class="tle-modal-actions">
+            <button type="button" class="tle-secondary-btn" id="btn-modal-reset">
+              ↺ Restart Loop
+            </button>
+            <button type="button" class="tle-primary-btn" id="btn-resume">Resume</button>
           </div>
         </div>
       </div>
     </div>
   `;
 
-  const rootLayout = container.querySelector<HTMLElement>("#game-screen-root");
-  const modal = container.querySelector<HTMLElement>("#pause-modal");
+  const rootEl = container.querySelector<HTMLElement>("#tle-root");
+  const pauseModal = container.querySelector<HTMLElement>("#pause-modal");
   const modalTitle = container.querySelector<HTMLElement>("#modal-title");
   const modalDesc = container.querySelector<HTMLElement>("#modal-desc");
-  const menuBtn = container.querySelector<HTMLButtonElement>("#btn-pause-menu");
-  const resumeBtn = container.querySelector<HTMLButtonElement>("#btn-resume");
-  const resetBtn = container.querySelector<HTMLButtonElement>("#btn-reset-loop");
-  const uvBtn = container.querySelector<HTMLButtonElement>("#btn-uv-toggle");
-  const pingBtn = container.querySelector<HTMLButtonElement>("#btn-ping");
-  const modalResetBtn = container.querySelector<HTMLButtonElement>("#btn-modal-reset");
-  const inspectBtn = container.querySelector<HTMLButtonElement>("#btn-inspect");
-  const interactBtn = container.querySelector<HTMLButtonElement>("#btn-interact");
-  const submitCodeBtn = container.querySelector<HTMLButtonElement>("#btn-submit-code");
+  const inspectorModal = container.querySelector<HTMLElement>("#inspector-modal");
+  const inspectorTitle = container.querySelector<HTMLElement>("#inspector-title");
+  const inspectorBody = container.querySelector<HTMLElement>("#inspector-body");
+  const terminalGroup = container.querySelector<HTMLElement>("#terminal-code-group");
   const codeInput = container.querySelector<HTMLInputElement>("#terminal-code-input");
   const resetBanner = container.querySelector<HTMLElement>("#loop-reset-banner");
 
@@ -448,64 +466,40 @@ export function renderGameScreen(
     }
   }
 
-  function handleInspect(objectId: RoomObjectId): void {
-    state.selectedObjectId = objectId;
-    switch (objectId) {
-      case "clock":
-        state.feedbackMessage =
-          `Anomaly Chronometer: Loop #${state.loopCount} has ${state.timeLeftSeconds}s ` +
-          "before temporal collapse.";
-        break;
-      case "note":
-        addClue("BLUE - 4 (Tap Cobalt Painting 4 times)");
-        state.feedbackMessage = 'Evidence Board Note: "BLUE - 4". Saved to Neural Memory!';
-        break;
-      case "painting":
-        state.feedbackMessage = state.keyRevealed
-          ? "The Cobalt Painting slid open on hidden rails, exposing a secret recess."
-          : `Cobalt Painting (${state.paintingClicks}/4 taps). Something metallic sits behind it.`;
-        break;
-      case "key":
-        state.feedbackMessage = "A heavy Brass Key glinting inside the hidden wall recess.";
-        break;
-      case "cabinet":
-        state.feedbackMessage = state.cabinetUnlocked
-          ? 'Cryo-Steel Safe is open: "Find the year on the photograph".'
-          : "Cryo-Steel Safe: Requires the Brass Key from behind the Cobalt Painting.";
-        break;
-      case "photo":
-        addClue("Archive Photo Year: 1984");
-        state.feedbackMessage =
-          'Magnified Archive Photo: Lab Dedication Stamp reads "1984". Saved to Neural Memory!';
-        break;
-      case "computer":
-        state.feedbackMessage = state.doorUnlocked
-          ? "Chronos Terminal: OVERRIDE ACCEPTED. Temporal Airlock is unsealed."
-          : "Chronos Terminal: Enter the 4-digit Archive Photo year to unseal the Airlock.";
-        break;
-      case "door":
-        state.feedbackMessage = state.doorUnlocked
-          ? "Temporal Airlock is UNSEALED! Click Interact to break the time loop!"
-          : "Temporal Airlock is magnetically sealed by the Chronos Terminal.";
-        break;
+  function openInspector(title: string, html: string, showTerminal = false): void {
+    if (inspectorTitle) inspectorTitle.textContent = title;
+    if (inspectorBody) inspectorBody.innerHTML = html;
+    terminalGroup?.classList.toggle("hidden", !showTerminal);
+    inspectorModal?.classList.remove("hidden");
+    if (showTerminal) {
+      codeInput?.focus();
     }
-    callbacks.onObjectInteract?.(objectId, "inspect");
-    renderState();
   }
 
-  function handleInteract(objectId: RoomObjectId): void {
+  function handleObjectClick(objectId: RoomObjectId): void {
     state.selectedObjectId = objectId;
+
     switch (objectId) {
-      case "clock":
-        state.uvMode = !state.uvMode;
-        state.feedbackMessage = state.uvMode
-          ? "Chronometer pulse shifted room into UV Blacklight Vision! Look at the walls."
-          : "Returned room to standard spectrum lighting.";
+      case "lamp":
+        state.lampOn = !state.lampOn;
+        state.feedbackMessage = state.lampOn
+          ? "Switched on the brass desk lamp — warm light illuminates the journal."
+          : "Turned off the desk lamp — the room glows in moonlight.";
         break;
-      case "note":
-        addClue("BLUE - 4 (Tap Cobalt Painting 4 times)");
-        state.feedbackMessage = 'Pinned Clue Logged: "BLUE - 4" (persists across all loops!).';
+
+      case "book":
+        addClue("BLUE - 4");
+        state.feedbackMessage = 'Discovered clue in open journal: "BLUE - 4"!';
+        openInspector(
+          "📖 Open Journal on Desk",
+          `<div class="tle-zoom-card">` +
+            `<p class="tle-zoom-handwriting">"To whoever wakes here:<br/>` +
+            `<strong>BLUE - 4</strong>"</p>` +
+            `<p class="tle-zoom-sub">Find the blue object and interact with it 4 times.</p>` +
+            `</div>`,
+        );
         break;
+
       case "painting":
         if (!state.keyRevealed) {
           state.paintingClicks += 1;
@@ -513,88 +507,124 @@ export function renderGameScreen(
             state.keyRevealed = true;
             state.score += 25;
             state.feedbackMessage =
-              "4/4 Taps! The Cobalt Painting slides open, revealing a Hidden Brass Key!";
+              "Clicked the Blue Painting 4 times! It slides aside and reveals a hidden Golden Key!";
           } else {
             state.feedbackMessage =
-              `Tapped Cobalt Painting (${state.paintingClicks}/4) — mechanical latch clicked...`;
+              `Clicked the Blue Painting (${state.paintingClicks}/4) — the frame shifts slightly...`;
           }
         } else {
-          state.feedbackMessage = "The Cobalt Painting has already slid aside.";
+          state.feedbackMessage =
+            "The Blue Painting has moved aside, exposing the hidden wall recess.";
         }
         break;
+
       case "key":
         if (state.keyRevealed && !state.keyCollected) {
           state.keyCollected = true;
-          addInventoryItem("Brass Key");
+          addInventoryItem("Golden Key");
           state.score += 25;
           state.feedbackMessage =
-            "Collected Brass Key! Unlock the Cryo-Steel Safe before the 60s loop ends.";
+            "Collected the Golden Key! Click the locked wooden cabinet to unlock it.";
         }
         break;
+
       case "cabinet":
         if (state.cabinetUnlocked) {
-          addClue("Safe Clue: Find the year on the photograph");
-          state.feedbackMessage = 'Safe Dossier: "Find the year on the photograph".';
-        } else if (state.keyCollected || state.inventory.includes("Brass Key")) {
+          addClue("Find the year on the photograph");
+          state.feedbackMessage = 'Cabinet clue: "Find the year on the photograph".';
+          openInspector(
+            "🗄️ Unlocked Wooden Cabinet",
+            `<div class="tle-zoom-card">` +
+              `<p class="tle-zoom-handwriting">"Find the year on the photograph"</p>` +
+              `<p class="tle-zoom-sub">Check the photograph on the corkboard.</p>` +
+              `</div>`,
+          );
+        } else if (state.keyCollected || state.inventory.includes("Golden Key")) {
           state.cabinetUnlocked = true;
           state.score += 50;
-          addClue("Safe Clue: Find the year on the photograph");
+          addClue("Find the year on the photograph");
+          addInventoryItem("Cabinet Note");
           state.feedbackMessage =
-            'Unlocked Cryo-Steel Safe with Brass Key! Found clue: "Find the year on the photograph".';
+            'Unlocked the wooden cabinet with the Golden Key! Clue added: "Find the year on the photograph".';
+          openInspector(
+            "🔓 Cabinet Unlocked!",
+            `<div class="tle-zoom-card">` +
+              `<p class="tle-zoom-handwriting">"Find the year on the photograph"</p>` +
+              `<p class="tle-zoom-sub">Clue permanently saved across all time loops!</p>` +
+              `</div>`,
+          );
         } else {
-          state.feedbackMessage = "Cryo-Steel Safe is locked. You need the Brass Key first.";
+          state.feedbackMessage =
+            "The wooden cabinet is locked with a brass padlock. You need a key.";
         }
         break;
+
       case "photo":
-        addClue("Archive Photo Year: 1984");
+        addClue("Photograph Year: 1998");
         state.feedbackMessage =
-          'Inspected Archive Photo: Stamp in corner reads "1984"! Use it on the Terminal.';
+          'Examined the corkboard photograph: the handwritten year at the bottom is "1998".';
+        openInspector(
+          "📷 Corkboard Photograph",
+          `<div class="tle-zoom-card">` +
+            `<div class="tle-zoom-photo-year">🏛️ <span>1998</span></div>` +
+            `<p class="tle-zoom-sub">The photograph has <strong>1998</strong> written ` +
+            `under the building. Use it as the computer password!</p>` +
+            `</div>`,
+        );
         break;
+
       case "computer":
         if (state.doorUnlocked) {
-          state.feedbackMessage = "Chronos Terminal already unsealed the Temporal Airlock.";
+          state.feedbackMessage = "The computer is unlocked and the Exit Door is open!";
         } else {
           state.feedbackMessage =
-            "Chronos Terminal active: Click digits 1-9-8-4 or type the year below.";
-          codeInput?.focus();
+            "Enter the 4-digit year from the photograph to unlock the Exit Door.";
+          openInspector(
+            "💻 Locked Computer Terminal",
+            `<p class="tle-zoom-sub">Enter the 4-digit year from the photograph ` +
+              `(<strong>1998</strong>):</p>`,
+            true,
+          );
         }
         break;
+
       case "door":
         if (state.doorUnlocked) {
           state.escaped = true;
-          state.statusText = "Loop Broken!";
-          state.score += 150;
-          state.feedbackMessage = `TIME LOOP BROKEN on Loop #${state.loopCount}!`;
-          const timeRemaining = state.timeLeftSeconds;
-          if (modalTitle && modalDesc && modal) {
-            modalTitle.textContent = "⚡ TIME LOOP BROKEN!";
+          state.statusText = "Escaped!";
+          state.score += 100;
+          state.feedbackMessage = `🎉 You escaped the Time Loop on Loop #${state.loopCount}!`;
+          const timeLeft = state.timeLeftSeconds;
+          if (modalTitle && modalDesc && pauseModal) {
+            modalTitle.textContent = "🎉 You Escaped the Time Loop!";
             modalDesc.textContent =
-              `You and Player 2 unsealed the Temporal Airlock on Loop #${state.loopCount} ` +
-              `with ${timeRemaining}s remaining! Total Score: ${state.score} PTS.`;
-            modal.classList.remove("hidden");
+              `You unlocked the exit door and escaped on Loop #${state.loopCount} ` +
+              `with ${timeLeft} seconds remaining!`;
+            pauseModal.classList.remove("hidden");
           }
         } else {
           state.feedbackMessage =
-            "Temporal Airlock is SEALED! Enter the 4-digit year on the Chronos Terminal first.";
+            "The Exit Door is electronically locked. Unlock it from the computer first!";
         }
         break;
     }
+
     callbacks.onObjectInteract?.(objectId, "interact");
     renderState();
   }
 
-  function submitTerminalCode(): void {
+  function submitPasscode(): void {
     const entered = codeInput?.value.trim() ?? "";
-    if (entered === COMPUTER_PASSCODE) {
+    if (VALID_PASSCODES.has(entered)) {
       state.doorUnlocked = true;
       state.score += 75;
-      state.statusText = "Airlock Unsealed";
+      state.statusText = "Door Unlocked";
       state.feedbackMessage =
-        "PASSCODE 1984 ACCEPTED! Power conduit energized — Temporal Airlock is UNSEALED!";
+        "🔓 Password accepted! The computer unlocked the Exit Door — click the door to escape!";
+      inspectorModal?.classList.add("hidden");
     } else {
-      const codeText = entered || "----";
       state.feedbackMessage =
-        `ACCESS DENIED ("${codeText}"). Hint: inspect the Archive Photo for the 4-digit year.`;
+        `Incorrect password ("${entered || "----"}"). Check the year written on the photograph (1998).`;
     }
     renderState();
   }
@@ -606,7 +636,7 @@ export function renderGameScreen(
       ...state,
       timeLeftSeconds: state.loopDurationSeconds,
       loopCount: nextLoop,
-      statusText: "Loop Rewound",
+      statusText: "Loop Reset",
       paintingClicks: 0,
       keyRevealed: false,
       keyCollected: false,
@@ -615,11 +645,11 @@ export function renderGameScreen(
       escaped: false,
       inventory: [],
       feedbackMessage:
-        `Loop #${nextLoop} initiated! Physical items reset, but ${clueCount} neural clue(s) kept.`,
+        `⏳ Loop #${nextLoop}: The room reset and items disappeared, ` +
+        `but your ${clueCount} discovered clue(s) remain!`,
     };
-    if (codeInput) {
-      codeInput.value = "";
-    }
+    if (codeInput) codeInput.value = "";
+    inspectorModal?.classList.add("hidden");
     if (resetBanner) {
       resetBanner.classList.remove("hidden");
       setTimeout(() => {
@@ -630,95 +660,85 @@ export function renderGameScreen(
     renderState();
   }
 
-  const objectButtons = container.querySelectorAll<HTMLButtonElement>(".room-object");
-  for (const btn of objectButtons) {
+  // Wire up interactive scene objects
+  const sceneObjects = container.querySelectorAll<HTMLButtonElement>("[data-object-id]");
+  for (const btn of sceneObjects) {
     btn.addEventListener("click", () => {
       const id = btn.dataset.objectId as RoomObjectId | undefined;
-      if (!id) return;
-      handleInteract(id);
+      if (id) handleObjectClick(id);
     });
   }
 
-  const digitButtons = container.querySelectorAll<HTMLButtonElement>(".kp-digit");
-  for (const dBtn of digitButtons) {
-    dBtn.addEventListener("click", () => {
+  // Keypad buttons inside computer modal
+  const kpButtons = container.querySelectorAll<HTMLButtonElement>(".tle-kp-btn[data-digit]");
+  for (const kp of kpButtons) {
+    kp.addEventListener("click", () => {
       if (!codeInput) return;
-      const digit = dBtn.dataset.digit ?? "";
+      const d = kp.dataset.digit ?? "";
       if (codeInput.value.length < 4) {
-        codeInput.value += digit;
+        codeInput.value += d;
       }
       if (codeInput.value.length === 4) {
-        submitTerminalCode();
+        submitPasscode();
       }
     });
   }
 
-  uvBtn?.addEventListener("click", () => {
-    state.uvMode = !state.uvMode;
-    state.feedbackMessage = state.uvMode
-      ? "🔦 UV Blacklight ON — Hidden temporal echoes revealed on the chamber walls!"
-      : "🔦 UV Blacklight OFF — Standard chamber illumination restored.";
-    renderState();
+  container.querySelector("#btn-clear-code")?.addEventListener("click", () => {
+    if (codeInput) codeInput.value = "";
   });
 
-  pingBtn?.addEventListener("click", () => {
-    const target = state.selectedObjectId ?? "painting";
-    state.pingedObjectId = target;
-    state.coopLog = `📡 You pinged [${OBJECT_LABELS[target]}] for Player 2!`;
-    state.feedbackMessage = `Sent co-op sonar ping on ${OBJECT_LABELS[target]} to Player 2.`;
-    callbacks.onObjectInteract?.(target, "ping");
-    renderState();
-  });
-
-  inspectBtn?.addEventListener("click", () => {
-    if (!state.selectedObjectId) {
-      state.feedbackMessage = "Select any object in the 3D chamber first to inspect it.";
-      renderState();
-      return;
-    }
-    handleInspect(state.selectedObjectId);
-  });
-
-  interactBtn?.addEventListener("click", () => {
-    if (!state.selectedObjectId) {
-      state.feedbackMessage = "Select any object in the 3D chamber first to interact with it.";
-      renderState();
-      return;
-    }
-    handleInteract(state.selectedObjectId);
-  });
-
-  submitCodeBtn?.addEventListener("click", () => {
-    submitTerminalCode();
+  container.querySelector("#btn-submit-code")?.addEventListener("click", () => {
+    submitPasscode();
   });
 
   codeInput?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      submitTerminalCode();
+    if (event.key === "Enter") submitPasscode();
+  });
+
+  container.querySelector("#btn-close-inspector")?.addEventListener("click", () => {
+    inspectorModal?.classList.add("hidden");
+  });
+
+  container.querySelector("#btn-hint")?.addEventListener("click", () => {
+    if (!state.clues.includes("BLUE - 4")) {
+      state.feedbackMessage = "💡 Hint: Click the open book on the left desk to find the first clue.";
+    } else if (!state.keyRevealed) {
+      state.feedbackMessage = "💡 Hint: Clue says BLUE - 4. Click the Blue Painting 4 times!";
+    } else if (!state.keyCollected) {
+      state.feedbackMessage = "💡 Hint: Take the Golden Key revealed behind the Blue Painting!";
+    } else if (!state.cabinetUnlocked) {
+      state.feedbackMessage = "💡 Hint: Click the locked wooden cabinet in the center to open it.";
+    } else if (!state.doorUnlocked) {
+      state.feedbackMessage =
+        "💡 Hint: Check the year on the corkboard photo (1998) and enter it on the computer!";
+    } else {
+      state.feedbackMessage = "💡 Hint: The Exit Door on the right is unlocked — click it to escape!";
     }
+    renderState();
   });
 
-  resetBtn?.addEventListener("click", () => {
+  container.querySelector("#btn-reset-loop")?.addEventListener("click", () => {
     resetLoop();
   });
 
-  modalResetBtn?.addEventListener("click", () => {
-    modal?.classList.add("hidden");
+  container.querySelector("#btn-modal-reset")?.addEventListener("click", () => {
+    pauseModal?.classList.add("hidden");
     resetLoop();
   });
 
-  menuBtn?.addEventListener("click", () => {
+  container.querySelector("#btn-pause-menu")?.addEventListener("click", () => {
     if (modalTitle && modalDesc) {
-      modalTitle.textContent = "Temporal Chamber Paused";
+      modalTitle.textContent = "Game Paused";
       modalDesc.textContent =
-        "Explore the 3D chamber, toggle UV Blacklight, and solve the sequence within 60 seconds. " +
-        "Items vanish each loop, but Neural Clues persist forever!";
+        "Explore the room, collect items, and unlock the exit door within 60 seconds. " +
+        "When the timer hits 00:00, items reset—but your discovered CLUES stay!";
     }
-    modal?.classList.remove("hidden");
+    pauseModal?.classList.remove("hidden");
   });
 
-  resumeBtn?.addEventListener("click", () => {
-    modal?.classList.add("hidden");
+  container.querySelector("#btn-resume")?.addEventListener("click", () => {
+    pauseModal?.classList.add("hidden");
   });
 
   function formatTime(seconds: number): string {
@@ -729,191 +749,99 @@ export function renderGameScreen(
   }
 
   function renderState(): void {
-    const timerEl = container.querySelector<HTMLElement>("#hud-timer");
+    const timerPill = container.querySelector<HTMLElement>("#hud-timer");
     const timerVal = container.querySelector<HTMLElement>("#hud-timer-val");
-    const timerFill = container.querySelector<HTMLElement>("#hud-timer-fill");
-    const ringFg = container.querySelector<SVGCircleElement>("#chrono-ring-fg");
-    const stabilityTag = container.querySelector<HTMLElement>("#stability-tag");
     const loopVal = container.querySelector<HTMLElement>("#hud-loop");
-    const playersVal = container.querySelector<HTMLElement>("#hud-players");
-    const scoreVal = container.querySelector<HTMLElement>("#hud-score-val");
-    const statusVal = container.querySelector<HTMLElement>("#hud-status");
-    const roomVal = container.querySelector<HTMLElement>("#hud-room");
-    const selectedPill = container.querySelector<HTMLElement>("#selected-object-pill");
     const feedbackEl = container.querySelector<HTMLElement>("#action-feedback-text");
-    const coopLogEl = container.querySelector<HTMLElement>("#coop-log-text");
-    const terminalGroup = container.querySelector<HTMLElement>("#terminal-code-group");
-    const conduitLine = container.querySelector<HTMLElement>("#power-conduit-line");
 
     const isUrgent = state.timeLeftSeconds <= 15;
-    const ratio = Math.max(
-      0,
-      Math.min(1, state.timeLeftSeconds / Math.max(1, state.loopDurationSeconds)),
-    );
-
-    rootLayout?.classList.toggle("uv-mode-active", state.uvMode);
-    rootLayout?.classList.toggle("temporal-critical", isUrgent && !state.escaped);
-    uvBtn?.classList.toggle("hud-btn-uv-on", state.uvMode);
+    rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
+    timerPill?.classList.toggle("tle-timer-urgent", isUrgent);
 
     if (timerVal) {
       timerVal.textContent = formatTime(state.timeLeftSeconds);
     }
-    if (timerEl) {
-      timerEl.classList.toggle("timer-urgent", isUrgent);
-    }
-    if (timerFill) {
-      timerFill.style.width = `${ratio * 100}%`;
-      timerFill.classList.toggle("timer-fill-urgent", isUrgent);
-    }
-    if (ringFg) {
-      const offset = RING_CIRCUMFERENCE * (1 - ratio);
-      ringFg.style.strokeDashoffset = String(offset);
-      ringFg.classList.toggle("ring-urgent", isUrgent);
-    }
-    if (stabilityTag) {
-      stabilityTag.textContent = isUrgent ? "CRITICAL" : state.uvMode ? "UV SCAN" : "STABLE";
-      stabilityTag.classList.toggle("stability-critical", isUrgent);
-    }
     if (loopVal) {
       loopVal.textContent = `LOOP #${state.loopCount}`;
-    }
-    if (playersVal) {
-      const countText = `${state.connectedPlayers}/${state.maxPlayers} Co-op`;
-      playersVal.innerHTML = `<span class="pulse-dot"></span> ${countText}`;
-    }
-    if (scoreVal) {
-      scoreVal.textContent = String(state.score);
-    }
-    if (statusVal) {
-      statusVal.textContent = state.statusText;
-    }
-    if (roomVal) {
-      roomVal.textContent = state.roomId;
-    }
-    if (coopLogEl) {
-      coopLogEl.textContent = state.coopLog;
-    }
-    if (selectedPill) {
-      selectedPill.textContent = state.selectedObjectId
-        ? `Target: ${OBJECT_LABELS[state.selectedObjectId]}`
-        : "Target: None";
     }
     if (feedbackEl) {
       feedbackEl.textContent = state.feedbackMessage;
     }
-    if (terminalGroup) {
-      terminalGroup.classList.toggle(
-        "hidden",
-        state.selectedObjectId !== "computer" || state.doorUnlocked,
-      );
-    }
-    if (conduitLine) {
-      conduitLine.classList.toggle("conduit-active", state.doorUnlocked);
-    }
 
-    // Update room objects
-    const clockState = container.querySelector<HTMLElement>("#state-clock");
-    if (clockState) {
-      clockState.textContent = `${state.timeLeftSeconds}s Left`;
-    }
-
+    // Painting & Hidden Key state
     const paintingBtn = container.querySelector<HTMLElement>("#obj-painting");
-    const paintingState = container.querySelector<HTMLElement>("#state-painting");
-    if (paintingBtn) {
-      paintingBtn.classList.toggle("painting-shifted", state.keyRevealed);
-    }
-    if (paintingState) {
-      paintingState.textContent = state.keyRevealed
-        ? "Recess Open"
-        : `${state.paintingClicks}/4 Taps`;
-    }
-
+    const paintingBadge = container.querySelector<HTMLElement>("#state-painting");
     const keyBtn = container.querySelector<HTMLElement>("#obj-key");
-    const keyState = container.querySelector<HTMLElement>("#state-key");
-    if (keyBtn) {
-      keyBtn.classList.toggle("hidden", !state.keyRevealed || state.keyCollected);
+    paintingBtn?.classList.toggle("tle-painting-open", state.keyRevealed);
+    if (paintingBadge) {
+      paintingBadge.textContent = state.keyRevealed ? "OPEN" : `${state.paintingClicks}/4`;
     }
-    if (keyState) {
-      keyState.textContent = state.keyCollected ? "In Bag" : "Take Key";
+    keyBtn?.classList.toggle("hidden", !state.keyRevealed || state.keyCollected);
+
+    // Cabinet state
+    const cabinetBtn = container.querySelector<HTMLElement>("#obj-cabinet");
+    const cabinetBadge = container.querySelector<HTMLElement>("#state-cabinet");
+    cabinetBtn?.classList.toggle("tle-cabinet-open", state.cabinetUnlocked);
+    if (cabinetBadge) {
+      cabinetBadge.textContent = state.cabinetUnlocked ? "🔓" : "🔒";
     }
 
-    const cabinetState = container.querySelector<HTMLElement>("#state-cabinet");
-    if (cabinetState) {
-      cabinetState.textContent = state.cabinetUnlocked ? "Open" : "Key Locked";
+    // Computer Monitor state
+    const monitorScreen = container.querySelector<HTMLElement>("#monitor-screen");
+    const monitorLock = container.querySelector<HTMLElement>("#state-computer");
+    const monitorPassbox = container.querySelector<HTMLElement>("#monitor-passbox");
+    monitorScreen?.classList.toggle("tle-monitor-unlocked", state.doorUnlocked);
+    if (monitorLock) {
+      monitorLock.textContent = state.doorUnlocked ? "🔓" : "🔒";
+    }
+    if (monitorPassbox) {
+      monitorPassbox.textContent = state.doorUnlocked ? "OPEN" : "* * * *";
     }
 
-    const computerState = container.querySelector<HTMLElement>("#state-computer");
-    if (computerState) {
-      computerState.textContent = state.doorUnlocked ? "Override OK" : "Enter 1984";
-    }
-
+    // Exit Door state
     const doorBtn = container.querySelector<HTMLElement>("#obj-door");
-    const doorState = container.querySelector<HTMLElement>("#state-door");
-    const doorIcon = container.querySelector<HTMLElement>("#door-icon");
-    if (doorBtn) {
-      doorBtn.classList.toggle("door-unlocked", state.doorUnlocked);
-    }
-    if (doorState) {
-      doorState.textContent = state.doorUnlocked ? "UNSEALED" : "SEALED";
-    }
-    if (doorIcon) {
-      doorIcon.textContent = state.doorUnlocked ? "🔓" : "🚪";
+    const doorBadge = container.querySelector<HTMLElement>("#state-door");
+    doorBtn?.classList.toggle("tle-door-unlocked", state.doorUnlocked);
+    if (doorBadge) {
+      doorBadge.textContent = state.doorUnlocked ? "🔓" : "⇥";
     }
 
-    for (const btn of objectButtons) {
-      const id = btn.dataset.objectId as RoomObjectId | undefined;
-      btn.classList.toggle("object-selected", id !== undefined && id === state.selectedObjectId);
-      btn.classList.toggle("object-pinged", id !== undefined && id === state.pingedObjectId);
+    // Render 4 Fixed Inventory Slots (matching the screenshot layout)
+    const invContainer = container.querySelector<HTMLElement>("#inventory-list");
+    if (invContainer) {
+      const slotsHtml: string[] = [];
+      for (let i = 0; i < 4; i++) {
+        const item = state.inventory[i];
+        if (item === "Golden Key") {
+          slotsHtml.push(
+            `<div class="tle-inv-slot tle-inv-slot-filled" title="Golden Key (resets on loop)">` +
+              `<svg viewBox="0 0 64 64" class="tle-slot-key-svg">` +
+              `<circle cx="22" cy="22" r="11" fill="none" stroke="#fbbf24" stroke-width="5"/>` +
+              `<line x1="30" y1="30" x2="52" y2="52" stroke="#fbbf24" stroke-width="5"/>` +
+              `<line x1="42" y1="42" x2="36" y2="48" stroke="#f59e0b" stroke-width="4"/>` +
+              `<line x1="49" y1="49" x2="43" y2="55" stroke="#f59e0b" stroke-width="4"/>` +
+              `</svg></div>`,
+          );
+        } else if (item) {
+          slotsHtml.push(
+            `<div class="tle-inv-slot tle-inv-slot-filled" title="${item}">📜</div>`,
+          );
+        } else {
+          slotsHtml.push(`<div class="tle-inv-slot"></div>`);
+        }
+      }
+      invContainer.innerHTML = slotsHtml.join("");
     }
 
-    // Escape sequence progress tracker in sidebar
-    const steps = [
-      { label: "1. Tap Cobalt Painting 4x", done: state.keyRevealed },
-      { label: "2. Unlock Safe with Brass Key", done: state.cabinetUnlocked },
-      {
-        label: "3. Find 1984 on Archive Photo",
-        done: state.clues.some((c) => c.includes("1984")),
-      },
-      { label: "4. Unseal Airlock via Terminal", done: state.doorUnlocked },
-    ];
-    const doneCount = steps.filter((s) => s.done).length;
-    const stepCountEl = container.querySelector<HTMLElement>("#escape-step-count");
-    if (stepCountEl) {
-      stepCountEl.textContent = `${doneCount}/4 Steps`;
-    }
-    const stepsEl = container.querySelector<HTMLElement>("#sequence-steps");
-    if (stepsEl) {
-      stepsEl.innerHTML = steps
-        .map(
-          (s) =>
-            `<div class="seq-step ${s.done ? "seq-step-done" : ""}">` +
-            `<span>${s.done ? "✅" : "⬜"}</span> <span>${s.label}</span></div>`,
-        )
-        .join("");
-    }
-
-    // Render persistent clues list
+    // Render Persistent Clues List (matching the screenshot layout)
     const cluesList = container.querySelector<HTMLElement>("#clues-list");
     if (cluesList) {
       if (state.clues.length === 0) {
         cluesList.innerHTML =
-          '<li class="dock-empty">No neural clues yet. Toggle UV Light or inspect objects!</li>';
+          '<li class="tle-clue-empty">Click the open book on the desk to discover your first clue...</li>';
       } else {
         cluesList.innerHTML = state.clues
-          .map((clue) => `<li class="dock-item dock-item-clue">🧠 ${clue}</li>`)
-          .join("");
-      }
-    }
-
-    // Render loop-scoped inventory list
-    const inventoryList = container.querySelector<HTMLElement>("#inventory-list");
-    if (inventoryList) {
-      if (state.inventory.length === 0) {
-        inventoryList.innerHTML =
-          '<li class="dock-empty">Empty (physical items wipe every 60s)</li>';
-      } else {
-        inventoryList.innerHTML = state.inventory
-          .map((item) => `<li class="dock-item dock-item-inv">🗝️ ${item}</li>`)
+          .map((clue) => `<li class="tle-clue-item">${clue}</li>`)
           .join("");
       }
     }
