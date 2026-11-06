@@ -2,16 +2,16 @@
 // Builds the clickable objects inside #room. No puzzle logic here: every click goes to onObjectClick(id).
 // ponytail: emoji + CSS shapes for art, swap for images in assets/ later.
 function buildRoom() {
-  const objects = [
+  const objects = [  // DOM order = Tab order: wall left to right, then floor left to right
+    ["clock",    "Clock",         "🕰️"],  // decoy
     ["painting", "Blue painting", "🌊"],
     ["photo",    "Photograph",    "🖼️"],
-    ["clock",    "Clock",         "🕰️"],  // decoy
     ["door",     "Exit door",     "🚪"],
     ["shelf",    "Bookshelf",     "📚"],  // decoy
     ["cabinet",  "Cabinet",       "🗄️"],
+    ["lamp",     "Lamp",          "💡"],  // decoy
     ["computer", "Computer",      "🖥️"],
     ["note",     "Note",          "📝"],
-    ["lamp",     "Lamp",          "💡"],  // decoy
   ];
   const room = document.getElementById("room");
   room.innerHTML = "";

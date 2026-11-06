@@ -10,6 +10,7 @@ function render() {
   const t = Math.max(0, Math.ceil(game.timeLeft));
   set($("timer"), "textContent", "⏳ " + t + "s");
   $("timer").classList.toggle("low", t <= 10);
+  document.body.classList.toggle("hurry", t <= 10 && !game.won);  // whole room goes red in the last 10s
   $("hud").style.setProperty("--time", t / 60);  // drives the shrinking time bar
   set($("loop-count"), "textContent", "Loop " + game.loop);
 
@@ -65,6 +66,7 @@ function render() {
     win.setAttribute("role", "dialog");
     win.setAttribute("aria-label", "You escaped");
     document.body.append(win);
+    setTimeout(() => win.querySelector("button")?.focus());  // keyboard users land on "Play again"
   }
   if (win) {
     win.hidden = !game.won;

@@ -115,7 +115,8 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 #hud { position: relative; padding-bottom: 10px; }
 #hud::after {
   content: ""; position: absolute; left: 0; bottom: 0; height: 4px; border-radius: 2px;
-  width: calc(var(--time, 1) * 100%); background: linear-gradient(90deg, #c22, #fc6 30%, #6c6); transition: width 1s linear;
+  width: calc(var(--time, 1) * 100%); background: hsl(calc(var(--time, 1) * 120) 70% 50%);  /* green -> yellow -> red */
+  transition: width 1s linear, background 1s;
 }
 /* painting tilts a little more on each click until it swings aside on the 4th */
 #obj-painting:not(.moved) .art { transform: rotate(calc(var(--clicks, 0) * -4deg)); }
@@ -128,3 +129,6 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 #journal li.new { animation: ink 2.5s ease-out; }
 @keyframes ink { from { background: #fc68; color: #8a2b2b; } }
 #loop-flash small { display: block; margin-top: 8px; font-size: 1rem; font-weight: normal; }
+/* last 10 seconds: the room pulses red */
+body.hurry #room { animation: hurry 1s infinite; }
+@keyframes hurry { 50% { box-shadow: inset 0 0 90px #c22c, 0 8px 24px #0008; } }
