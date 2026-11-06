@@ -68,6 +68,11 @@ describe("teamOf", () => {
     expect(teamOf({ title: "X", head: "platform/4-x", labels: [] }, labels)).toBe("platform");
     expect(teamOf({ title: "X", head: "feature/team-4", labels: [] }, labels)).toBe("team-4");
   });
+  it("reads the team from a conventional title's scope, and still from an old [team-N] prefix", () => {
+    expect(teamOf({ title: "feat(team-1): add x", head: "x", labels: [] }, labels)).toBe("team-1");
+    expect(teamOf({ title: "fix(platform)!: drop y", head: "x", labels: [] }, labels)).toBe("platform");
+    expect(teamOf({ title: "feat(game): add x", head: "x", labels: [] }, labels)).toBeNull();
+  });
   it("returns null when nothing names a team", () => {
     expect(teamOf({ title: "[course] X", head: "1-x", labels: ["documentation"] }, labels)).toBeNull();
     expect(teamOf({ title: "feat(course): x", head: "1-x", labels: [] }, labels)).toBeNull();
