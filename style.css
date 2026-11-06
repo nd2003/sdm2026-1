@@ -560,3 +560,9 @@ body.asking #message { display: none; }  /* no stale message above an open input
 .dust { opacity: .24; }
 #lobby-note { margin: 14px auto 0; color: #e0655b; font-weight: 700; }
 #lobby-note:empty { display: none; }
+
+/* Testing only: looks nothing like the game on purpose */
+#admin-skip { position: absolute; z-index: 3; left: 280px; top: 16px; padding: 5px 10px; font: 700 .8rem monospace; color: #000; background: #e6f; border: 2px dashed #000; cursor: pointer; }
+#admin-skip[hidden] { display: none; }
+#admin-skip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@media (max-width: 700px) { #admin-skip { left: auto; right: 0; top: 56px; } }
