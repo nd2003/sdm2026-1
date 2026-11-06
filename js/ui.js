@@ -15,9 +15,13 @@ function render() {
   set($("loop-count"), "textContent", "Loop " + game.loop);
 
   // Inventory (resets every loop)
-  set($("inventory"), "innerHTML", "<h2>Inventory</h2>" + (game.items.length
+  const inv = $("inventory");
+  const had = inv._count ?? game.items.length;
+  set(inv, "innerHTML", "<h2>Inventory</h2>" + (game.items.length
     ? "<ul>" + game.items.map((i) => `<li>${i === "key" ? "🔑 " : ""}${esc(i)}</li>`).join("") + "</ul>"
     : '<p class="empty">Empty pockets.</p>'));
+  inv.querySelectorAll("li").forEach((li, i) => { if (i >= had) li.classList.add("new"); });
+  inv._count = game.items.length;
 
   // Clue journal (survives the reset). The newest clue gets highlighted when it's written.
   const journal = $("journal");
@@ -55,6 +59,7 @@ function render() {
     }
     flash.innerHTML = `<div>⏰ Time's up. The loop resets…<small>Your items are gone, but your journal remembers. Loop ${game.loop}</small></div>`;
     replay(flash, "show");
+    replay($("journal"), "remember");  // glows as the flash fades: "your clues survived"
   }
   document.body.dataset.loop = game.loop;
 

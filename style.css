@@ -132,3 +132,15 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 /* last 10 seconds: the room pulses red */
 body.hurry #room { animation: hurry 1s infinite; }
 @keyframes hurry { 50% { box-shadow: inset 0 0 90px #c22c, 0 8px 24px #0008; } }
+/* finger-sized tap targets, even for small objects like the note */
+.obj { min-width: 44px; min-height: 44px; justify-content: flex-end; }
+/* new item in the inventory */
+#inventory li.new { animation: got 1.2s ease-out; }
+@keyframes got { from { transform: scale(1.4); background: #fc6; color: #111; } }
+/* after a reset the journal glows: the clues survived */
+#journal.remember { animation: remember 1.2s 1.2s ease-out; }
+@keyframes remember { 40% { box-shadow: 0 0 0 4px #fc6, 0 0 40px #fc6c; } }
+/* game title between the timer and the loop counter */
+#hud::before { content: "Time Loop Escape"; order: 1; font-weight: bold; letter-spacing: .08em; text-transform: uppercase; font-size: .85rem; opacity: .6; }
+#loop-count { order: 2; }
+@media (max-width: 420px) { #hud::before { display: none; } }
