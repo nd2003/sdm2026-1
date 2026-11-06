@@ -49,8 +49,9 @@ function buildRoom() {
       <g fill="#1d1c17"><circle cx="11" cy="14" r="1.5"/><circle cx="49" cy="14" r="1.5"/><circle cx="11" cy="30" r="1.5"/><circle cx="49" cy="30" r="1.5"/><circle cx="11" cy="110" r="1.5"/><circle cx="49" cy="110" r="1.5"/><circle cx="11" cy="126" r="1.5"/><circle cx="49" cy="126" r="1.5"/></g>
       <path d="M14 22c1 16 0 24 2 34M36 118c-1 6 0 14 1 21M48 22c-1 12 1 24-1 36" fill="none" stroke="#6b3e20" stroke-opacity=".8" stroke-width="2.5"/>
       <path d="M20 86l5 13M25 84l5 15M30 85l4 12" stroke="#16140f" stroke-width="1.3"/>
-      <g transform="rotate(-2 30 40)"><path d="M13 26h34l1 30-9 2-6-2-20 1z" fill="#a89c7c" stroke="#090806" stroke-width=".8"/><path d="M26 24h8v4h-8z" fill="#c9bf9f" opacity=".7"/>
+      <g class="ad" transform="rotate(-2 30 40)"><path d="M13 26h34l1 30-9 2-6-2-20 1z" fill="#a89c7c" stroke="#090806" stroke-width=".8"/><path d="M26 24h8v4h-8z" fill="#c9bf9f" opacity=".7"/>
       <g font-family="monospace" font-weight="bold" fill="#17140d" font-size="4.6"><text x="16" y="33">NIGHT</text><text x="16" y="38">AUDITORS</text><text x="16" y="43">WANTED</text></g><g font-family="monospace" fill="#2c271c" font-size="3.4"><text x="16" y="48">Floor 14. Cash.</text><text x="16" y="52">No questions.</text></g></g>
+      <g class="scrawl" font-family="Special Elite, monospace" fill="#c23a30" font-size="5.6" transform="rotate(-3 30 40)"><text x="10" y="32">DON'T LEAVE</text><text x="10" y="40">WITHOUT</text><text class="scrawl-name" x="10" y="49"></text></g>
       <rect class="bolt" x="27" y="62" width="27" height="7" fill="#22211b" stroke="#090806"/>
       <circle class="lock" cx="46" cy="55" r="2.8" fill="#c6352c"/><circle cx="46" cy="77" r="3.6" fill="#6c5a35" ${ink}/>`)],
     ["shelf", "Bookshelf", S("0 0 80 110", `
@@ -88,18 +89,68 @@ function buildRoom() {
       <path d="M9 14c5-3 6 2 10 0s5 0 11-1" fill="none" stroke="#1c50d2" stroke-width="2" stroke-linecap="round"/>
       <path d="M9 22c4-2 7 1 11 0s5-1 7 0M9 29c3-1 6 1 10 0" fill="none" stroke="#231e15" stroke-width="1.5" stroke-linecap="round"/>
       <ellipse cx="29" cy="33" rx="3.5" ry="4.5" fill="#8c1a15" fill-opacity=".85"/></g>`)],
+    ["phone", "Old phone", S("0 0 80 56", `
+      <path d="M12 54l6-26h44l6 26z" fill="#1d1a15" ${ink}/><path d="M6 24c0-14 68-14 68 0l-4 8H56l-3-8H27l-3 8H10z" fill="#2a2620" ${ink}/>
+      <circle cx="40" cy="42" r="9" fill="#4a4336" stroke="#090806"/><circle cx="40" cy="42" r="3" fill="#120e0a"/><g fill="#120e0a"><circle cx="40" cy="35.5" r="1.2"/><circle cx="46" cy="39" r="1.2"/><circle cx="46" cy="45" r="1.2"/><circle cx="40" cy="48.500" r="1.2"/><circle cx="34" cy="45" r="1.2"/><circle cx="34" cy="39" r="1.2"/></g>
+      <path d="M12 34c-10 6-10 14-4 20" fill="none" stroke="#090806" stroke-width="2"/>`)],
+    ["coat", "Coat on a hook", S("0 0 60 120", `
+      <path d="M30 2v9" stroke="#6c5a35" stroke-width="3"/><circle cx="30" cy="3" r="2.500" fill="#6c5a35"/>
+      <path d="M30 10c-14 2-22 8-24 20L2 100c8 6 14 6 20 2l4-40 4-8 4 8 4 40c6 4 12 4 20-2l-4-70c-2-12-10-18-24-20z" fill="#27231b" ${ink}/>
+      <path d="M30 12l-9 22 9 20 9-20z" fill="#14120c" stroke="#090806"/><path d="M12 74h13v14H12z" fill="#1c1913" stroke="#090806"/>
+      <path d="M14 18c8-3 24-3 32 0" fill="none" stroke="#6d6a58" stroke-opacity=".6" stroke-width="3"/><path d="M40 72l9 3-3 14-9-3z" fill="#a89c7c" stroke="#090806"/>`)],
+    ["vending", "Vending machine", S("0 0 90 170", `
+      <rect x="2" y="2" width="86" height="166" rx="3" fill="#33362f" ${ink}/><rect x="9" y="9" width="52" height="118" fill="#0c0d0a" ${ink}/>
+      <g>${[0, 1, 2, 3, 4].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${13 + c * 16}" y="${14 + r * 23}" width="12" height="17" fill="#7a6d48" stroke="#090806"/><path d="M${15 + c * 16} ${21 + r * 23}h8" stroke="#17140d" stroke-width="1.5"/>`)).join("")}</g>
+      <path d="M9 9L61 127M61 9L30 60" stroke="#c9c2a8" stroke-opacity=".3"/><rect x="66" y="14" width="17" height="10" fill="#120e0a" stroke="#090806"/>
+      <g fill="#55524a" stroke="#090806">${[0, 1, 2, 3].map((r) => `<rect x="67" y="${32 + r * 12}" width="15" height="8"/>`).join("")}</g>
+      <rect x="9" y="136" width="52" height="24" fill="#050403" stroke="#090806" stroke-width="2"/><path d="M6 168l12-3M60 168l18-2" stroke="#6b3e20" stroke-width="3"/>`)],
+    ["scratches", "Scratches on the door frame", S("0 0 24 150", `
+      <rect x="1" y="1" width="22" height="148" fill="#2a2820" stroke="#090806"/>
+      <g stroke="#b8b09a" stroke-width="1.3" stroke-linecap="round"><path d="M7 30l3 26M12 28l3 30M17 31l2 24M6 72l4 30M11 70l3 34M16 73l3 28M7 112l2 20M12 110l2 24"/></g>
+      <path d="M9 40l1 8M14 44l1 8M8 86l1 8M13 90l1 8" stroke="#6e0d08" stroke-width="1.6"/>`)],
     ["casket-left", "Left casket", S("0 0 120 150", CASKET), 2],
     ["casket-right", "Right casket", S("0 0 120 150", CASKET), 2],
+    ["fusebox", "Fuse box", S("0 0 70 90", `
+      <rect x="2" y="2" width="66" height="86" rx="2" fill="#3c4247" ${ink}/><rect x="9" y="9" width="52" height="72" fill="#14171a" stroke="#090806"/>
+      <g fill="#6c6a5c" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1].map((c) => `<rect x="${14 + c * 14}" y="${15 + r * 17}" width="9" height="13"/>`)).join("")}</g>
+      <rect x="46" y="16" width="10" height="56" fill="#090a0b" stroke="#2c3338"/><g class="lever"><rect x="42" y="20" width="18" height="9" rx="2" fill="#8c1a15" stroke="#090806"/></g>
+      <path d="M2 88c6 4 8 6 7 2M68 2l-8 6" stroke="#6b3e20" stroke-width="2"/><path d="M16 73c8-2 14 1 22 0" stroke="#c7a650" stroke-width="1.5" fill="none"/><circle class="led" cx="17" cy="79" r="1"/>`), 2],
+    ["shoes", "Pair of shoes", S("0 0 100 44", `
+      <path d="M4 34c0-14 6-22 12-22 8 0 8 10 18 14 8 3 12 6 10 12H6z" fill="#14120c" ${ink}/><path d="M16 15l6 8M20 13l6 8" stroke="#a79f8a" stroke-width="1.6"/>
+      <path d="M54 34c0-14 6-22 12-22 8 0 8 10 18 14 8 3 12 6 10 12H56z" fill="#17150e" ${ink}/><path d="M66 15l6 8M70 13l6 8" stroke="#a79f8a" stroke-width="1.6"/>
+      <path d="M6 38h38M56 38h38" stroke="#000" stroke-width="3"/>`), 2],
+    ["bricked-door", "Bricked-up door", S("0 0 70 140", `
+      <rect x="2" y="2" width="66" height="136" fill="#1a1d20" ${ink}/><rect x="8" y="10" width="54" height="128" fill="url(#bricks)"/>
+      <path d="M8 10h54M8 10v128M62 10v128" stroke="#0a0c0e" stroke-width="4"/><path d="M18 64c6 6 16 6 22-2M24 90l14-6" stroke="#0a0c0e" stroke-width="2" fill="none"/>
+      <rect x="20" y="20" width="30" height="9" fill="#8d7433" stroke="#231a08"/><path d="M23 24h24" stroke="#2b2109" stroke-width="2"/>`), 2],
+    ["candles", "Candle stubs", `<svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <g class="candles"><circle cx="44" cy="44" r="58" fill="url(#candle)"/><g fill="#f4d98a"><path d="M26 48c-4-7 0-12 0-17 3 6 5 11 0 17zM50 38c-4-8 0-14 0-20 3 7 6 13 0 20zM68 54c-3-6 0-10 0-14 3 5 4 9 0 14z"/></g></g>
+      <g fill="#c9c2a8" stroke="#3b3323"><rect x="20" y="48" width="12" height="28"/><rect x="44" y="38" width="13" height="40"/><rect x="62" y="54" width="11" height="22"/></g>
+      <path d="M14 78c20 6 50 6 64 0-2-6-12-6-14-2-10 2-30 2-36 0-4-4-12-2-14 2z" fill="#a79f8a" stroke="#3b3323"/></svg>`, 2],
     ["keypad", "Keypad", S("0 0 60 84", `
-      <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle cx="46" cy="15" r="2.5" fill="#c6352c"/>
+      <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle class="led" cx="46" cy="15" r="2.5"/>
       <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`), 2],
-    ["lift", "Lift", S("0 0 160 220", `
-      <rect x="2" y="26" width="156" height="192" fill="#1b1a13" ${ink}/><rect x="14" y="38" width="118" height="180" fill="#0d0c07" ${ink}/>
-      <g stroke="#6f5a30" stroke-width="3">${[22, 36, 50, 64, 78, 92, 106, 120].map((x) => `<path d="M${x} 38v180"/>`).join("")}</g>
-      <g stroke="#57461f" stroke-width="2"><path d="M14 66L132 112M14 112L132 66M14 158L132 204M14 204L132 158"/></g>
-      <rect x="136" y="60" width="18" height="122" fill="#3a3019" stroke="#090806"/><g fill="#c7a650" stroke="#231a08">${[0, 1, 2, 3, 4, 5, 6, 7].flatMap((r) => [0, 1].map((c) => `<circle cx="${141 + c * 8}" cy="${68 + r * 14}" r="2.6"/>`)).join("")}</g>
-      <path d="M46 24a34 22 0 0 1 68 0z" fill="#3a3019" ${ink}/><g stroke="#c7a650" stroke-width="1.2"><path d="M54 22l-3-5M64 13l-2-4M80 10V6M96 13l2-4M106 22l3-5"/></g>
-      <path class="needle" d="M80 24L92 9" stroke="#c23a30" stroke-width="2" stroke-linecap="round"/><circle cx="80" cy="24" r="2.6" fill="#120e0a"/>`), 3],
+    ["lift", "Lift buttons", S("0 0 60 170", `
+      <rect x="2" y="2" width="56" height="166" rx="3" fill="#3a3019" ${ink}/><rect x="8" y="8" width="44" height="154" fill="#231d0f" stroke="#090806"/>
+      <rect x="14" y="12" width="32" height="12" fill="#090806" stroke="#6f5a30"/><circle class="lift-lamp" cx="30" cy="18" r="3.500" fill="#3a1511"/>
+      <g fill="#c7a650" stroke="#231a08" stroke-width="1.2">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].flatMap((r) => [0, 1].map((c) => `<circle cx="${21 + c * 18}" cy="${34 + r * 12}" r="4"/>`)).join("")}</g>
+      <path d="M12 164l10-5M40 160l14 4" stroke="#6b3e20" stroke-width="2"/>`), 3],
+    ["gate", "Lift gate", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg"><g class="folds">
+      <g stroke="#7a6530" stroke-width="3" fill="none"><path d="M3 2H117V188H3z"/>${[3, 17, 31, 45, 59, 73, 87, 101, 117].map((x) => `<path d="M${x} 2v186"/>`).join("")}</g>
+      <g stroke="#57461f" stroke-width="2.200">${[3, 31, 59, 87].map((x) => `<path d="M${x} 20l28 40M${x + 28} 20l-28 40M${x} 76l28 40M${x + 28} 76l-28 40M${x} 132l28 40M${x + 28} 132l-28 40"/>`).join("")}</g>
+      <rect x="104" y="86" width="13" height="18" fill="#c7a650" stroke="#231a08"/></g></svg>`, 3],
+    ["indicator", "Floor dial", S("0 0 150 80", `
+      <path d="M4 76a71 71 0 0 1 142 0z" fill="#3a3019" ${ink}/><path d="M16 76a59 59 0 0 1 118 0z" fill="#a89c7c" stroke="#231a08" stroke-width="2"/>
+      <g stroke="#231a08" stroke-width="2"><path d="M26 66l8 3M38 44l7 6M58 27l4 8M92 27l-4 8M112 44l-7 6M124 66l-8 3"/></g>
+      <g font-family="monospace" font-size="9" font-weight="bold" fill="#17140d" text-anchor="middle"><text x="42" y="68">G</text><text x="52" y="52">4</text><text x="68" y="44">8</text><text x="84" y="44">12</text><text x="99" y="52">16</text><text x="109" y="68">20</text></g>
+      <path class="needle" d="M75 74L88 34" stroke="#8c1a15" stroke-width="3" stroke-linecap="round"/><circle cx="75" cy="74" r="5" fill="#120e0a"/>`), 3],
+    ["emergency-phone", "Emergency phone", S("0 0 80 110", `
+      <rect x="2" y="2" width="76" height="106" rx="3" fill="#6e0d08" ${ink}/><rect x="10" y="10" width="60" height="16" fill="#a89c7c" stroke="#090806"/><text x="40" y="22" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle" fill="#17140d">NIGHT DESK</text>
+      <rect x="10" y="32" width="60" height="68" fill="#2c0504" stroke="#090806"/><path d="M28 40c-8 0-8 6-8 22s0 22 8 22c4 0 5-3 5-7 0-4-2-7-6-7-1-5-1-11 0-16 4 0 6-3 6-7 0-4-1-7-5-7z" fill="#0a0806" stroke="#000"/>
+      <path d="M26 84c8 8 22 8 26-2s-4-22 4-32" fill="none" stroke="#0a0806" stroke-width="2"/><g fill="#a79f8a">${[0, 1, 2].flatMap((r) => [0, 1].map((c) => `<circle cx="${50 + c * 10}" cy="${44 + r * 10}" r="2.500"/>`)).join("")}</g>`), 3],
+    ["graffiti", "Words scratched into the wall", `<svg viewBox="0 0 180 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="180" height="110" fill="#000" fill-opacity=".01"/><g font-family="Special Elite, monospace" fill="#c9c2a8" opacity=".85"><text x="6" y="26" font-size="24">THE DOOR</text><text x="6" y="52" font-size="24">OPENS</text><text x="6" y="78" font-size="24">FOR ONE</text></g>
+      <text x="44" y="104" font-family="Special Elite, monospace" font-size="20" fill="#8c1a15" transform="rotate(-3 44 104)">UNLESS</text></svg>`, 3],
   ];
   const room = document.getElementById("room");
   const rays = (pts, col, w) => pts.map(([x, y]) => `<path d="M800 470L${x} ${y}" stroke="${col}" stroke-width="${w}"/>`).join("");
@@ -107,6 +158,8 @@ function buildRoom() {
   const blob = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#blob)"/>`;
   const drip = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#drip)"/>`;
   room.innerHTML = `<div class="scene"><svg class="walls" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true"><defs>
+    <pattern id="carpet" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#4a4326"/><path d="M0 0l14 14M14 0L0 14" stroke="#231f10" stroke-width="2"/></pattern>
+    <pattern id="bricks" width="44" height="26" patternUnits="userSpaceOnUse"><rect width="44" height="26" fill="#3a3f42"/><path d="M0 0h44M0 13h44M0 0v13M22 13v13" stroke="#14171a" stroke-width="3"/></pattern>
     <filter id="grime" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
       <feTurbulence type="fractalNoise" baseFrequency=".22" numOctaves="4" seed="7"/>
       <feColorMatrix values="0 0 0 0 .04  0 0 0 0 .03  0 0 0 0 .02  1.7 0 0 0 -.72"/>
@@ -148,6 +201,14 @@ function buildRoom() {
     <path d="M395 92L540 92 505 180 410 180z" fill="#060503"/><path d="M1110 120L1240 120 1190 180 1090 180z" fill="#060503"/>
     <path d="M430 180c-8 40 14 56 2 96M1140 180c10 30-10 50 6 88" fill="none" stroke="#0a0805" stroke-width="3"/>
     <path d="M470 700L0 1000M1130 700L1600 1000M470 700H1130" stroke="#201d0e" stroke-width="10"/>
+    <path d="M0 600L470 512V700L0 1000z" fill="#0b0a05" opacity=".28"/><path d="M1600 600L1130 512V700L1600 1000z" fill="#0b0a05" opacity=".28"/><rect x="470" y="512" width="660" height="188" fill="#0b0a05" opacity=".2"/>
+    <path d="M0 600L470 512H1130L1600 600" fill="none" stroke="#2b2610" stroke-width="7"/><path d="M0 593L470 508H1130L1600 593" fill="none" stroke="#b5ab6e" stroke-opacity=".28" stroke-width="2"/>
+    <path d="M0 1000L470 700H1130L1600 1000z" fill="url(#carpet)" opacity=".55"/>
+    <ellipse cx="800" cy="250" rx="360" ry="100" fill="url(#candle)" opacity=".45"/>
+    <path d="M380 180c6 40-14 50-4 96 6 30-8 40-2 72" fill="none" stroke="#0a0805" stroke-width="3"/>
+    <g transform="translate(980 800) rotate(-9)"><path d="M0 0L90 -8 104 34 10 44z" fill="#8f8664" stroke="#17140d" stroke-width="2"/><path d="M12 10l70-6M15 20l70-6M18 30l50-4" stroke="#3b3323" stroke-width="2"/></g>
+    <g transform="translate(560 780) rotate(12)"><path d="M0 0L70 -6 80 24 8 32z" fill="#7a7259" stroke="#17140d" stroke-width="2"/></g>
+    <ellipse cx="800" cy="704" rx="120" ry="12" fill="#000" opacity=".6"/><ellipse cx="1020" cy="704" rx="62" ry="8" fill="#000" opacity=".5"/>
     <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".45"/>
     ${drip(150, 70, 16, 420)}${drip(240, 118, 10, 300)}${drip(356, 174, 22, 380)}${drip(520, 230, 14, 240)}${drip(655, 230, 24, 330)}${drip(790, 230, 10, 170)}${drip(1040, 230, 18, 280)}${drip(1190, 200, 16, 300)}${drip(1320, 136, 24, 430)}${drip(1490, 54, 18, 360)}
     <rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
@@ -158,15 +219,20 @@ function buildRoom() {
     <g transform="translate(1270 180) skewY(-22)"><rect width="88" height="70" fill="#2c2214" stroke="#090806" stroke-width="4"/><rect x="8" y="8" width="72" height="54" fill="#0a0805"/><path d="M8 8h72v14l-20 16-14-10-16 20-22-6z" fill="#514b39"/></g>
     <g transform="translate(1240 590) skewY(-20)" stroke="#201a0d" stroke-width="5">${range(0, 60, 5).map((x, i) => `<path d="M${x} 0v52"/>`).join("")}<path d="M-6 44L68 8"/><g transform="translate(92 0)">${range(0, 60, 5).map((x) => `<path d="M${x} 0v52"/>`).join("")}<path d="M-6 44L68 8"/></g></g>
     <text transform="translate(1142 496) skewY(-11)" font-family="Special Elite, monospace" font-size="44" fill="#5a120d" opacity=".9">YOU WERE HERE</text>
-    <path d="M612 500c-6 50 2 110-6 176M636 490c-4 60 4 120-3 200M660 494c-5 56 3 104-4 170M682 506c-3 42 2 86-3 132" fill="none" stroke="#4a0e0a" stroke-width="9" stroke-linecap="round" opacity=".7"/>
+    <path transform="translate(-300 -20) skewY(14)" d="M612 500c-6 50 2 110-6 176M636 490c-4 60 4 120-3 200M660 494c-5 56 3 104-4 170M682 506c-3 42 2 86-3 132" fill="none" stroke="#4a0e0a" stroke-width="9" stroke-linecap="round" opacity=".7"/>
     <g><rect x="965" y="320" width="110" height="380" fill="#090704" stroke="#2c2813" stroke-width="8"/><rect x="985" y="370" width="70" height="285" fill="#3d3819"/><rect x="1001" y="410" width="38" height="200" fill="#6f6735"/><path d="M965 700L985 655H1055L1075 700z" fill="#1c190c"/>
       <g class="figure"><circle cx="1020" cy="520" r="13" fill="#040302"/><path d="M1007 538q13-8 26 0l5 42-4 62-6 46h-16l-6-46-4-62z" fill="#040302"/><path d="M1007 540l-11 70 6 62M1033 540l11 70-6 62" fill="none" stroke="#040302" stroke-width="6" stroke-linecap="round"/></g></g>
-    <path d="M210 860H860L990 1040H100z" fill="url(#desktop)" stroke="#090806" stroke-width="4"/><path d="M340 900l60 40M640 880l-40 70M760 950l50 40M300 960h90" stroke="#0d0905" stroke-width="3"/>
-    <ellipse cx="620" cy="960" rx="44" ry="14" fill="none" stroke="#120c07" stroke-width="5"/>
+    <path d="M210 860H860L990 1040H100z" fill="url(#desktop)" stroke="#090806" stroke-width="4"/><path d="M210 860H860" stroke="#6b5234" stroke-width="3" opacity=".6"/>
+    <path d="M340 900l60 40M640 880l-40 70M760 950l50 40M300 960h90" stroke="#0d0905" stroke-width="3"/>
+    <g transform="translate(520 882) rotate(-4)"><path d="M0 0H92L104 58H-6z" fill="#7d7559" stroke="#120e08" stroke-width="2"/><path d="M4 -5H94L104 50H-2z" fill="#a89c7c" stroke="#120e08" stroke-width="2"/><path d="M10 6h72M9 16h78M8 26h60M7 36h74" stroke="#3b3323" stroke-width="2"/></g>
+    <g transform="translate(860 884)"><path d="M0 8c0 30 6 42 22 42s22-12 22-42z" fill="#a39b83" stroke="#120e08" stroke-width="3"/><ellipse cx="22" cy="8" rx="22" ry="7" fill="#17120b" stroke="#120e08" stroke-width="3"/><path d="M44 16c14-2 14 22-2 22" fill="none" stroke="#a39b83" stroke-width="5"/><path d="M6 12c-2 12 1 22 3 30" stroke="#6b3e20" stroke-width="3" fill="none"/></g>
+    <path d="M420 930l80-22" stroke="#8c1a15" stroke-width="5" stroke-linecap="round"/><path d="M500 908l8-2" stroke="#d8d0ba" stroke-width="5"/>
+    <path d="M300 880c-90 40-140 40-240 90" fill="none" stroke="#090806" stroke-width="6"/>
+    <ellipse cx="760" cy="980" rx="50" ry="14" fill="#231a0f" stroke="#090806" stroke-width="3"/><path d="M730 974l40 6M750 968l26 20" stroke="#6d6a58" stroke-width="3"/>
+    <ellipse cx="640" cy="975" rx="40" ry="12" fill="none" stroke="#120c07" stroke-width="4"/>
   </svg>
   <svg class="walls level-view" data-stage="2" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
-    <defs><pattern id="bricks" width="44" height="26" patternUnits="userSpaceOnUse"><rect width="44" height="26" fill="#3a3f42"/><path d="M0 0h44M0 13h44M0 0v13M22 13v13" stroke="#14171a" stroke-width="3"/></pattern></defs>
-    <rect width="1600" height="1000" fill="#14171a"/>
+        <rect width="1600" height="1000" fill="#14171a"/>
     <path d="M0 0H1600L870 420H730z" fill="#22272b"/><path d="M0 0L730 420V520L0 1000z" fill="#2c3338"/><path d="M1600 0L870 420V520L1600 1000z" fill="#2c3338"/>
     <path d="M0 1000L730 520H870L1600 1000z" fill="#15181b"/><rect x="730" y="420" width="140" height="100" fill="#020203"/>
     ${[[50, 165], [255, 335], [430, 490], [560, 605], [650, 682]].map(([a, b]) => {
@@ -179,16 +245,22 @@ function buildRoom() {
     ${drip(180, 90, 18, 420)}${drip(420, 220, 14, 300)}${drip(1180, 220, 18, 320)}${drip(1420, 110, 22, 400)}
     <g fill="#08090a" stroke="#000" stroke-width="2"><path d="M630 660c20-8 40-8 50 2l-4 12h-46zM690 664c20-8 40-8 50 2l-4 12h-46z"/><path d="M930 640c14-6 28-6 36 1l-3 9h-33zM974 642c14-6 28-6 36 1l-3 9h-33z"/><path d="M822 575c9-4 18-4 24 1l-2 6h-22zM852 577c9-4 18-4 24 1l-2 6h-22z"/></g>
     <path d="M770 690c30-18 80-24 118-8 18 10 10 34-14 34h-94c-20 0-26-16-10-26z" fill="#1c2024" stroke="#000" stroke-width="2"/><path d="M820 676l6 40M852 682l-4 34" stroke="#0a0c0e" stroke-width="3"/>
-    <g class="candles"><circle cx="520" cy="660" r="90" fill="url(#candle)"/><circle cx="1090" cy="640" r="74" fill="url(#candle)"/><rect x="514" y="650" width="12" height="28" fill="#c9c2a8"/><rect x="1085" y="632" width="10" height="24" fill="#c9c2a8"/><path d="M520 650c-4-7 0-12 0-17 3 6 5 11 0 17zM1090 632c-3-6 0-10 0-14 3 5 4 9 0 14z" fill="#f4d98a"/></g>
   </svg>
   <svg class="walls level-view" data-stage="3" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
-    <rect width="1600" height="1000" fill="#1d1c17"/>
-    <path d="M0 0H1600L1180 170H420z" fill="#2b2a22"/><path d="M0 0L420 170V760L0 1000z" fill="#34322a"/><path d="M1600 0L1180 170V760L1600 1000z" fill="#34322a"/>
-    <path d="M0 1000L420 760H1180L1600 1000z" fill="#14130e"/><rect x="420" y="170" width="760" height="590" fill="#3d3b31"/>
-    <path d="M90 60V960M200 110V880M1510 60V960M1400 110V880" stroke="#191810" stroke-width="16"/><path d="M420 760L0 1000M1180 760L1600 1000M420 760H1180" stroke="#0a0805" stroke-width="8"/>
-    <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".5"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
-    ${drip(500, 170, 18, 300)}${drip(1040, 170, 22, 360)}
-    <text transform="translate(96 360) skewY(24)" font-family="Special Elite, monospace" font-size="42" fill="#c9c2a8" opacity=".85"><tspan x="0">THE DOOR</tspan><tspan x="0" dy="52">OPENS</tspan><tspan x="0" dy="52">FOR ONE</tspan></text>
+    <defs><pattern id="plate" width="120" height="120" patternUnits="userSpaceOnUse"><rect width="120" height="120" fill="#2c2b22"/><path d="M0 0h120M0 0v120" stroke="#141309" stroke-width="4"/><g fill="#0d0c07"><circle cx="10" cy="10" r="3"/><circle cx="110" cy="10" r="3"/><circle cx="10" cy="110" r="3"/><circle cx="110" cy="110" r="3"/></g></pattern></defs>
+    <rect width="1600" height="1000" fill="#14130e"/>
+    <path d="M0 0H1600L1190 150H410z" fill="#0d0c07"/><path d="M0 0L410 150V790L0 1000z" fill="url(#plate)"/><path d="M1600 0L1190 150V790L1600 1000z" fill="url(#plate)"/>
+    <rect x="410" y="150" width="780" height="640" fill="#26251c"/><path d="M0 1000L410 790H1190L1600 1000z" fill="#0d0c07"/>
+    <path d="M0 0L410 150M1600 0L1190 150M0 1000L410 790M1600 1000L1190 790M410 790H1190" stroke="#050403" stroke-width="7"/>
+    <g fill="none" stroke="#1a1810" stroke-width="20"><path d="M150 30V940"/><path d="M1450 30V940"/></g><g fill="none" stroke="#3b3323" stroke-width="3" opacity=".6"><path d="M142 30V940M1442 30V940"/></g>
+    <g stroke="#0a0805" stroke-width="7"><path d="M250 0C262 200 238 500 250 900M300 0C290 240 312 520 296 860M1320 0c-10 260 14 540 0 880"/></g>
+    ${[0, 1, 2, 3, 4, 5].map((i) => `<path d="M300 ${870 - i * 120}h-60" stroke="#0a0805" stroke-width="8"/>`).join("")}
+    <rect x="470" y="150" width="480" height="680" fill="#3a3019" stroke="#090806" stroke-width="6"/><rect x="494" y="176" width="432" height="654" fill="#090806"/>
+    <path class="car-light" d="M600 176H820L926 830H494z" fill="#d9c98a" opacity=".1"/><rect x="630" y="180" width="160" height="14" fill="#6d6642"/><rect class="car-light" x="636" y="183" width="148" height="8" fill="#fff0b3" opacity=".25"/>
+    <path d="M494 760h432M494 830h432" stroke="#1d190c" stroke-width="5"/><path d="M520 200v630M900 200v630" stroke="#1d190c" stroke-width="10"/>
+    <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".45"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
+    ${drip(1000, 150, 22, 360)}${drip(1110, 150, 14, 260)}${drip(420, 150, 18, 300)}
+    <path d="M980 880l80 14-20 30-90-12z" fill="#7a7259" stroke="#0a0805" stroke-width="2"/>
   </svg></div>
   <div class="redlight"></div>
   <svg class="vampire" viewBox="0 0 300 400" aria-hidden="true">
@@ -229,7 +301,7 @@ function buildRoom() {
   }
   // First-person look: the flashlight follows the pointer, or the focused object for keyboard players.
   // The beam is its own layer moved with transform, so following the pointer never repaints the room.
-  room.insertAdjacentHTML("beforeend", '<div class="beam" aria-hidden="true"></div>');
+  room.insertAdjacentHTML("beforeend", '<div class="beam" aria-hidden="true"><div class="dust"></div></div><div class="wipe l" aria-hidden="true"></div><div class="wipe r" aria-hidden="true"></div>');
   const beam = room.querySelector(".beam");
   let frame = 0, px = 0, py = 0;
   const aim = (x, y) => {

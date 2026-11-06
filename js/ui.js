@@ -52,7 +52,7 @@ function render() {
   document.body.classList.toggle("hurry", t <= 10 && !out && !game.won && phase === "playing");  // whole room goes red in the last 10s
   $("hud").style.setProperty("--time", Math.min(1, t / (game.loopSeconds || 60)));  // drives the shrinking time bar
   set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
-  if (stage > Number(document.body.dataset.stage || stage)) replay($("bonus"), "show");  // +1:00 for reaching a new level
+  if (stage > Number(document.body.dataset.stage || stage)) { replay($("bonus"), "show"); replay($("room"), "entering"); }  // +1:00 and the doors sliding apart
   document.body.dataset.stage = stage;
   if (stage === 2 && phase === "playing" && t <= ($("timer")._t ?? t) - 15) {
     replay($("room"), "vamp");
@@ -61,6 +61,11 @@ function render() {
   }
   $("timer")._t = t;
   $("room").classList.toggle("casket-open", !!(game.flags && game.flags.casketOpen));
+  $("room").classList.toggle("power-on", !!(game.flags && game.flags.powerOn));
+  $("room").classList.toggle("gate-closed", !!(game.flags && game.flags.gateClosed));
+  $("room").classList.toggle("later", game.loop >= 2);
+  const scrawl = $("room").querySelector(".scrawl-name");
+  if (scrawl) set(scrawl, "textContent", (game.partner ? game.partner.name : "them").toUpperCase().slice(0, 10));
   if (phase !== "lobby" && $("room")._seed !== game.seed) { $("room")._seed = game.seed; placeObjects(); }
 
   // Chat: kept across loops, and it scrolls to the newest line
