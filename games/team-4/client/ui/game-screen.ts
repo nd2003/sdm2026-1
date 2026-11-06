@@ -341,30 +341,30 @@ export function renderGameScreen(
         </div>
 
         <div class="tle-header-center">
-          <span class="tle-title-line"></span>
-          <div class="tle-title-wrap">
-            <svg class="tle-loop-emblem" viewBox="0 0 64 64" aria-hidden="true">
-              <path
-                d="M32 10 A22 22 0 1 1 12 23"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-              />
-              <polyline
-                points="7,22 13,24 14,17"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-              />
-            </svg>
-            <h1 class="tle-title">TIME LOOP ESCAPE</h1>
+          <div class="tle-cctv-hud-timer-banner">
+            <div class="tle-top-urgent-pulse">
+              <span class="tle-ecg-line">ﮩ٨ـ</span>
+              <span class="tle-imminent-txt">RESET IMMINENT</span>
+              <span class="tle-ecg-line">ـﮩ٨ـ</span>
+            </div>
+            <div class="tle-top-timer-display" id="hud-timer-val">
+              ${formatTime(state.timeLeftSeconds)}
+            </div>
+            <div class="tle-timer-progress-bar-wrap">
+              <span class="tle-prog-bound">60s</span>
+              <div class="tle-prog-track">
+                <div class="tle-prog-fill" id="hud-timer-progress" style="width: 100%;"></div>
+              </div>
+              <span class="tle-prog-bound">00s</span>
+            </div>
           </div>
-          <span class="tle-title-line"></span>
         </div>
 
         <div class="tle-header-right">
+          <div class="tle-remote-p2-pill" id="hud-remote-p2-pill">
+            <span class="tle-p2-sync-dot">●</span>
+            <span class="tle-p2-label">P2 (REMOTE) · SYNCED</span>
+          </div>
           <button
             type="button"
             class="tle-ctrl-btn tle-ctrl-start"
@@ -386,10 +386,6 @@ export function renderGameScreen(
           >
             ↺ Restart
           </button>
-          <div class="tle-timer-pill" id="hud-timer">
-            <span class="tle-hourglass">⏳</span>
-            <span id="hud-timer-val">${formatTime(state.timeLeftSeconds)}</span>
-          </div>
         </div>
       </header>
 
@@ -402,18 +398,52 @@ export function renderGameScreen(
             <div class="tle-vhs-rewind-layer hidden" id="vhs-rewind-layer">
               <span class="tle-vhs-text">⏪ REWIND // 00:00 // TEMPORAL RESET</span>
             </div>
+            <!-- Surveillance Corner Framing Brackets -->
             <span class="tle-cam-bracket tle-cam-bracket-tl">┌</span>
             <span class="tle-cam-bracket tle-cam-bracket-tr">┐</span>
             <span class="tle-cam-bracket tle-cam-bracket-bl">└</span>
             <span class="tle-cam-bracket tle-cam-bracket-br">┘</span>
-            <div class="tle-cam-crosshair"></div>
+
+            <!-- Top Optical Tick Marks & Anomaly Detection Status -->
+            <div class="tle-cam-ruler-top">
+              <span class="tle-ruler-notch">|</span><span class="tle-ruler-notch">|</span>
+              <span class="tle-ruler-notch">▼</span>
+              <span class="tle-ruler-notch">|</span><span class="tle-ruler-notch">|</span>
+            </div>
+            <div class="tle-cam-top-left-status">
+              TIME ANOMALY DETECTED
+            </div>
             <div class="tle-cam-top-telemetry" id="hud-cam-telemetry">
               <span class="tle-cam-rec-dot"></span>
-              <span id="hud-cam-label">ROOM_CAM_04 // ANOMALY DETECTED</span>
+              <span id="hud-cam-label">ROOM_CAM_04</span>
             </div>
+
+            <!-- Optical Grid Pitch / Yaw Rulers on Left and Right -->
+            <div class="tle-cam-side-pitch tle-pitch-left">
+              <span>10.0</span>
+              <div class="tle-pitch-ticks">||||||||</div>
+              <span>-10.0</span>
+            </div>
+            <div class="tle-cam-side-pitch tle-pitch-right">
+              <span>20.0</span>
+              <div class="tle-pitch-ticks">||||||||</div>
+              <span>-10.0</span>
+            </div>
+
+            <!-- Central Subtle Crosshair -->
+            <div class="tle-cam-crosshair"></div>
+
+            <!-- Bottom Telemetry Coordinates -->
             <div class="tle-cam-bottom-coords">
-              <span>OPT_GRID // X:042.8 · Y:118.4 · Z:-09.2m</span>
-              <span>ISO-3D FEED // 60Hz // NOISE: 0.02%</span>
+              <div class="tle-cam-bottom-left">
+                <span>TELEMETRY - NOISE</span>
+                <span>TIME ANOMALY DETECTED</span>
+                <span>ROOM_CAM_04</span>
+              </div>
+              <div class="tle-cam-bottom-right">
+                <span>TIME ANOMALY DETECTED</span>
+                <span>ROOM_CAM_04</span>
+              </div>
             </div>
           </div>
 
@@ -428,10 +458,12 @@ export function renderGameScreen(
             </div>
 
             <!-- ===================================================================
-                 ROOM 1: SUB-LEVEL SURVEILLANCE OFFICE (Isometric 3D Perspective)
+                 ROOM 1: SUB-LEVEL SURVEILLANCE OFFICE (CCTV Tactical Feed)
                  =================================================================== -->
             <div class="tle-scene tle-scene-basic tle-iso-scene" id="scene-basic">
+              <!-- Dark Teal Surveillance Room Corner & Grid Planes -->
               <div class="tle-wall-back tle-iso-wall-back">
+                <div class="tle-cctv-wall-corner"></div>
                 <div class="tle-iso-grid-plane"></div>
               </div>
               <div class="tle-wall-left tle-iso-wall-left">
@@ -452,7 +484,7 @@ export function renderGameScreen(
               <div class="tle-floor tle-iso-floor"></div>
               <div class="tle-lamp-cone" id="lamp-cone"></div>
 
-              <!-- 1. Wall Relic Frame with Cyan Anomaly Glow + Hidden Safe -->
+              <!-- 1. Wall Blue Painting with Cyan Holographic Neon Border & (4x INTR) prompt -->
               <div class="tle-painting-zone tle-iso-depth-card">
                 <div class="tle-wall-safe" id="wall-safe">
                   <button
@@ -477,31 +509,32 @@ export function renderGameScreen(
                   class="tle-painting-btn tle-iso-hotspot tle-cyan-anomaly-glow"
                   id="obj-painting"
                   data-object-id="painting"
-                  title="OBJ_RELIC_01"
+                  title="BLUE PAINTING"
                 >
                   <svg viewBox="0 0 160 200" class="tle-painting-svg" aria-hidden="true">
                     <defs>
                       <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#082f49" />
-                        <stop offset="55%" stop-color="#0284c7" />
-                        <stop offset="100%" stop-color="#1e3a8a" />
+                        <stop offset="0%" stop-color="#022c43" />
+                        <stop offset="50%" stop-color="#0582ca" />
+                        <stop offset="100%" stop-color="#001829" />
                       </linearGradient>
                     </defs>
                     <rect width="160" height="200" fill="url(#skyGrad)" />
-                    <polygon points="0,130 45,65 95,130" fill="#0369a1" />
-                    <polygon points="55,135 115,55 160,135" fill="#0284c7" />
-                    <polygon points="0,165 65,95 160,155 160,200 0,200" fill="#082f49" />
-                    <path
-                      d="M 75 135 Q 90 165 55 200 L 95 200 Q 115 165 88 135 Z"
-                      fill="#22d3ee"
-                      opacity="0.75"
-                    />
+                    <!-- Misty atmospheric mountain silhouette matching reference -->
+                    <path d="M0 140 Q40 85 85 130 T160 120 V200 H0 Z" fill="#003554" opacity="0.85" />
+                    <path d="M20 160 Q70 110 110 155 T160 145 V200 H0 Z" fill="#051923" />
+                    <ellipse cx="80" cy="95" rx="35" ry="35" fill="#00a6fb" opacity="0.45" filter="blur(6px)" />
                   </svg>
-                  <span class="tle-reticle-tag">[ ⛶ OBJ_RELIC_01 ]</span>
+                  <!-- In-World Tactical Tag & Interact Circle Prompt from image -->
+                  <div class="tle-painting-cctv-label">BLUE PAINTING (4x INTR)</div>
+                  <div class="tle-painting-inte-prompt">
+                    <span class="tle-inte-icon">ⓧ</span>
+                    <span class="tle-inte-text">INTE· PROMPT</span>
+                  </div>
                 </button>
               </div>
 
-              <!-- 2. Mechanical Security Cabinet -->
+              <!-- 2. Mechanical Security Locker -->
               <div class="tle-cabinet-zone tle-iso-depth-card">
                 <button
                   type="button"
@@ -529,57 +562,73 @@ export function renderGameScreen(
                 </button>
               </div>
 
-              <!-- 3. Evidence Frame with Archival Metadata -->
-              <button
-                type="button"
-                class="tle-corkboard-btn tle-iso-hotspot tle-iso-depth-card"
-                id="obj-photo"
-                data-object-id="photo"
-                title="ARCHIVE_FRAME_03"
-              >
-                <div class="tle-polaroid">
-                  <div class="tle-pin"></div>
-                  <div class="tle-polaroid-art">
-                    <svg viewBox="0 0 100 65" class="tle-building-svg" aria-hidden="true">
-                      <rect width="100" height="65" fill="#cbd5e1" />
-                      <polygon points="15,26 50,8 85,26" fill="#475569" />
-                      <rect x="20" y="26" width="60" height="32" fill="#64748b" />
-                      <rect x="28" y="32" width="8" height="26" fill="#334155" />
-                      <rect x="46" y="32" width="8" height="26" fill="#334155" />
-                      <rect x="64" y="32" width="8" height="26" fill="#334155" />
-                    </svg>
+              <!-- 3. L-Shaped Corner Workstation with Photograph, Desk Notes, and Computer (From Image) -->
+              <div class="tle-corner-l-desk-zone">
+                <!-- Desk Surface & Legs -->
+                <div class="tle-l-desk-geometry">
+                  <div class="tle-l-desk-top"></div>
+                  <div class="tle-l-desk-drawers">
+                    <div class="tle-drawer-line"></div>
+                    <div class="tle-drawer-line"></div>
+                    <div class="tle-drawer-line"></div>
                   </div>
-                  <div class="tle-polaroid-caption">••••</div>
+                  <div class="tle-l-desk-leg"></div>
                 </div>
-                <div class="tle-sticky tle-sticky-1"></div>
-                <div class="tle-sticky tle-sticky-2"></div>
-                <span class="tle-reticle-tag">[ ⛶ ARCHIVE_FRAME_03 ]</span>
-              </button>
 
-              <!-- 4. Angled Surveillance Terminal Desk -->
-              <div class="tle-computer-desk-zone tle-iso-depth-card">
+                <!-- Photograph on Desk with In-World Tag -->
                 <button
                   type="button"
-                  class="tle-monitor-btn tle-iso-hotspot"
+                  class="tle-desk-photo-btn tle-iso-hotspot"
+                  id="obj-photo"
+                  data-object-id="photo"
+                  title="PHOTOGRAPH"
+                >
+                  <div class="tle-polaroid-frame">
+                    <div class="tle-polaroid-art">
+                      <span class="tle-photo-silhouette">🏛️</span>
+                    </div>
+                  </div>
+                  <div class="tle-desk-obj-label">PHOTOGRAPH</div>
+                  <span class="tle-reticle-tag">[ ⛶ PHOTOGRAPH ]</span>
+                </button>
+
+                <!-- Notepad & Tech Gear on Desk -->
+                <div class="tle-desk-notepad">
+                  <div class="tle-notepad-sheet"></div>
+                </div>
+
+                <!-- Computer Terminal with Amber Selection Stroke & In-World Tag (From Image) -->
+                <button
+                  type="button"
+                  class="tle-computer-station-btn tle-iso-hotspot"
                   id="obj-computer"
                   data-object-id="computer"
-                  title="CONSOLE_TERMINAL"
+                  title="COMPUTER"
                 >
-                  <div class="tle-monitor-screen" id="monitor-screen">
-                    <span class="tle-monitor-lock" id="state-computer">🔒</span>
-                    <div class="tle-monitor-passbox" id="monitor-passbox">* * * *</div>
+                  <div class="tle-cctv-computer-outline">
+                    <!-- Monitor CRT Box -->
+                    <div class="tle-cctv-monitor-box">
+                      <div class="tle-cctv-screen-bezel">
+                        <div class="tle-monitor-screen" id="monitor-screen">
+                          <span class="tle-monitor-lock" id="state-computer">🔒</span>
+                          <div class="tle-monitor-passbox" id="monitor-passbox">* * * *</div>
+                        </div>
+                      </div>
+                      <div class="tle-monitor-neck"></div>
+                    </div>
+                    <!-- Keyboard & Mouse Tray -->
+                    <div class="tle-cctv-keyboard-box">
+                      <div class="tle-keyboard-grid"></div>
+                      <div class="tle-mouse-dot"></div>
+                    </div>
                   </div>
-                  <div class="tle-monitor-stand"></div>
-                  <span class="tle-reticle-tag">[ ⛶ CONSOLE_TERMINAL ]</span>
+                  <div class="tle-computer-cctv-label">COMPUTER</div>
+                  <span class="tle-reticle-tag">[ ⛶ COMPUTER ]</span>
                 </button>
-                <div class="tle-right-desk">
-                  <div class="tle-desk-leg tle-leg-l"></div>
-                  <div class="tle-desk-leg tle-leg-r"></div>
-                </div>
               </div>
 
-              <!-- 5. Heavy Security Blast Door with Digital Keypad -->
-              <div class="tle-door-zone tle-iso-blast-door" id="r1-door-zone">
+              <!-- 4. Heavy Steel Security Exit Door with Keypad & "EXIT DOOR" Title (From Image) -->
+              <div class="tle-cctv-exit-door-zone" id="r1-door-zone">
                 <button
                   type="button"
                   class="tle-door-portal-Light"
@@ -591,23 +640,64 @@ export function renderGameScreen(
                 </button>
                 <button
                   type="button"
-                  class="tle-exit-door-btn tle-iso-hotspot"
+                  class="tle-cctv-exit-door-btn tle-iso-hotspot"
                   id="obj-door"
                   data-object-id="door"
-                  title="BLAST_DOOR_01"
+                  title="EXIT DOOR"
                 >
-                  <div class="tle-exit-panel"></div>
-                  <div class="tle-exit-panel tle-exit-panel-mid"></div>
-                  <div class="tle-exit-panel"></div>
-                  <span class="tle-door-handle"></span>
-                  <span class="tle-door-badge" id="state-door">🔒</span>
-                  <span class="tle-reticle-tag">[ ⛶ BLAST_DOOR_01 ]</span>
+                  <div class="tle-exit-door-frame">
+                    <div class="tle-exit-door-surface">
+                      <div class="tle-exit-door-header-pill">EXIT DOOR</div>
+                      <!-- Keypad Box Mounted on Door Frame matching the image -->
+                      <div class="tle-exit-door-keypad-box">
+                        <div class="tle-door-keypad-grid">
+                          <span>•</span><span>•</span><span>•</span>
+                          <span>•</span><span>•</span><span>•</span>
+                          <span>•</span><span>•</span><span>•</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="tle-reticle-tag">[ ⛶ EXIT DOOR ]</span>
                 </button>
               </div>
 
-              <!-- 6. Foreground Angled Command Desk, Lumen Lamp & Logbook -->
+              <!-- 5. Foreground Left Command Desk, Lumen Lamp & Logbook -->
               <div class="tle-left-desk-zone tle-iso-depth-card">
                 <div class="tle-left-desk-surface">
+                  <button
+                    type="button"
+                    class="tle-lamp-btn tle-iso-hotspot"
+                    id="obj-lamp"
+                    data-object-id="lamp"
+                    title="LUMEN_EMITTER_02"
+                  >
+                    <span class="tle-lamp-shade"></span>
+                    <span class="tle-lamp-bulb"></span>
+                    <span class="tle-lamp-arm"></span>
+                    <span class="tle-lamp-base"></span>
+                    <span class="tle-reticle-tag">[ ⛶ LUMEN_02 ]</span>
+                  </button>
+                  <div class="tle-book-stack" aria-hidden="true">
+                    <div class="tle-stacked-book"></div>
+                    <div class="tle-stacked-book"></div>
+                  </div>
+                  <button
+                    type="button"
+                    class="tle-open-book-btn tle-iso-hotspot"
+                    id="obj-book"
+                    data-object-id="book"
+                    title="OBJ_LOGBOOK_00"
+                  >
+                    <div class="tle-book-pages">
+                      <div class="tle-page-left"></div>
+                      <div class="tle-page-right"></div>
+                    </div>
+                    <span class="tle-reticle-tag">[ ⛶ OBJ_LOGBOOK_00 ]</span>
+                  </button>
+                </div>
+              </div>
+            </div>
                   <button
                     type="button"
                     class="tle-lamp-btn tle-iso-hotspot"
@@ -2443,8 +2533,8 @@ export function renderGameScreen(
 
   function renderState(): void {
     const viewport = container.querySelector<HTMLElement>("#game-viewport");
-    const timerPill = container.querySelector<HTMLElement>("#hud-timer");
     const timerVal = container.querySelector<HTMLElement>("#hud-timer-val");
+    const timerProgress = container.querySelector<HTMLElement>("#hud-timer-progress");
     const loopVal = container.querySelector<HTMLElement>("#hud-loop");
     const roomIndEl = container.querySelector<HTMLElement>("#hud-room-indicator");
     const camLabelEl = container.querySelector<HTMLElement>("#hud-cam-label");
@@ -2470,10 +2560,15 @@ export function renderGameScreen(
     rootEl?.classList.toggle("room-3-quantum", state.difficulty === "hard");
     rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
     blurTarget?.classList.toggle("tle-room-blurred", Boolean(isPopupOpen));
-    timerPill?.classList.toggle("tle-timer-urgent", isUrgent);
     viewport?.classList.toggle("emergency-strobe", isUrgent);
     viewport?.classList.toggle("frost-decay", isFrostDecay);
     viewport?.classList.toggle("gravity-warp", isGravityWarp);
+
+    if (timerProgress) {
+      const pct = Math.max(0, Math.min(100, (state.timeLeftSeconds / state.loopDurationSeconds) * 100));
+      timerProgress.style.width = `${pct}%`;
+      timerProgress.classList.toggle("tle-prog-urgent", isUrgent);
+    }
 
     if (camLabelEl) {
       camLabelEl.textContent =
