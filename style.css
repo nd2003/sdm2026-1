@@ -241,6 +241,7 @@ body.hurry .figure { opacity: 1; }
 #obj-lamp .art { filter: drop-shadow(0 0 2cqw #f3e9a688); }
 #obj-painting .art { filter: brightness(1.45) saturate(1.25); }  /* the clue needs it to stay clearly blue in the dark */
 #obj-painting.moved .art { transform: translate(-6%, 20%) rotate(-12deg) scale(.86); }
+body.hurry #obj-painting .art { filter: brightness(1.9) saturate(1.5); }  /* stays blue under the red light */
 
 /* The arm holding the flashlight swings toward where you look */
 .arm {
