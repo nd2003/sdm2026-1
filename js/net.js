@@ -6,6 +6,7 @@ const FAKE_STEP_SECONDS = 20;  // fake opponent: one step this often, wins at st
 let socket = null;  // ponytail: net.js's own connection handle (not game state); replaced by Colyseus in the port
 
 function connect(name) {
+  if (game.playerName) return;  // already joined (double click on Join)
   game.playerName = name;
   const server = new URLSearchParams(location.search).get("server");
   if (!server) return fakeOpponent();
@@ -57,7 +58,7 @@ function fakeOpponent() {
   const timer = setInterval(() => {
     if (game.phase !== "playing") return clearInterval(timer);
     step++;
-    onNetMessage({ type: "progress", loop: 1, step });
+    onNetMessage({ type: "progress", loop: 1 + Math.floor(step * FAKE_STEP_SECONDS / LOOP_SECONDS), step });  // its loop goes up like yours
     if (step === 5) onNetMessage({ type: "winner", name: FAKE_OPPONENT_NAME });
   }, FAKE_STEP_SECONDS * 1000);
 }
