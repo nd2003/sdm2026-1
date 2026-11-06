@@ -13,13 +13,26 @@ You're the **only one who pushes to `main`** (enforced by a GitHub ruleset that 
 
 You may make the small integration fixes needed to make the halves fit (remove TEMP STUBS, align a name to the contract). For anything bigger in someone's file, report it on their issue with exact steps to reproduce, the file, and a suggested fix, and let them fix it on their branch.
 
+## Communicating with the devs' agents
+- GitHub issues are the only channel (see "Talking to Zaid" in `AGENTS.md`). Read new comments at the start of every session: `gh issue list --assignee abdullahwaseem6` / `BaasanjavBatchuluun`, then `gh issue view N --comments`.
+- Every review comment says **file:line, what's wrong, how to reproduce it, and the expected fix**, so the other agent can act without asking. One comment per review round.
+- A contract change: update `AGENTS.md` on `main` first, then comment on both devs' issues with "Contract changed: … pull main into your branch."
+- Tell the human (Zaid) about anything that needs a decision instead of guessing.
+
+## Final port to the course repo (nd2003/sdm2026-1)
+Do this only when the human says so. The plan:
+1. We are **team-3** (`games/team-3/`). yigitcemakbas is on our team and owns the server room (`games/team-3/room/`). Align his room with the message table in `AGENTS.md` before porting the client.
+2. Every person opens their own issues and PRs there, following that repo's `AGENTS.md`: issue first, the `team-3` label, `[team-3]` titles, branch `team-3/<issue>-<desc>`, the PR template filled in, `Refs #N` in commits, one approving review, and CI (`pnpm lint && pnpm typecheck && pnpm test && pnpm build`) green. The grade counts per-member contributions, so devs push their own ports, not Zaid.
+3. Copy `server/template/` to `games/team-3/`. Port `state.js` + `puzzles.js` into the Colyseus room (server-authoritative, `SeededRandom`, ticks, zod-validated inputs), the constants into `config/game.json`, and `room.js`/`ui.js` into `client/`. Then delete `net.js`.
+4. Port `test.html` checks into Vitest `*.test.ts`.
+
 ## Every session
-1. `git switch main && git pull && git fetch --all --prune`, then `gh run list --limit 5`.
+1. `git switch main && git pull && git fetch --all --prune`, then read new issue comments, then `gh run list --limit 5`.
 2. See what's new on each branch: `git log --oneline main..origin/issue-2-4-room-ui` and `git log --oneline main..origin/issue-1-3-mechanics`.
 3. Review each branch on its own:
    - Check it only touches its owner's files (`git diff --name-only main...origin/<branch>`).
    - Read the diff against the contract in `AGENTS.md`: names, flags, ids, and that clues are never cleared on reset.
-   - Report problems as a comment on that person's issue (#1–#4).
+   - Report problems as a comment on that person's issue (format above).
 4. Integrate, only when the human says to (or both branches say they're ready):
    - `git switch -c integrate main`, then `git merge --no-ff origin/issue-1-3-mechanics` and `git merge --no-ff origin/issue-2-4-room-ui`.
    - Delete the TEMP STUBS blocks and fix small contract mismatches.
