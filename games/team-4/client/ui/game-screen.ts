@@ -73,6 +73,7 @@ export interface GameScreenState {
   onEscape?: (loopsTaken: number, difficulty: DifficultyLevel) => void;
   onReadyChange?: (ready: boolean) => void;
   onMatchStart?: () => void;
+  onRematchInvite?: () => void;
 }
 
 interface InternalGameScreenState {
@@ -152,7 +153,7 @@ const ROOM_TITLES: Record<DifficultyLevel, string> = {
 const DEFAULT_PARTNER_LOOPS: Record<DifficultyLevel, number> = {
   basic: 3,
   medium: 5,
-  hard: 7,
+  hard: 6,
 };
 
 export function renderGameScreen(
@@ -172,6 +173,7 @@ export function renderGameScreen(
     onEscape: initialState?.onEscape,
     onReadyChange: initialState?.onReadyChange,
     onMatchStart: initialState?.onMatchStart,
+    onRematchInvite: initialState?.onRematchInvite,
   };
 
   const initialDiff: DifficultyLevel = initialState?.difficulty ?? "basic";
@@ -180,6 +182,7 @@ export function renderGameScreen(
   let bannerTimeoutId: number | null = null;
   let toastTimeoutId: number | null = null;
   let greenEventTimeoutId: number | null = null;
+  let sideInviteTimeoutId: number | null = null;
   let countdownIntervalId: number | null = null;
 
   let state: InternalGameScreenState = {
@@ -190,7 +193,7 @@ export function renderGameScreen(
     player1Ready: initialState?.player1Ready ?? false,
     player2Ready: initialState?.player2Ready ?? true,
     player2Room: initialState?.player2Room ?? "basic",
-    player2LoopCount: initialState?.player2LoopCount ?? 7,
+    player2LoopCount: initialState?.player2LoopCount ?? 6,
     matchStarted: false,
     countdownSeconds: null,
     difficulty: initialDiff,
@@ -198,7 +201,7 @@ export function renderGameScreen(
     loopDurationSeconds: defaultDuration,
     loopCount: initialState?.loopCount ?? 1,
     bestLoopScore: initialState?.bestLoopScore ?? null,
-    partnerLoopScore: initialState?.partnerLoopScore ?? 7,
+    partnerLoopScore: initialState?.partnerLoopScore ?? 6,
     connectedPlayers: initialState?.connectedPlayers ?? 2,
     maxPlayers: initialState?.maxPlayers ?? 2,
     score: initialState?.score ?? 1,
@@ -212,7 +215,7 @@ export function renderGameScreen(
     keyCollected: initialState?.keyCollected ?? false,
     cabinetUnlocked: initialState?.cabinetUnlocked ?? false,
     photoInspected: false,
-    codeEntered: initialState?.codeEntered ?? false,
+    codeEntered: false,
     r2GramophoneRead: false,
     r2WordInput: [],
     r2TableSolved: false,
@@ -283,7 +286,17 @@ export function renderGameScreen(
             🚪 Lobby
           </button>
 
-          <!-- Corner Total Loop Counter for You -->
+          <!-- Subtle Clue / Riddle Hint Button -->
+          <button
+            type="button"
+            class="tle-icon-btn"
+            id="btn-hint"
+            title="Whisper a subtle riddle clue"
+          >
+            <span>💡</span>
+          </button>
+
+          <!-- Corner Total Loop Counter -->
           <div class="tle-corner-loop-badge" id="hud-loop" title="Your total loops">
             LOOP 01
           </div>
@@ -294,7 +307,7 @@ export function renderGameScreen(
               type="button"
               class="tle-player-tag tle-player-you"
               id="btn-pause-menu"
-              title="Stats"
+              title="Match Result"
             >
               <span class="tle-p-dot tle-dot-you"></span>
               <span id="hud-p1-name">${state.player1Name}</span>
@@ -595,7 +608,7 @@ export function renderGameScreen(
             </div>
 
             <!-- ===================================================================
-                 ROOM 2: THE GOLDEN ALCHEMIST'S PARLOR (RADICALLY DIFFERENT AESTHETIC!)
+                 ROOM 2: THE GOLDEN ALCHEMIST'S PARLOR (60s)
                  =================================================================== -->
             <div class="tle-scene tle-scene-medium hidden" id="scene-medium">
               <div class="tle-r2-backdrop">
@@ -621,12 +634,12 @@ export function renderGameScreen(
               </div>
               <div class="tle-r2-marble-floor"></div>
 
-              <!-- Left: Golden Phonograph & Chandelier Pedestal -->
+              <!-- Left: Golden Phonograph (Gives Riddle for Coffee Table!) -->
               <button
                 type="button"
                 class="tle-r2-gramophone"
                 data-object-id="r2-gramophone"
-                title="Gramophone"
+                title="Gramophone (Inspect for Riddle)"
               >
                 <svg viewBox="0 0 100 120" class="tle-gram-svg">
                   <path
@@ -647,7 +660,7 @@ export function renderGameScreen(
                     stroke-width="2.5"
                   />
                 </svg>
-                <span class="tle-obj-tag">Gramophone</span>
+                <span class="tle-obj-tag">🎵 Gramophone</span>
               </button>
 
               <!-- Center-Left Foreground: Ornate Round Coffee Table with Scrambled Letter Tiles -->
@@ -763,7 +776,7 @@ export function renderGameScreen(
             </div>
 
             <!-- ===================================================================
-                 ROOM 3: NEON QUANTUM REACTOR LAB (FUTURISTIC CYBERPUNK CHAMBER!)
+                 ROOM 3: NEON QUANTUM REACTOR LAB (60s)
                  =================================================================== -->
             <div class="tle-scene tle-scene-hard hidden" id="scene-hard">
               <div class="tle-r3-wall">
@@ -918,6 +931,28 @@ export function renderGameScreen(
             ${state.feedbackMessage}
           </div>
 
+          <!-- PUBG-STYLE TACTICAL SLIDE-IN SIDE DRAWER (Rematch Invite / Rejected Alert) -->
+          <aside class="tle-pubg-side-drawer tle-side-hidden" id="pubg-side-drawer">
+            <div class="tle-pubg-side-head">
+              <span class="tle-pubg-icon" id="pubg-side-icon">⚔️</span>
+              <div class="tle-pubg-text-col">
+                <strong id="pubg-side-title">Rematch Invite Sent</strong>
+                <span id="pubg-side-sub">
+                  ${state.player1Name} invites ${state.player2Name} for a rematch
+                </span>
+              </div>
+            </div>
+            <div class="tle-pubg-side-actions" id="pubg-side-actions">
+              <button type="button" class="tle-pubg-btn tle-pubg-accept" id="btn-pubg-accept">
+                ✓ Accept
+              </button>
+              <button type="button" class="tle-pubg-btn tle-pubg-reject" id="btn-pubg-reject">
+                ✕ Reject
+              </button>
+            </div>
+            <div class="tle-pubg-timer-bar" id="pubg-timer-bar"></div>
+          </aside>
+
           <!-- Interactive Mini-Puzzle / Inspector Overlay -->
           <div class="tle-overlay hidden" id="inspector-modal">
             <div class="tle-modal-card tle-puzzle-modal">
@@ -967,7 +1002,7 @@ export function renderGameScreen(
             </div>
           </div>
 
-          <!-- MINIMAL, CLEAN 2-PLAYER LOBBY MODAL (Zero extra text!) -->
+          <!-- MINIMAL, CLEAN 2-PLAYER LOBBY MODAL -->
           <div class="tle-overlay tle-blur-backdrop hidden" id="ready-lobby-modal">
             <div class="tle-modal-card tle-center-popup tle-lobby-card">
               <div class="tle-lobby-header-pill" id="lobby-room-code">${state.roomCode}</div>
@@ -1009,7 +1044,7 @@ export function renderGameScreen(
             </div>
           </div>
 
-          <!-- CENTER POPUP WHEN A LOOP ENDS (Blurs entire room behind it!) -->
+          <!-- CENTER POPUP WHEN A LOOP ENDS -->
           <div class="tle-overlay tle-blur-backdrop hidden" id="loop-end-modal">
             <div class="tle-modal-card tle-center-popup">
               <div class="tle-popup-icon">⏳</div>
@@ -1025,15 +1060,15 @@ export function renderGameScreen(
             </div>
           </div>
 
-          <!-- AESTHETIC, BRIEF "GAME END" / STATS MODAL -->
+          <!-- AESTHETIC, BRIEF "GAME END" MODAL (YOU WON / YOU LOST + REMATCH INVITE) -->
           <div class="tle-overlay tle-blur-backdrop hidden" id="pause-modal">
             <div class="tle-modal-card tle-center-popup tle-game-end-card">
-              <div class="tle-game-end-badge">GAME END</div>
-              <h2 id="modal-title">${state.player1Name} escaped all rooms</h2>
+              <div class="tle-game-end-badge" id="game-end-badge">GAME END</div>
+              <h2 class="tle-verdict-title" id="modal-title">YOU WON</h2>
               <div class="tle-scoreboard-box" id="scoreboard-box"></div>
               <div class="tle-modal-actions">
-                <button type="button" class="tle-primary-btn" id="btn-try-again">
-                  Play Again
+                <button type="button" class="tle-primary-btn" id="btn-invite-rematch">
+                  ⚔️ Invite ${state.player2Name}
                 </button>
                 <button type="button" class="tle-secondary-btn" id="btn-resume">
                   Close
@@ -1051,6 +1086,12 @@ export function renderGameScreen(
   const roomBannerEl = container.querySelector<HTMLElement>("#hud-room");
   const greenEscapeBanner = container.querySelector<HTMLElement>("#green-escape-banner");
   const feedbackEl = container.querySelector<HTMLElement>("#action-feedback-text");
+
+  const pubgSideDrawer = container.querySelector<HTMLElement>("#pubg-side-drawer");
+  const pubgSideIcon = container.querySelector<HTMLElement>("#pubg-side-icon");
+  const pubgSideTitle = container.querySelector<HTMLElement>("#pubg-side-title");
+  const pubgSideSub = container.querySelector<HTMLElement>("#pubg-side-sub");
+  const pubgSideActions = container.querySelector<HTMLElement>("#pubg-side-actions");
 
   const sceneBasic = container.querySelector<HTMLElement>("#scene-basic");
   const sceneMedium = container.querySelector<HTMLElement>("#scene-medium");
@@ -1095,7 +1136,6 @@ export function renderGameScreen(
     }, 1400);
   }
 
-  /** Shows a bright green notification at the top (e.g. "Drek escaped Room 1") for 2.2s. */
   function showGreenEscapeBanner(text: string): void {
     if (!greenEscapeBanner) return;
     greenEscapeBanner.textContent = text;
@@ -1118,7 +1158,43 @@ export function renderGameScreen(
     }
     toastTimeoutId = window.setTimeout(() => {
       feedbackEl.classList.add("tle-banner-hidden");
-    }, 1800);
+    }, 2200);
+  }
+
+  /** Shows the PUBG-style tactical slide-in side notification on the right edge. */
+  function openPubgRematchDrawer(): void {
+    if (!pubgSideDrawer) return;
+    if (sideInviteTimeoutId !== null) {
+      window.clearTimeout(sideInviteTimeoutId);
+    }
+    pubgSideDrawer.classList.remove("tle-side-hidden", "tle-pubg-rejected");
+    if (pubgSideIcon) pubgSideIcon.textContent = "⚔️";
+    if (pubgSideTitle) {
+      pubgSideTitle.textContent = `${state.player1Name} invites you for a rematch`;
+    }
+    if (pubgSideSub) {
+      pubgSideSub.textContent = `Waiting for ${state.player2Name}...`;
+    }
+    pubgSideActions?.classList.remove("hidden");
+  }
+
+  /** Shows the compact PUBG-style slide-in "Invitation Rejected" alert on the right side. */
+  function showPubgRejectedDrawer(): void {
+    if (!pubgSideDrawer) return;
+    pubgSideDrawer.classList.remove("tle-side-hidden");
+    pubgSideDrawer.classList.add("tle-pubg-rejected");
+    if (pubgSideIcon) pubgSideIcon.textContent = "🚫";
+    if (pubgSideTitle) pubgSideTitle.textContent = "Invitation Rejected";
+    if (pubgSideSub) {
+      pubgSideSub.textContent = `${state.player2Name} declined the rematch`;
+    }
+    pubgSideActions?.classList.add("hidden");
+    if (sideInviteTimeoutId !== null) {
+      window.clearTimeout(sideInviteTimeoutId);
+    }
+    sideInviteTimeoutId = window.setTimeout(() => {
+      pubgSideDrawer.classList.add("tle-side-hidden");
+    }, 3000);
   }
 
   function addClue(clue: string): void {
@@ -1208,17 +1284,21 @@ export function renderGameScreen(
         )
         .join("");
 
+      const riddleSub = `<p class="tle-zoom-sub"><em>"Silent hands that count every 60s loop..."</em></p>`;
+
       const feedbackBanner = state.r2TableSolved
         ? `<div class="tle-modal-alert tle-modal-alert-success">` +
-          `✅ Unlocked! Clue: <strong>RED → GOLD → GREEN</strong></div>`
+          `✅ Drawer opened! Bookmark inside:<br/>` +
+          `<em>"1st: Ruby Blood · 2nd: Alchemist Gold · 3rd: Forest Leaf"</em></div>`
         : currentWord.length === 4 && currentWord !== "TIME"
           ? `<div class="tle-modal-alert tle-modal-alert-error">` +
-            `❌ Wrong word (${currentWord})</div>`
+            `❌ "${currentWord}" didn't unlock the drawer</div>`
           : "";
 
       openInspector(
         "☕ Coffee Table",
         `<div class="tle-zoom-card">` +
+          riddleSub +
           feedbackBanner +
           `<div class="tle-word-slots-row">${wordDisplay}</div>` +
           `<div class="tle-letter-tiles-grid">${tileBtns}</div>` +
@@ -1239,7 +1319,7 @@ export function renderGameScreen(
             if (state.r2WordInput.join("") === "TIME") {
               state.r2TableSolved = true;
               addInventoryItem("Winding Key");
-              addClue("Books: RED → GOLD → GREEN");
+              addClue("Bookmark: Ruby → Gold → Emerald");
               if (isCurrentRoomAllSolved()) {
                 state.doorUnlocked = true;
               }
@@ -1261,24 +1341,29 @@ export function renderGameScreen(
     renderModalContent();
   }
 
-  /** Room 2 Puzzle: Bookshelf (Error pops up directly inside the bookshelf modal!) */
+  /** Room 2 Puzzle: Bookshelf (Creative riddle + in-modal error!) */
   function openBookshelfPuzzle(): void {
     const books = [
-      { id: "BLUE", label: "📘 Azure", color: "#2563eb" },
-      { id: "RED", label: "📕 Crimson", color: "#dc2626" },
-      { id: "GOLD", label: "📙 Aurum", color: "#d97706" },
-      { id: "GREEN", label: "📗 Emerald", color: "#16a34a" },
-      { id: "PURPLE", label: "📓 Violet", color: "#7c3aed" },
+      { id: "BLUE", label: "📘 Sapphire Tome", color: "#2563eb" },
+      { id: "RED", label: "📕 Ruby Blood Tome", color: "#dc2626" },
+      { id: "GOLD", label: "📙 Alchemist Gold Tome", color: "#d97706" },
+      { id: "GREEN", label: "📗 Forest Leaf Tome", color: "#16a34a" },
+      { id: "PURPLE", label: "📓 Amethyst Tome", color: "#7c3aed" },
     ];
 
     const renderBooksModal = (): void => {
+      const riddleSub = state.r2TableSolved
+        ? `<p class="tle-zoom-sub"><em>Bookmark: "Ruby Blood → Alchemist Gold → Forest Leaf"</em></p>`
+        : `<p class="tle-zoom-sub">` +
+          `<em>Three tomes hide a latch... a bookmark in the Coffee Table knows their order.</em></p>`;
+
       const errorAlert = state.r2BooksError
         ? `<div class="tle-modal-alert tle-modal-alert-error">${state.r2BooksError}</div>`
         : "";
 
       const successAlert = state.r2BooksSolved
         ? `<div class="tle-modal-alert tle-modal-alert-success">` +
-          `✅ Unlocked! Vault Code: <strong>30 - 70 - 15</strong></div>`
+          `✅ Hidden Plaque Revealed:<br/><em>"Dawn: 30 · Zenith: 70 · Dusk: 15"</em></div>`
         : "";
 
       const bookButtons = books
@@ -1294,8 +1379,9 @@ export function renderGameScreen(
         .join("");
 
       openInspector(
-        "📚 Bookshelf",
+        "📚 Arcane Bookshelf",
         `<div class="tle-zoom-card">` +
+          riddleSub +
           errorAlert +
           successAlert +
           `<div class="tle-book-pull-list">${bookButtons}</div>` +
@@ -1320,7 +1406,7 @@ export function renderGameScreen(
                 state.r2BooksSolved = true;
                 state.r2BooksError = "";
                 addInventoryItem("Ruby Lens");
-                addClue("Vault: 30 - 70 - 15");
+                addClue("Astrolabe: 30 - 70 - 15");
                 if (isCurrentRoomAllSolved()) {
                   state.doorUnlocked = true;
                 }
@@ -1352,6 +1438,11 @@ export function renderGameScreen(
     const renderVaultModal = (): void => {
       const [d0, d1, d2] = state.r2DialValues;
 
+      const riddleSub = state.r2BooksSolved
+        ? `<p class="tle-zoom-sub"><em>Engraved Plaque: "Dawn: 30 · Zenith: 70 · Dusk: 15"</em></p>`
+        : `<p class="tle-zoom-sub">` +
+          `<em>Three celestial dials: Dawn · Zenith · Dusk (hidden behind the Bookshelf)</em></p>`;
+
       const errorAlert = state.r2VaultError
         ? `<div class="tle-modal-alert tle-modal-alert-error">${state.r2VaultError}</div>`
         : "";
@@ -1376,6 +1467,7 @@ export function renderGameScreen(
       openInspector(
         "⚙️ Astrolabe Vault",
         `<div class="tle-zoom-card">` +
+          riddleSub +
           errorAlert +
           successAlert +
           `<div class="tle-dials-row">${dialsHtml}</div>` +
@@ -1411,7 +1503,7 @@ export function renderGameScreen(
             if (isCurrentRoomAllSolved()) {
               state.doorUnlocked = true;
               inspectorModal?.classList.add("hidden");
-              flashFeedbackToast("🔓 All puzzles solved — the Parlor Gate swung open!");
+              flashFeedbackToast("🔓 Gate opened!");
             } else {
               state.r2VaultError = "🔒 Solve all puzzles in the room to unseal the gate!";
             }
@@ -1430,6 +1522,7 @@ export function renderGameScreen(
   /** Room 3 Puzzle: 3x3 Power Grid */
   function openCircuitBreakerPuzzle(): void {
     const renderBreakerModal = (): void => {
+      addClue("Reactor: Charge the 4 corner nodes (↖ ↗ ↙ ↘)");
       const cellsHtml = state.r3GridCells
         .map(
           (isOn, idx) =>
@@ -1442,12 +1535,13 @@ export function renderGameScreen(
 
       const statusAlert = state.r3BreakerSolved
         ? `<div class="tle-modal-alert tle-modal-alert-success">` +
-          `✅ Power Online! Clue: <strong>O-P-L-O</strong></div>`
+          `✅ Power Stabilized! Holo-Log: <em>"Endless 60s cycle (O-P-L-O)"</em></div>`
         : "";
 
       openInspector(
         "⚡ Power Grid",
         `<div class="tle-zoom-card">` +
+          `<p class="tle-zoom-sub"><em>Schematic: "Charge only the 4 outer corner nodes (↖ ↗ ↙ ↘)"</em></p>` +
           statusAlert +
           `<div class="tle-circuit-grid">${cellsHtml}</div>` +
           `</div>`,
@@ -1464,7 +1558,7 @@ export function renderGameScreen(
             if (solved && !state.r3BreakerSolved) {
               state.r3BreakerSolved = true;
               addInventoryItem("Optic Mirror");
-              addClue("Holo: LOOP");
+              addClue("Holo-Table: Endless cycle (O-P-L-O)");
               if (isCurrentRoomAllSolved()) {
                 state.doorUnlocked = true;
               }
@@ -1493,7 +1587,7 @@ export function renderGameScreen(
 
       const successAlert = state.r3HoloSolved
         ? `<div class="tle-modal-alert tle-modal-alert-success">` +
-          `✅ Unlocked! Mirrors: <strong>[＼] [＼] [／]</strong></div>`
+          `✅ Optics Blueprint: <strong>M1 [＼] · M2 [＼] · M3 [／]</strong></div>`
         : "";
 
       const slots = [0, 1, 2, 3]
@@ -1515,6 +1609,7 @@ export function renderGameScreen(
       openInspector(
         "🌐 Holo-Table",
         `<div class="tle-zoom-card">` +
+          `<p class="tle-zoom-sub"><em>"What 4-letter cycle resets every 60 seconds?"</em></p>` +
           errorAlert +
           successAlert +
           `<div class="tle-word-slots-row">${slots}</div>` +
@@ -1536,7 +1631,7 @@ export function renderGameScreen(
             if (state.r3HoloInput.join("") === "LOOP") {
               state.r3HoloSolved = true;
               addInventoryItem("Plasma Cell");
-              addClue("Mirrors: [\\] [\\] [/]");
+              addClue("Mirrors: M1 [＼] · M2 [＼] · M3 [／]");
               if (isCurrentRoomAllSolved()) {
                 state.doorUnlocked = true;
               }
@@ -1566,8 +1661,13 @@ export function renderGameScreen(
       const hit2 = hit1 && m1 === 1;
       const hitTarget = hit2 && m2 === 0;
 
+      const blueprintSub = state.r3HoloSolved
+        ? `<p class="tle-zoom-sub"><em>Optics Blueprint: M1 [＼] · M2 [＼] · M3 [／]</em></p>`
+        : `<p class="tle-zoom-sub"><em>Rotate mirrors M1, M2, M3 so the laser beam hits 🎯</em></p>`;
+
       const successAlert = state.r3LaserSolved
-        ? `<div class="tle-modal-alert tle-modal-alert-success">🎯 Code: <strong>2026</strong></div>`
+        ? `<div class="tle-modal-alert tle-modal-alert-success">` +
+          `🎯 Cryo-Core Code: <strong>2026</strong></div>`
         : "";
 
       const beamColor = hitTarget ? "#22d3ee" : "#ef4444";
@@ -1593,6 +1693,7 @@ export function renderGameScreen(
       openInspector(
         "🔴 Laser Grid",
         `<div class="tle-zoom-card">` +
+          blueprintSub +
           successAlert +
           `<svg viewBox="0 0 260 160" class="tle-laser-interactive-svg">` +
           `<rect width="260" height="160" rx="10" fill="#070b14" stroke="#334155" />` +
@@ -1698,7 +1799,6 @@ export function renderGameScreen(
     renderState();
   }
 
-  /** When clicking an unlocked, visibly open door -> steps directly into the next room! */
   function stepThroughOpenDoor(): void {
     const finishedRoomNum =
       state.difficulty === "basic" ? 1 : state.difficulty === "medium" ? 2 : 3;
@@ -1712,7 +1812,7 @@ export function renderGameScreen(
     } else {
       state.escaped = true;
       state.timerRunning = false;
-      showScoreboardModal(true);
+      showScoreboardModal();
     }
   }
 
@@ -1805,11 +1905,12 @@ export function renderGameScreen(
       // ==================== ROOM 2 ====================
       case "r2-gramophone":
         state.r2GramophoneRead = true;
-        addClue("Coffee Table: TIME");
+        addClue("Gramophone: Spell what ticks (M-E-T-I)");
         openInspector(
-          "🎺 Gramophone",
+          "🎺 Gramophone Riddle",
           `<div class="tle-zoom-card">` +
-            `<p class="tle-zoom-handwriting">"M - E - T - I"</p>` +
+            `<p class="tle-zoom-handwriting">"I have no voice, yet I tick away every loop.<br/>` +
+            `Arrange the 4 brass tiles on the Coffee Table: <strong>M - E - T - I</strong>"</p>` +
             `</div>`,
         );
         break;
@@ -1849,7 +1950,10 @@ export function renderGameScreen(
 
       case "r3-cryo-core":
         if (!state.r3CoreUnlocked) {
-          openInspector("🧬 Cryo-Core", "", true);
+          const hintLine = state.r3LaserSolved
+            ? `<p class="tle-zoom-sub"><em>Laser Sensor Code: 2026</em></p>`
+            : `<p class="tle-zoom-sub"><em>Bounce the Laser Grid into 🎯 to reveal the 4-digit code</em></p>`;
+          openInspector("🧬 Cryo-Core", hintLine, true);
         }
         break;
 
@@ -1905,28 +2009,27 @@ export function renderGameScreen(
     renderState();
   }
 
-  /** Brief, aesthetic "Game End" modal showing final loop stats. */
-  function showScoreboardModal(escapedNow: boolean): void {
+  /** Brief, aesthetic "Game End" modal showing "YOU WON" / "YOU LOST" + Total Loops + Invite button. */
+  function showScoreboardModal(forceLost = false): void {
     if (!modalTitle || !pauseModal) return;
     const myLoops = Math.max(1, state.loopCount);
     const friendLoops = state.partnerLoopScore ?? DEFAULT_PARTNER_LOOPS[state.difficulty];
-    const winnerName =
-      myLoops <= friendLoops ? state.player1Name : state.player2Name;
+    const iWon = !forceLost && myLoops <= friendLoops;
 
-    modalTitle.textContent = escapedNow
-      ? `${winnerName} escaped all rooms`
-      : "Match Stats";
+    modalTitle.textContent = iWon ? "🏆 YOU WON" : "💀 YOU LOST";
+    modalTitle.classList.toggle("tle-verdict-won", iWon);
+    modalTitle.classList.toggle("tle-verdict-lost", !iWon);
 
     if (scoreboardBox) {
       scoreboardBox.innerHTML =
         `<div class="tle-stat-grid">` +
-        `<div class="tle-stat-card ${myLoops <= friendLoops ? "tle-stat-winner" : ""}">` +
+        `<div class="tle-stat-card ${iWon ? "tle-stat-winner" : ""}">` +
         `<span class="tle-stat-name">${state.player1Name}</span>` +
-        `<strong class="tle-stat-loops">${myLoops} Loops</strong>` +
+        `<strong class="tle-stat-loops">${myLoops} Total Loops</strong>` +
         `</div>` +
-        `<div class="tle-stat-card ${friendLoops < myLoops ? "tle-stat-winner" : ""}">` +
+        `<div class="tle-stat-card ${!iWon ? "tle-stat-winner" : ""}">` +
         `<span class="tle-stat-name">${state.player2Name}</span>` +
-        `<strong class="tle-stat-loops">${friendLoops} Loops</strong>` +
+        `<strong class="tle-stat-loops">${friendLoops} Total Loops</strong>` +
         `</div>` +
         `</div>`;
     }
@@ -2044,7 +2147,52 @@ export function renderGameScreen(
     });
   }
 
-  // Clicking friend's badge simulates friend escaping a room to preview the green top notification
+  // Subtle Riddle Hint button (never gives away raw steps, gives creative riddles!)
+  container.querySelector("#btn-hint")?.addEventListener("click", () => {
+    if (state.difficulty === "basic") {
+      if (!state.bookRead) {
+        flashFeedbackToast("💡 Whisper: The open pages on the mahogany desk hold the first secret.");
+      } else if (!state.keyCollected) {
+        flashFeedbackToast("💡 Whisper: Four touches upon the azure peaks reveal what is hidden.");
+      } else if (!state.cabinetUnlocked || !state.photoInspected) {
+        flashFeedbackToast("💡 Whisper: Unlock the tall wardrobe and study the sepia memory's year.");
+      } else {
+        flashFeedbackToast("💡 Whisper: Key the photograph's year into the glowing terminal.");
+      }
+    } else if (state.difficulty === "medium") {
+      if (!state.r2TableSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: Listen to the brass Gramophone, then spell what ticks on the Coffee Table.",
+        );
+      } else if (!state.r2BooksSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: Pull the 3 tomes in the bookmark's order: Ruby → Gold → Forest Leaf.",
+        );
+      } else {
+        flashFeedbackToast(
+          "💡 Whisper: Set the Astrolabe Vault wheels to Dawn (30), Zenith (70), Dusk (15).",
+        );
+      }
+    } else {
+      if (!state.r3BreakerSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: On the left Power Grid, light only the 4 outer corners (↖ ↗ ↙ ↘).",
+        );
+      } else if (!state.r3HoloSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: On the Holo-Table, unscramble O-P-L-O into the 60s cycle.",
+        );
+      } else if (!state.r3LaserSolved) {
+        flashFeedbackToast(
+          "💡 Whisper: Angle the 3 laser mirrors to [＼], [＼], [／] to hit 🎯.",
+        );
+      } else {
+        flashFeedbackToast("💡 Whisper: Enter 2026 on the Cryo-Core console.");
+      }
+    }
+  });
+
+  // Clicking friend's badge simulates friend escaping a room
   container.querySelector("#btn-sim-friend-escape")?.addEventListener("click", () => {
     const rNum =
       state.player2Room === "basic" ? 1 : state.player2Room === "medium" ? 2 : 3;
@@ -2056,12 +2204,33 @@ export function renderGameScreen(
     } else {
       state.escaped = true;
       state.timerRunning = false;
-      if (modalTitle) {
-        modalTitle.textContent = `${state.player2Name} escaped all rooms`;
-      }
-      showScoreboardModal(false);
+      showScoreboardModal(true);
     }
     renderState();
+  });
+
+  // Rematch Invite Flow -> Opens PUBG-style slide-in tactical drawer on the right edge
+  container.querySelector("#btn-invite-rematch")?.addEventListener("click", () => {
+    callbacks.onRematchInvite?.();
+    openPubgRematchDrawer();
+  });
+
+  // Accepting rematch -> Both enter Lobby, reset ready states & loops, ready up and start again!
+  container.querySelector("#btn-pubg-accept")?.addEventListener("click", () => {
+    pubgSideDrawer?.classList.add("tle-side-hidden");
+    pauseModal?.classList.add("hidden");
+    state.player1Ready = false;
+    state.player2Ready = false;
+    state.player2Room = "basic";
+    transitionToRoom("basic", true);
+    state.timerRunning = false;
+    readyLobbyModal?.classList.remove("hidden");
+    renderState();
+  });
+
+  // Rejecting rematch -> PUBG-style compact side drawer slides in showing "Invitation Rejected"
+  container.querySelector("#btn-pubg-reject")?.addEventListener("click", () => {
+    showPubgRejectedDrawer();
   });
 
   container.querySelector("#btn-open-lobby")?.addEventListener("click", () => {
@@ -2151,10 +2320,6 @@ export function renderGameScreen(
   });
 
   popupExitBtn?.addEventListener("click", () => {
-    transitionToRoom("basic", true);
-  });
-
-  container.querySelector("#btn-try-again")?.addEventListener("click", () => {
     transitionToRoom("basic", true);
   });
 
@@ -2334,7 +2499,13 @@ export function renderGameScreen(
     const cluesList = container.querySelector<HTMLElement>("#clues-list");
     if (cluesList) {
       if (state.clues.length === 0) {
-        cluesList.innerHTML = `<li class="tle-clue-empty">Explore the room to find clues...</li>`;
+        const defaultHint =
+          state.difficulty === "basic"
+            ? "Inspect the open journal on the desk..."
+            : state.difficulty === "medium"
+              ? "Inspect the brass Gramophone on the left for the first riddle..."
+              : "Inspect the left Power Grid schematic to start...";
+        cluesList.innerHTML = `<li class="tle-clue-empty">${defaultHint}</li>`;
       } else {
         cluesList.innerHTML = state.clues
           .map((clue) => `<li class="tle-clue-item">${clue}</li>`)
