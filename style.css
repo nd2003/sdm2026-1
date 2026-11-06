@@ -422,3 +422,43 @@ body[data-phase="lobby"] :is(#chat, #game-input) { display: none; }
   #loop-count { font-size: 1rem; white-space: nowrap; }
   #bonus { left: 84px; }
 }
+
+/* --- Story set dressing (Abdullah's notes on #12) --- */
+#obj-keypad { left: 85%; top: 40%; --w: 6.5cqw; transform: translateX(-50%) perspective(70cqw) rotateY(-38deg); }
+#obj-lift   { left: 50%; bottom: 14%; --w: 36cqw; }
+#obj-casket-left  { left: 27%; bottom: 3%; --w: 18cqw; }
+#obj-casket-right { left: 73%; bottom: 3%; --w: 18cqw; transition: none; }
+.page { display: none; }
+.right-one .page { display: inline; }
+.lid { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .8s ease-in-out; }
+.casket-open .right-one .lid { transform: translate(60%, 8%) rotate(14deg); }
+.candles { animation: candle 3s steps(1) infinite; }
+@keyframes candle { 0%, 37%, 41%, 77%, 100% { opacity: 1; } 38%, 40% { opacity: .55; } 78% { opacity: .75; } }
+.needle { transform-origin: 80px 24px; animation: needle 2.6s steps(1) infinite; }
+@keyframes needle { 0%, 100% { transform: rotate(0); } 12% { transform: rotate(-9deg); } 18% { transform: rotate(3deg); } 55% { transform: rotate(-22deg); } 60% { transform: rotate(-6deg); } }
+body.no-flicker :is(.candles, .needle) { animation: none; }
+#inventory li small { margin-left: .5em; font-size: .75rem; opacity: .8; }
+
+/* The wrong casket: the scariest moment in the game */
+.redlight, .vampire { position: absolute; pointer-events: none; opacity: 0; }
+.redlight { inset: 0; z-index: 4; background: #7e0d08; mix-blend-mode: multiply; }
+.vampire { z-index: 5; bottom: -4%; left: 73%; height: 84%; transform-origin: 50% 100%; translate: -50% 0; }
+#room[data-wrong="left"] .vampire { left: 27%; }
+#room.vamp .redlight { animation: redlight 2.6s ease-out both; }
+#room.vamp .vampire { animation: vampire 2.6s cubic-bezier(.3, 0, .2, 1) both; }
+#room.vamp .wrong-one .lid { animation: wronglid 2.6s ease-in-out both; }
+@keyframes redlight { 0% { opacity: 0; } 12%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes vampire { 0% { opacity: 0; transform: translateY(70%) scale(.55); } 10% { opacity: 1; } 34% { transform: translateY(26%) scale(.7); } 62% { opacity: 1; transform: translateY(0) scale(1.08); } 80% { opacity: 1; transform: translateY(2%) scale(1.1); } 100% { opacity: 0; transform: translateY(40%) scale(.9); } }
+@keyframes wronglid { 0% { transform: none; } 12%, 80% { transform: translate(60%, 8%) rotate(14deg); } 100% { transform: none; } }
+#drain { position: absolute; left: 190px; top: 8px; font: 700 2rem "Special Elite", "Courier New", monospace; color: #e0463a; opacity: 0; pointer-events: none; }
+#drain.show { animation: drain 2.4s ease-out; }
+@keyframes drain { 0% { opacity: 0; transform: scale(1.8); } 10%, 65% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(14px); } }
+
+/* The ending: the visitor log, with two names signed out for the first time */
+.ledger { margin: 12px auto; border-collapse: collapse; font: .9rem "Courier Prime", "Courier New", monospace; color: #231e15; background: #b5aa86; text-align: left; }
+.ledger caption { padding-bottom: 8px; font: 400 1rem "Special Elite", "Courier New", monospace; color: #e4dcbc; }
+.ledger th, .ledger td { padding: 3px 12px; border: 1px solid #6d5f3a; }
+.ledger .gone { opacity: .55; }
+.ledger .us td { font-weight: 700; }
+.clock-stopped { margin: 8px 0 14px; font-style: italic; }
+#obj-note { left: 41%; }  /* clear of the newspaper ad on the desk */

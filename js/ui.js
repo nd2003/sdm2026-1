@@ -54,6 +54,13 @@ function render() {
   set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
   if (stage > Number(document.body.dataset.stage || stage)) replay($("bonus"), "show");  // +1:00 for reaching a new level
   document.body.dataset.stage = stage;
+  if (stage === 2 && phase === "playing" && t <= ($("timer")._t ?? t) - 15) {
+    replay($("room"), "vamp");
+    replay($("drain"), "show");
+    document.dispatchEvent(new Event("tle-scare"));
+  }
+  $("timer")._t = t;
+  $("room").classList.toggle("casket-open", !!(game.flags && game.flags.casketOpen));
   if (phase !== "lobby" && $("room")._seed !== game.seed) { $("room")._seed = game.seed; placeObjects(); }
 
   // Chat: kept across loops, and it scrolls to the newest line
@@ -83,7 +90,7 @@ function render() {
   const inv = $("inventory");
   const had = inv._count ?? game.items.length;
   set(inv, "innerHTML", "<h2>Inventory</h2>" + (game.items.length
-    ? "<ul>" + game.items.map((i) => `<li>${i === "key" ? '<svg viewBox="0 0 60 28" aria-hidden="true"><path d="M23 14h34M46 14v8M52 14v6" fill="none" stroke="#85683c" stroke-width="4"></path><circle cx="14" cy="14" r="10" fill="none" stroke="#85683c" stroke-width="4"></circle></svg>' : ""}${esc(i)}</li>`).join("") + "</ul>"
+    ? "<ul>" + game.items.map((i) => `<li>${i === "key" ? '<svg viewBox="0 0 90 28" aria-hidden="true"><path d="M23 14h34M46 14v8M52 14v6" fill="none" stroke="#85683c" stroke-width="4"></path><circle cx="14" cy="14" r="10" fill="none" stroke="#85683c" stroke-width="4"></circle><path d="M57 14l7 0" stroke="#d8d0ba"></path><path d="M64 7h24v14H64z" fill="#c9bf9f"></path><text x="67" y="18" font-family="monospace" font-size="9" fill="#17140d">14-B</text></svg>' : ""}${esc(i)}${i === "key" ? "<small>Return before sunrise.</small>" : ""}</li>`).join("") + "</ul>"
     : '<p class="empty">Empty pockets.</p>'));
   inv.querySelectorAll("li").forEach((li, i) => { if (i >= had) li.classList.add("new"); });
   inv._count = game.items.length;
@@ -146,6 +153,9 @@ function render() {
     const who = esc(o ? o.name : "Your partner"), loops = `${game.loop} loop${game.loop === 1 ? "" : "s"}`;
     set(win, "innerHTML", `<div class="${game.won ? "first" : "second"}"><h1>${game.won ? "You both got out" : "Your partner left"}</h1>`
       + `<p>${game.won ? `You and ${who} escaped together after ${loops}.` : `${who} is gone, and nobody leaves floor 14 alone.`}</p>`
+      + (game.won ? `<table class="ledger"><caption>Meridian Trust, floor 14. Visitor log, 13 October 1987</caption><tr><th>Name</th><th>In</th><th>Out</th></tr>`
+        + `<tr class="gone"><td>━━━━━━</td><td>23:59</td><td></td></tr><tr class="gone"><td>━━━━━━</td><td>23:59</td><td></td></tr>`
+        + `<tr class="us"><td>${esc(game.playerName)}</td><td>23:59</td><td>signed out</td></tr><tr class="us"><td>${who}</td><td>23:59</td><td>signed out</td></tr></table><p class="clock-stopped">Behind you, the clock stops.</p>` : "")
       + `<button type="button" onclick="location.reload()">Play again</button></div>`);
     if (over && !win._focused) { win._focused = true; setTimeout(() => win.querySelector("button")?.focus()); }  // keyboard users land on "Play again"
   }
@@ -163,7 +173,7 @@ function render() {
     <form id="game-input" hidden><label id="game-input-label" for="game-input-text"></label>
       <input id="game-input-text" autocomplete="off" spellcheck="false">
       <div class="row"><button>Enter</button><button type="button" id="game-input-cancel">Step back</button></div></form>`);
-  $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span>');
+  $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span><span id="drain" aria-hidden="true">-20s</span>');
 
   $("chat-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -316,6 +326,7 @@ const updateSound = (() => {
       ctx.resume().catch(() => {});
     } catch { ctx = null; }  // no sound is better than a broken game
   };
+  document.addEventListener("tle-scare", () => { if (ctx) deathHit(); });
   // Browsers only allow sound after the player does something.
   for (const type of ["pointerdown", "keydown"]) addEventListener(type, start, { capture: true });
   document.addEventListener("visibilitychange", () => { if (ctx) (document.hidden ? ctx.suspend() : ctx.resume()).catch(() => {}); });

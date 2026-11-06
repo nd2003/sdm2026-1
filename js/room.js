@@ -5,17 +5,23 @@ function buildRoom() {
   const S = (vb, body) => `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"><g filter="url(#grime)">${body}</g></svg>`;
   const ink = 'stroke="#090806" stroke-width="2" stroke-linejoin="round"';
   const CASKET = `
-      <path d="M60 4L104 34 90 146H30L16 34z" fill="#1d130b" ${ink}/>
-      <g class="lid"><path d="M60 10L97 36 85 140H35L23 36z" fill="#3a2614" ${ink}/><path d="M60 40v70M44 64h32" stroke="#6c5a35" stroke-width="5"/>
-      <path d="M35 40l6 3M85 40l-6 3M40 130l6-2M80 130l-6-2" stroke="#0a0805" stroke-width="3"/><path d="M70 130c0 8 1 12 2 12s2-4 2-12z" fill="#8c1a15"/></g>`;
+      <path d="M60 4L104 34 90 146H30L16 34z" fill="#0a0806" ${ink}/>
+      <g class="page"><path d="M43 52l30-5 7 42-7 5-4-4-6 6-16-1z" fill="#a89c7c" stroke="#120e08"/><path d="M49 60l20-3M50 67l20-3M51 74l14-2" stroke="#2c271c" stroke-width="1.6"/></g>
+      <g class="lid"><path d="M60 10L97 36 85 140H35L23 36z" fill="#2c2017" ${ink}/><path d="M60 16L88 38 78 134H42L32 38z" fill="none" stroke="#120b06" stroke-width="2"/>
+      <path d="M40 40l7 3M80 40l-7 3M42 128l7-2M78 128l-7-2" stroke="#0a0805" stroke-width="3"/><path d="M71 134c0 8 1 12 2 12s2-4 2-12z" fill="#8c1a15"/>
+      <rect x="39" y="72" width="42" height="17" fill="#8d7433" stroke="#231a08" stroke-width="1.5"/><path d="M43 77h34M43 84h34M47 75l6 12M56 74l5 13M66 75l6 12" stroke="#2b2109" stroke-width="1.3"/></g>`;
   const objects = [  // DOM order = Tab order: wall left to right, then floor left to right
-    ["clock", "Clock", S("0 0 100 100", `
-      <circle cx="50" cy="50" r="46" fill="#3b2c1e" ${ink}/><circle cx="50" cy="50" r="38" fill="#8d8671" ${ink}/>
+    ["clock", "Clock", `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <g filter="url(#grime)"><circle cx="50" cy="50" r="46" fill="#3b2c1e" ${ink}/><circle cx="50" cy="50" r="38" fill="#8d8671" ${ink}/>
       <path d="M50 16v8M50 76v8M16 50h8M76 50h8" stroke="#16130e" stroke-width="3"/>
       <path d="M50 50L47 28M50 50L37 62" stroke="#16130e" stroke-width="4" stroke-linecap="round"/>
       <line class="sec" x1="50" y1="56" x2="50" y2="20" stroke="#a31f1a" stroke-width="1.6"/>
       <path d="M70 18L58 38l7 7-11 13 4 8M58 38L42 34M65 45l15 3" fill="none" stroke="#e8e2cf" stroke-opacity=".6" stroke-width="1"/>
-      <circle cx="50" cy="50" r="3" fill="#16130e"/>`)],
+      <circle cx="50" cy="50" r="3" fill="#16130e"/></g>
+      <g stroke="#1b170d" stroke-width="2.4" stroke-linecap="round">
+        <path d="M108 14v24M114 13v24M120 14v24M126 13v24M104 33l27-16M136 14v24M142 13v24M148 14v24M154 13v24M132 33l27-16"/>
+        <path d="M108 48v24M114 47v24M120 48v24M126 47v24M104 67l27-16M136 48v24M142 47v24"/></g>
+      <path d="M148 48v24M154 47v24" stroke="#d8d0ba" stroke-width="2.4" stroke-linecap="round"/></svg>`],
     ["painting", "Blue painting", S("0 0 120 90", `
       <path d="M1 1h96l6 7 16-3v84H12l-4-9-7 2z" fill="#3f3019" ${ink}/><rect x="8" y="8" width="104" height="74" fill="#120d07"/>
       <rect x="11" y="11" width="98" height="68" fill="url(#sea)"/><circle cx="96" cy="26" r="6" fill="#c9d6f2"/>
@@ -28,12 +34,13 @@ function buildRoom() {
       <path d="M1 28l6 5-2 8 5 6M112 60l6 4-3 9" fill="none" stroke="#0a0805" stroke-width="1.5"/>
       <path d="M12 11c10 0 13 4 15 10-6 2-11 1-15 5zM109 79c-8 0-14-2-16-8 6-2 11-2 16-8z" fill="#121a0a" fill-opacity=".8"/>`)],
     ["photo", "Photograph", S("0 0 60 72", `
-      <g transform="rotate(-5 30 36)" clip-path="url(#tornphoto)"><rect x="3" y="3" width="54" height="66" fill="#9c9070" ${ink}/><rect x="8" y="8" width="44" height="42" fill="#4f4835"/>
-      <rect x="8" y="8" width="44" height="23" fill="#6f6650"/><path d="M14 50V33l10-8 10 8v17z" fill="#2c271c"/><rect x="21" y="36" width="6" height="6" fill="#c9b985"/>
-      <path d="M40 50v-9c0-3 6-3 6 0v9z" fill="#17140e"/><circle cx="43" cy="36" r="3.8" fill="#17140e"/>
-      <path d="M38 33l10 5M38 37l10-5M39 40l9-6" stroke="#9a1f18" stroke-width="1.3"/>
+      <g transform="rotate(-5 30 36)" clip-path="url(#tornphoto)"><rect x="3" y="3" width="54" height="66" fill="#9c9070" ${ink}/><rect x="8" y="8" width="44" height="42" fill="#5f5844"/>
+      <rect x="8" y="8" width="44" height="14" fill="#7a7259"/>
+      <g fill="#231f15">${[[14, 22], [24, 22], [34, 22], [44, 22], [12, 34], [22, 34], [32, 34], [42, 34]].map(([x, y]) => `<path d="M${x - 5} ${y + 16}c0-7 2-9 5-9s5 2 5 9z"/>`).join("")}</g>
+      <g fill="#b5a987">${[[14, 22], [24, 22], [34, 22], [44, 22], [12, 34], [22, 34], [32, 34], [42, 34]].map(([x, y]) => `<circle cx="${x}" cy="${y + 2}" r="3.2"/>`).join("")}</g>
+      <g stroke="#120e08" stroke-width="1.5">${[[14, 22], [24, 22], [44, 22], [12, 34], [22, 34], [32, 34], [42, 34]].map(([x, y]) => `<path d="M${x - 4} ${y}l8 5M${x - 4} ${y + 4}l8-5M${x - 3} ${y + 2}h7"/>`).join("")}</g>
       <path d="M13 59c4-3 6 2 10 0s5-2 9 0" fill="none" stroke="#2c271c" stroke-width="1.8" stroke-linecap="round"/>
-      <circle cx="12" cy="12" r="8" fill="#121a0a" fill-opacity=".7"/></g>
+      <circle cx="10" cy="11" r="6" fill="#121a0a" fill-opacity=".6"/></g>
       <circle cx="30" cy="5" r="2" fill="#4a4336" stroke="#090806"/>`)],
     ["door", "Exit door", S("0 -16 60 156", `
       <rect x="12" y="-15" width="36" height="12" fill="#1a1612" ${ink}/><text x="30" y="-6" font-size="8" font-weight="bold" text-anchor="middle" fill="#c23a30" font-family="monospace">EXIT</text>
@@ -51,6 +58,7 @@ function buildRoom() {
       <rect x="9" y="47" width="9" height="23" fill="#2f3a42"/><rect x="18" y="50" width="6" height="20" fill="#61573b"/><rect x="24" y="45" width="7" height="25" fill="#3c4530"/>
       <rect x="9" y="82" width="8" height="20" fill="#513b28"/><rect x="17" y="79" width="7" height="23" fill="#2e3439"/></g>
       <path d="M47 62c0-7 4-11 10-11s10 4 10 11c0 3-2 4-3 5v3H50v-3c-1-1-3-2-3-5z" fill="#a39b83" ${ink}/><circle cx="53" cy="60" r="2.6" fill="#0b0907"/><circle cx="61" cy="60" r="2.6" fill="#0b0907"/><path d="M53 70v-3M57 70v-3M61 70v-3" stroke="#0b0907"/>
+      <g transform="rotate(-3 58 26)"><path d="M43 34V19c5-2 10-2 15 0 5-2 10-2 15 0v15c-5-2-10-2-15 0-5-2-10-2-15 0z" fill="#a89c7c" stroke="#090806"/><path d="M58 19v15" stroke="#090806"/><path d="M46 22h9M46 25h9M46 28h9M61 22h9M61 25h5M61 28h5" stroke="#2c271c" stroke-width="1"/></g>
       <path d="M74 6L52 6M74 6L60 22M74 6L74 28M58 6q4 6 8 7t8 5" fill="none" stroke="#d8d0ba" stroke-opacity=".45" stroke-width=".8"/>`)],
     ["cabinet", "Cabinet", S("0 0 70 96", `
       <rect x="1" y="1" width="68" height="86" fill="#2c2419" ${ink}/><rect x="6" y="6" width="58" height="76" fill="#070605"/>
@@ -84,10 +92,12 @@ function buildRoom() {
       <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle cx="46" cy="15" r="2.5" fill="#c6352c"/>
       <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`), 2],
     ["lift", "Lift", S("0 0 160 220", `
-      <rect x="2" y="26" width="156" height="192" fill="#26241a" ${ink}/><rect x="14" y="38" width="66" height="180" fill="#55524a" ${ink}/><rect x="80" y="38" width="66" height="180" fill="#4d4a42" ${ink}/>
-      <path d="M30 60c2 40-2 70 1 120M118 48c-2 50 3 90-1 150M60 150l7 22M66 148l7 22" fill="none" stroke="#6b3e20" stroke-width="3"/>
-      <rect x="50" y="4" width="60" height="18" fill="#120e0a" ${ink}/><path d="M80 18l-9-9h18z" fill="#c23a30"/>
-      <rect x="146" y="110" width="10" height="26" fill="#6f5a30" stroke="#090806"/>`), 3],
+      <rect x="2" y="26" width="156" height="192" fill="#1b1a13" ${ink}/><rect x="14" y="38" width="118" height="180" fill="#0d0c07" ${ink}/>
+      <g stroke="#6f5a30" stroke-width="3">${[22, 36, 50, 64, 78, 92, 106, 120].map((x) => `<path d="M${x} 38v180"/>`).join("")}</g>
+      <g stroke="#57461f" stroke-width="2"><path d="M14 66L132 112M14 112L132 66M14 158L132 204M14 204L132 158"/></g>
+      <rect x="136" y="60" width="18" height="122" fill="#3a3019" stroke="#090806"/><g fill="#c7a650" stroke="#231a08">${[0, 1, 2, 3, 4, 5, 6, 7].flatMap((r) => [0, 1].map((c) => `<circle cx="${141 + c * 8}" cy="${68 + r * 14}" r="2.6"/>`)).join("")}</g>
+      <path d="M46 24a34 22 0 0 1 68 0z" fill="#3a3019" ${ink}/><g stroke="#c7a650" stroke-width="1.2"><path d="M54 22l-3-5M64 13l-2-4M80 10V6M96 13l2-4M106 22l3-5"/></g>
+      <path class="needle" d="M80 24L92 9" stroke="#c23a30" stroke-width="2" stroke-linecap="round"/><circle cx="80" cy="24" r="2.6" fill="#120e0a"/>`), 3],
   ];
   const room = document.getElementById("room");
   const rays = (pts, col, w) => pts.map(([x, y]) => `<path d="M800 470L${x} ${y}" stroke="${col}" stroke-width="${w}"/>`).join("");
@@ -109,6 +119,7 @@ function buildRoom() {
       <feTurbulence type="fractalNoise" baseFrequency=".008 .03" numOctaves="4" seed="3"/>
       <feColorMatrix values="0 0 0 0 .16  0 0 0 0 .12  0 0 0 0 .04  2.6 0 0 0 -1.05"/>
     </filter>
+    <radialGradient id="candle"><stop offset="0" stop-color="#f4d98a" stop-opacity=".55"/><stop offset="1" stop-color="#f4d98a" stop-opacity="0"/></radialGradient>
     <radialGradient id="blob"><stop offset=".35" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
     <mask id="moldmask" maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="1000"><rect width="1600" height="1000" fill="#000"/>
       ${blob(470, 230, 150)}${blob(60, 60, 260)}${blob(50, 900, 230)}${blob(1130, 230, 130)}${blob(1550, 50, 220)}${blob(1130, 700, 100)}${blob(470, 700, 130)}</mask>
@@ -149,15 +160,25 @@ function buildRoom() {
     <g><rect x="965" y="320" width="110" height="380" fill="#090704" stroke="#2c2813" stroke-width="8"/><rect x="985" y="370" width="70" height="285" fill="#3d3819"/><rect x="1001" y="410" width="38" height="200" fill="#6f6735"/><path d="M965 700L985 655H1055L1075 700z" fill="#1c190c"/>
       <g class="figure"><circle cx="1020" cy="520" r="13" fill="#040302"/><path d="M1007 538q13-8 26 0l5 42-4 62-6 46h-16l-6-46-4-62z" fill="#040302"/><path d="M1007 540l-11 70 6 62M1033 540l11 70-6 62" fill="none" stroke="#040302" stroke-width="6" stroke-linecap="round"/></g></g>
     <path d="M210 860H860L990 1040H100z" fill="url(#desktop)" stroke="#090806" stroke-width="4"/><path d="M340 900l60 40M640 880l-40 70M760 950l50 40M300 960h90" stroke="#0d0905" stroke-width="3"/>
-    <ellipse cx="800" cy="930" rx="48" ry="16" fill="none" stroke="#120c07" stroke-width="5"/>
+    <ellipse cx="620" cy="960" rx="44" ry="14" fill="none" stroke="#120c07" stroke-width="5"/>
+    <g transform="translate(762 892) skewX(-14) rotate(3)"><path d="M0 0H122L128 58 96 64 84 60 0 66z" fill="#a89c7c" stroke="#090806" stroke-width="3"/><text x="8" y="17" font-family="monospace" font-size="13" font-weight="bold" fill="#17140d">NIGHT AUDITORS</text><text x="8" y="31" font-family="monospace" font-size="13" font-weight="bold" fill="#17140d">WANTED</text><text x="8" y="47" font-family="monospace" font-size="10" fill="#2c271c">Floor 14. Cash.</text><text x="8" y="58" font-family="monospace" font-size="10" fill="#2c271c">No questions.</text></g>
   </svg>
   <svg class="walls level-view" data-stage="2" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
-    <rect width="1600" height="1000" fill="#25230f"/>
-    <path d="M0 0H1600L960 340H640z" fill="#3a3620"/><path d="M0 0L640 340V600L0 1000z" fill="#4a4426"/><path d="M1600 0L960 340V600L1600 1000z" fill="#4a4426"/>
-    <path d="M0 1000L640 600H960L1600 1000z" fill="#1c190d"/><rect x="640" y="340" width="320" height="260" fill="#050403"/><rect x="730" y="390" width="140" height="210" fill="#000"/>
-    <path d="M500 150h600l-70 40H570z" fill="#b5ab6e" opacity=".5"/><path d="M0 0L640 340M1600 0L960 340M0 1000L640 600M1600 1000L960 600" stroke="#0a0805" stroke-width="6"/>
-    <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".5"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
+    <defs><pattern id="bricks" width="44" height="26" patternUnits="userSpaceOnUse"><rect width="44" height="26" fill="#3a3f42"/><path d="M0 0h44M0 13h44M0 0v13M22 13v13" stroke="#14171a" stroke-width="3"/></pattern></defs>
+    <rect width="1600" height="1000" fill="#14171a"/>
+    <path d="M0 0H1600L870 420H730z" fill="#22272b"/><path d="M0 0L730 420V520L0 1000z" fill="#2c3338"/><path d="M1600 0L870 420V520L1600 1000z" fill="#2c3338"/>
+    <path d="M0 1000L730 520H870L1600 1000z" fill="#15181b"/><rect x="730" y="420" width="140" height="100" fill="#020203"/>
+    ${[[50, 165], [255, 335], [430, 490], [560, 605], [650, 682]].map(([a, b]) => {
+      const top = (x) => 420 * x / 730, bottom = (x) => 1000 - 480 * x / 730, y = (x) => top(x) + (bottom(x) - top(x)) * .22;
+      const door = (mirror) => { const X = (x) => (mirror ? 1600 - x : x); return `<path d="M${X(a)} ${y(a)}L${X(b)} ${y(b)}V${bottom(b)}L${X(a)} ${bottom(a)}z" fill="url(#bricks)" stroke="#0a0c0e" stroke-width="7"/>`; };
+      return door(false) + door(true);
+    }).join("")}
+    <path d="M0 0L730 420M1600 0L870 420M0 1000L730 520M1600 1000L870 520" stroke="#07090a" stroke-width="6"/>
+    <rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)" opacity=".8"/>
     ${drip(180, 90, 18, 420)}${drip(420, 220, 14, 300)}${drip(1180, 220, 18, 320)}${drip(1420, 110, 22, 400)}
+    <g fill="#08090a" stroke="#000" stroke-width="2"><path d="M630 660c20-8 40-8 50 2l-4 12h-46zM690 664c20-8 40-8 50 2l-4 12h-46z"/><path d="M930 640c14-6 28-6 36 1l-3 9h-33zM974 642c14-6 28-6 36 1l-3 9h-33z"/><path d="M822 575c9-4 18-4 24 1l-2 6h-22zM852 577c9-4 18-4 24 1l-2 6h-22z"/></g>
+    <path d="M770 690c30-18 80-24 118-8 18 10 10 34-14 34h-94c-20 0-26-16-10-26z" fill="#1c2024" stroke="#000" stroke-width="2"/><path d="M820 676l6 40M852 682l-4 34" stroke="#0a0c0e" stroke-width="3"/>
+    <g class="candles"><circle cx="520" cy="660" r="90" fill="url(#candle)"/><circle cx="1090" cy="640" r="74" fill="url(#candle)"/><rect x="514" y="650" width="12" height="28" fill="#c9c2a8"/><rect x="1085" y="632" width="10" height="24" fill="#c9c2a8"/><path d="M520 650c-4-7 0-12 0-17 3 6 5 11 0 17zM1090 632c-3-6 0-10 0-14 3 5 4 9 0 14z" fill="#f4d98a"/></g>
   </svg>
   <svg class="walls level-view" data-stage="3" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
     <rect width="1600" height="1000" fill="#1d1c17"/>
@@ -166,7 +187,21 @@ function buildRoom() {
     <path d="M90 60V960M200 110V880M1510 60V960M1400 110V880" stroke="#191810" stroke-width="16"/><path d="M420 760L0 1000M1180 760L1600 1000M420 760H1180" stroke="#0a0805" stroke-width="8"/>
     <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".5"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
     ${drip(500, 170, 18, 300)}${drip(1040, 170, 22, 360)}
+    <text transform="translate(96 360) skewY(24)" font-family="Special Elite, monospace" font-size="42" fill="#c9c2a8" opacity=".85"><tspan x="0">THE DOOR</tspan><tspan x="0" dy="52">OPENS</tspan><tspan x="0" dy="52">FOR ONE</tspan></text>
   </svg></div>
+  <div class="redlight"></div>
+  <svg class="vampire" viewBox="0 0 300 400" aria-hidden="true">
+    <defs><radialGradient id="flesh" cx=".5" cy=".36" r=".62"><stop offset="0" stop-color="#8b8676"/><stop offset=".55" stop-color="#4c493d"/><stop offset="1" stop-color="#0b0a07"/></radialGradient></defs>
+    <path d="M150 188c-40 4-60 26-84 40-34 20-48 70-54 172h276c-6-102-20-152-54-172-24-14-44-36-84-40z" fill="#040302"/>
+    <g filter="url(#grime)"><path d="M150 8c-30 0-50 22-54 58-3 30 4 58 12 84 7 24 12 48 22 62 6 8 14 12 20 12s14-4 20-12c10-14 15-38 22-62 8-26 15-54 12-84-4-36-24-58-54-58z" fill="url(#flesh)"/></g>
+    <path d="M104 84c10-12 30-12 38 2-2 18-28 26-38-2zM196 84c-10-12-30-12-38 2 2 18 28 26 38 2z" fill="#020101"/>
+    <circle cx="125" cy="90" r="1.8" fill="#c9c2a8"/><circle cx="175" cy="90" r="1.8" fill="#c9c2a8"/>
+    <path d="M146 108l-5 26 9 3 9-3-5-26z" fill="#1c1a13" opacity=".7"/>
+    <path d="M122 152c16 8 40 8 56 0-1 26-10 56-28 62-18-6-27-36-28-62z" fill="#020101"/>
+    <path d="M128 154l4 24 5-21zM172 154l-4 24-5-21z" fill="#b5ae98"/>
+    <path d="M172 196c1 22 2 44 4 44s3-22 2-44z" fill="#6e0d08"/>
+    <g fill="none" stroke="#5c5849" stroke-width="5" stroke-linecap="round"><path d="M30 400c6-40 2-70 12-96M42 304l-16-60M42 304l-2-70M42 304l14-66M42 304l28-52"/><path d="M270 400c-6-40-2-70-12-96M258 304l16-60M258 304l2-70M258 304l-14-66M258 304l-28-52"/></g>
+  </svg>
   <svg class="arm" viewBox="0 0 300 360" aria-hidden="true">
     <path d="M300 360V200L184 174l-38 58 44 128z" fill="#14120a" stroke="#000" stroke-width="3"/>
     <path d="M176 186c-24-16-46-8-54 14-8 22 0 42 18 50l44 2 34-40z" fill="#5c4a35" stroke="#000" stroke-width="3"/>
@@ -228,6 +263,11 @@ function placeObjects() {
   put("shelf", floorSpots[1], floorSpots[1].shelf);
   // The painting is the colour your answer needs: [top, middle, bottom, waves, wave line]
   const PAINT = { BLUE: ["#5b92ff", "#1c50d2", "#0b2474", "#0f338f", "#7fa8fb"], RED: ["#ff6b5b", "#c11f1a", "#5a0b08", "#7e130f", "#f59a8f"], GREEN: ["#79d98a", "#1f8f3c", "#0b3f1c", "#115a28", "#9be8a8"], WHITE: ["#f2efe4", "#cfcabb", "#9b968a", "#b4ae9f", "#ffffff"], BLACK: ["#5a5a5a", "#2a2a2a", "#0e0e0e", "#1a1a1a", "#8a8a8a"] };
-  const room = document.getElementById("room");
-  PAINT[puzzleAnswers(game.role).color].forEach((c, i) => room.style.setProperty("--paint" + i, c));
+  const room = document.getElementById("room"), answers = puzzleAnswers(game.role);
+  PAINT[answers.color].forEach((c, i) => room.style.setProperty("--paint" + i, c));
+  // Which casket hides what. Same art, so nothing gives the answer away until one opens.
+  const wrong = answers.casket === "left" ? "right" : "left";
+  room.dataset.wrong = wrong;
+  document.getElementById("obj-casket-" + answers.casket).classList.add("right-one");
+  document.getElementById("obj-casket-" + wrong).classList.add("wrong-one");
 }
