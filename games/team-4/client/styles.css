@@ -2623,3 +2623,211 @@ body {
 .hidden {
   display: none !important;
 }
+
+/* ================= PROGRESSIVE ROOM HUD, DECAY & TRANSITION EFFECTS ================= */
+.tle-room-indicator-pill {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1.5px solid rgba(56, 189, 248, 0.55);
+  color: #e0f2fe;
+  font-family: "Courier New", monospace;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 5px 11px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.tle-root[data-room-diff="basic"] .tle-room-indicator-pill {
+  border-color: #f59e0b;
+  color: #fde68a;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+.tle-root[data-room-diff="medium"] .tle-room-indicator-pill {
+  border-color: #eab308;
+  color: #fef08a;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.35);
+}
+
+.tle-root[data-room-diff="hard"] .tle-room-indicator-pill {
+  border-color: #e879f9;
+  color: #fae8ff;
+  box-shadow: 0 0 16px rgba(217, 70, 239, 0.45);
+}
+
+/* Glitch increment animation on LOOP #XX badge */
+@keyframes tle-glitch-pulse {
+  0% {
+    transform: translate(0, 0) skewX(0deg);
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    transform: translate(-3px, 1px) skewX(-8deg);
+    background: rgba(220, 38, 38, 0.75);
+  }
+  50% {
+    transform: translate(3px, -1px) skewX(8deg);
+    filter: hue-rotate(90deg);
+  }
+  75% {
+    transform: translate(-2px, 0) skewX(-4deg);
+  }
+  100% {
+    transform: translate(0, 0) skewX(0deg);
+    filter: hue-rotate(0deg);
+  }
+}
+
+.tle-loop-glitch {
+  animation: tle-glitch-pulse 0.55s ease;
+}
+
+/* Smooth visual transition when advancing between rooms */
+@keyframes tle-room-warp-in {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.97);
+    filter: brightness(1.6) blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1) blur(0);
+  }
+}
+
+.tle-room-transitioning {
+  animation: tle-room-warp-in 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Room 1: 1980s Retro Surveillance Office Amber CRT Phosphor Accent */
+.tle-root[data-room-diff="basic"] .tle-monitor-screen {
+  background: linear-gradient(180deg, #291502 0%, #140900 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.45);
+}
+
+.tle-root[data-room-diff="basic"] .tle-monitor-passbox {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.75);
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+
+/* Room 2: Sub-Zero Cryo-Lab Deep Abyssal Navy & Hazard Yellow Telemetry */
+.tle-r2-telemetry-bar {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(7, 18, 38, 0.88);
+  border: 1.5px solid #eab308;
+  color: #fef08a;
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border-radius: 6px;
+  z-index: 12;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.35);
+}
+
+.tle-r2-hazard-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #eab308;
+  box-shadow: 0 0 10px #facc15;
+  animation: tle-pulse-urgent 0.9s infinite alternate;
+}
+
+.tle-r2-hazard-strip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #eab308 0px,
+    #eab308 12px,
+    #0f172a 12px,
+    #0f172a 24px
+  );
+}
+
+/* Room 2: 30-second mark Frosted Glass Vignette (.frost-decay) */
+.frost-decay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 32;
+  box-shadow:
+    inset 0 0 65px rgba(125, 211, 252, 0.55),
+    inset 0 0 130px rgba(186, 230, 253, 0.35);
+  border: 2px solid rgba(186, 230, 253, 0.65);
+  border-radius: inherit;
+}
+
+/* Room 3: Quantum Core Void Floating Spatial Anomalies & Gravity Warp (.gravity-warp) */
+@keyframes tle-float-anomaly {
+  0% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) rotate(18deg) scale(1.12);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+}
+
+.tle-r3-anomaly {
+  position: absolute;
+  font-size: 1.5rem;
+  color: #e879f9;
+  text-shadow: 0 0 18px #d946ef, 0 0 32px #a855f7;
+  pointer-events: none;
+  animation: tle-float-anomaly 3.2s ease-in-out infinite;
+}
+
+.tle-anomaly-1 {
+  top: 14%;
+  left: 28%;
+}
+
+.tle-anomaly-2 {
+  top: 16%;
+  right: 26%;
+  animation-delay: 1.4s;
+}
+
+@keyframes tle-gravity-wobble {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-0.45deg) scale(1.004);
+  }
+  50% {
+    transform: rotate(0deg) scale(0.997);
+  }
+  75% {
+    transform: rotate(0.45deg) scale(1.004);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.gravity-warp {
+  animation: tle-gravity-wobble 1.2s ease-in-out infinite;
+  box-shadow:
+    inset 0 0 70px rgba(217, 70, 239, 0.45),
+    0 0 36px rgba(168, 85, 247, 0.55) !important;
+}

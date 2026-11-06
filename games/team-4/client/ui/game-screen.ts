@@ -145,9 +145,9 @@ const DIFFICULTY_SECONDS: Record<DifficultyLevel, number> = {
 };
 
 const ROOM_TITLES: Record<DifficultyLevel, string> = {
-  basic: "Room 1",
-  medium: "Room 2",
-  hard: "Room 3",
+  basic: "ROOM 01 // OFFICE",
+  medium: "ROOM 02 // CRYO-LAB",
+  hard: "ROOM 03 // QUANTUM CORE",
 };
 
 const DEFAULT_PARTNER_LOOPS: Record<DifficultyLevel, number> = {
@@ -298,7 +298,12 @@ export function renderGameScreen(
 
           <!-- Corner Total Loop Counter -->
           <div class="tle-corner-loop-badge" id="hud-loop" title="Your total loops">
-            LOOP 01
+            LOOP #01
+          </div>
+
+          <!-- Active Room Indicator Pill -->
+          <div class="tle-room-indicator-pill" id="hud-room-indicator">
+            ${ROOM_TITLES[state.difficulty]}
           </div>
 
           <!-- Aesthetic Player Name Badges (You & Drek) -->
@@ -608,11 +613,17 @@ export function renderGameScreen(
             </div>
 
             <!-- ===================================================================
-                 ROOM 2: THE GOLDEN ALCHEMIST'S PARLOR (60s)
+                 ROOM 2: SUB-ZERO CRYO-LAB & CONTAINMENT PARLOR (60s)
                  =================================================================== -->
             <div class="tle-scene tle-scene-medium hidden" id="scene-medium">
               <div class="tle-r2-backdrop">
-                <!-- Stained Glass Rose Window Arch in Center Ceiling -->
+                <!-- Flashing Cryo Telemetry Header Strip -->
+                <div class="tle-r2-telemetry-bar">
+                  <span class="tle-r2-hazard-dot"></span>
+                  <span>CRYO-CONTAINMENT // TEMP: -196°C // DUAL-VALVE ACTIVE</span>
+                </div>
+                <div class="tle-r2-hazard-strip"></div>
+                <!-- Stained Glass / Frosted Cryo Observation Arch in Center Ceiling -->
                 <div class="tle-r2-rose-arch">
                   <svg viewBox="0 0 220 110" class="tle-rose-svg" aria-hidden="true">
                     <path
@@ -776,12 +787,14 @@ export function renderGameScreen(
             </div>
 
             <!-- ===================================================================
-                 ROOM 3: NEON QUANTUM REACTOR LAB (60s)
+                 ROOM 3: QUANTUM CORE VOID & EVENT-HORIZON LAB (60s)
                  =================================================================== -->
             <div class="tle-scene tle-scene-hard hidden" id="scene-hard">
               <div class="tle-r3-wall">
                 <div class="tle-r3-grid-lines"></div>
                 <div class="tle-r3-neon-arch"></div>
+                <div class="tle-r3-anomaly tle-anomaly-1" aria-hidden="true">✦</div>
+                <div class="tle-r3-anomaly tle-anomaly-2" aria-hidden="true">◈</div>
               </div>
               <div class="tle-r3-floor"></div>
 
@@ -910,7 +923,8 @@ export function renderGameScreen(
             <aside class="tle-bottom-dock" id="inventory-clues-dock">
               <div class="tle-inventory-panel">
                 <div class="tle-dock-label-col">
-                  <span class="tle-dock-label">INVENTORY:</span>
+                  <span class="tle-dock-label">TEMPORARY INVENTORY</span>
+                  <span class="tle-dock-sub">Physical items — wiped on loop reset</span>
                 </div>
                 <div class="tle-inv-slots" id="inventory-list"></div>
               </div>
@@ -919,7 +933,8 @@ export function renderGameScreen(
 
               <div class="tle-clues-panel">
                 <div class="tle-dock-label-col">
-                  <span class="tle-dock-label">CLUES:</span>
+                  <span class="tle-dock-label">PERMANENT KNOWLEDGE / CLUES</span>
+                  <span class="tle-dock-sub">Neural logs — retained across loops</span>
                 </div>
                 <ul class="tle-clues-list" id="clues-list"></ul>
               </div>
@@ -1748,8 +1763,18 @@ export function renderGameScreen(
     renderLaserModal();
   }
 
-  /** Transitions to a room while keeping total loop count across the whole game! */
+  /** Transitions to a room while keeping total loop count and permanent neural clues! */
   function transitionToRoom(diff: DifficultyLevel, resetTotalLoops = false): void {
+    const viewport = container.querySelector<HTMLElement>("#game-viewport");
+    if (viewport) {
+      viewport.classList.remove("tle-room-transitioning");
+      void viewport.offsetWidth;
+      viewport.classList.add("tle-room-transitioning");
+      window.setTimeout(() => {
+        viewport.classList.remove("tle-room-transitioning");
+      }, 650);
+    }
+
     state = {
       ...state,
       roomId: ROOM_TITLES[diff],
@@ -1788,7 +1813,7 @@ export function renderGameScreen(
       r3LaserError: "",
       r3CoreUnlocked: false,
       doorUnlocked: false,
-      clues: [],
+      clues: resetTotalLoops ? [] : state.clues,
       inventory: [],
     };
     loopEndModal?.classList.add("hidden");
@@ -2127,6 +2152,15 @@ export function renderGameScreen(
     inspectorModal?.classList.add("hidden");
     loopEndModal?.classList.add("hidden");
     pauseModal?.classList.add("hidden");
+    const loopBadge = container.querySelector<HTMLElement>("#hud-loop");
+    if (loopBadge) {
+      loopBadge.classList.remove("tle-loop-glitch");
+      void loopBadge.offsetWidth;
+      loopBadge.classList.add("tle-loop-glitch");
+      window.setTimeout(() => {
+        loopBadge.classList.remove("tle-loop-glitch");
+      }, 650);
+    }
     callbacks.onLoopReset?.(state.loopCount);
     renderState();
   }
@@ -2351,15 +2385,21 @@ export function renderGameScreen(
   }
 
   function renderState(): void {
+    const viewport = container.querySelector<HTMLElement>("#game-viewport");
     const timerPill = container.querySelector<HTMLElement>("#hud-timer");
     const timerVal = container.querySelector<HTMLElement>("#hud-timer-val");
     const loopVal = container.querySelector<HTMLElement>("#hud-loop");
+    const roomIndEl = container.querySelector<HTMLElement>("#hud-room-indicator");
     const p1NameEl = container.querySelector<HTMLElement>("#hud-p1-name");
     const p2NameEl = container.querySelector<HTMLElement>("#hud-p2-name");
     const startRestartBtn = container.querySelector<HTMLButtonElement>("#btn-start-restart");
     const stopBtn = container.querySelector<HTMLButtonElement>("#btn-stop-loop");
 
     const isUrgent = state.timeLeftSeconds <= 15 && state.timerRunning;
+    const isFrostDecay =
+      state.difficulty === "medium" && state.timeLeftSeconds <= 30 && state.timerRunning;
+    const isGravityWarp =
+      state.difficulty === "hard" && state.timeLeftSeconds <= 15 && state.timerRunning;
     const isPopupOpen =
       !loopEndModal?.classList.contains("hidden") ||
       !pauseModal?.classList.contains("hidden") ||
@@ -2370,6 +2410,8 @@ export function renderGameScreen(
     rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
     blurTarget?.classList.toggle("tle-room-blurred", Boolean(isPopupOpen));
     timerPill?.classList.toggle("tle-timer-urgent", isUrgent);
+    viewport?.classList.toggle("frost-decay", isFrostDecay);
+    viewport?.classList.toggle("gravity-warp", isGravityWarp);
 
     sceneBasic?.classList.toggle("hidden", state.difficulty !== "basic");
     sceneMedium?.classList.toggle("hidden", state.difficulty !== "medium");
@@ -2383,7 +2425,10 @@ export function renderGameScreen(
       timerVal.textContent = formatTime(state.timeLeftSeconds);
     }
     if (loopVal) {
-      loopVal.textContent = `LOOP ${String(state.loopCount).padStart(2, "0")}`;
+      loopVal.textContent = `LOOP #${String(state.loopCount).padStart(2, "0")}`;
+    }
+    if (roomIndEl) {
+      roomIndEl.textContent = ROOM_TITLES[state.difficulty];
     }
     if (p1NameEl) {
       p1NameEl.textContent = state.player1Name;
