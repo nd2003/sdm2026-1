@@ -47,13 +47,13 @@ export const CLUE_DEFS: Record<string, { icon: string; text: string; detail: str
   },
   year1998: {
     icon: "📸",
-    text: "The year is 1998",
-    detail: "Enter 1998 on the laptop to unlock the exit door.",
+    text: "Photo: 1998, “follow the rainbow”",
+    detail: "The year looks like a code for the laptop. The caption must point at something else.",
   },
   ciphercard: {
     icon: "🃏",
-    text: "Cipher: R=2  Y=8  G=4  B=7",
-    detail: "Rainbow order → 2847. That's the vault combination.",
+    text: "Cards: BLU 7  RED 2  GRN 4  YEL 8",
+    detail: "Four colours, four digits, pinned out of order. What order is right?",
   },
   usbfound: {
     icon: "💾",

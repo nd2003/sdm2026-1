@@ -16,6 +16,8 @@ import * as ui from "./ui.ts";
 // ── singleton state ───────────────────────────────────────────────────────────
 
 let state: GameState = makeState();
+// True while the safe shows a submit result, so input can't submit the same code twice.
+let safeBusy = false;
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -49,6 +51,8 @@ function triggerLoopReset(): void {
   }
   state.phase = "resetting";
   audio.loopReset();
+  ui.closeLaptopModal();
+  ui.closeSafeModal();
 
   const nextLoop = state.loop + 1;
   ui.showReset(nextLoop);
@@ -75,9 +79,9 @@ function applyRoomReset(): void {
   ui.hidePhoto();
   ui.hideUsb();
   ui.resetLaptop();
-  // Keep USB inventory badges if player still holds USB
-  if (state.usbHolder === 1) ui.setPlayerUsb(1, true);
-  if (state.usbHolder === 2) ui.setPlayerUsb(2, true);
+  ui.setPlayerUsb(1, state.usbHolder === 1);
+  ui.setPlayerUsb(2, state.usbHolder === 2);
+  ui.setLaptopUsb(state.usbHolder !== null);
 }
 
 // ── interaction handlers ──────────────────────────────────────────────────────
@@ -175,7 +179,7 @@ function onClickPhoto(): void {
     audio.clue();
     switchTurn();
   } else {
-    ui.toast(`${playerName()}: 1998. You already know this.`);
+    ui.toast(`${playerName()}: 1998, "follow the rainbow". You already know this.`);
   }
 }
 
@@ -183,12 +187,12 @@ function onClickCorkboard(): void {
   if (state.phase !== "playing") return;
   audio.click();
   if (hasClue(state, "ciphercard")) {
-    ui.toast(`Cipher: R=2  Y=8  G=4  B=7 → safe code is 2847`);
+    ui.toast("Four colours, four digits, pinned out of order. What order do they belong in?");
     return;
   }
   addClue(state, "ciphercard");
   ui.renderClues(state.clues);
-  ui.toast(`${playerName()} decodes the corkboard — R=2  Y=8  G=4  B=7 → 2847`, "success");
+  ui.toast(`${playerName()} copies the cards: BLU 7, RED 2, GRN 4, YEL 8. The order looks wrong.`, "success");
   audio.clue();
   switchTurn();
 }
@@ -200,7 +204,7 @@ function onClickSafe(): void {
     return;
   }
   if (state.safeOpen) {
-    ui.toast("The safe is already open — take the USB drive.");
+    ui.toast(state.usbHolder === null ? "The safe is open — take the USB drive." : "The safe is empty.");
     return;
   }
   audio.click();
@@ -218,6 +222,7 @@ function onClickUsb(): void {
   state.usbHolder = state.activePlayer;
   ui.hideUsb();
   ui.setPlayerUsb(state.activePlayer, true);
+  ui.setLaptopUsb(true);
   if (addClue(state, "usbfound")) ui.renderClues(state.clues);
   ui.toast(`${playerName()} secures the USB drive!`, "success");
   switchTurn();
@@ -250,6 +255,7 @@ function onClickDoor(): void {
 }
 
 function onSubmitCode(): void {
+  if (state.phase !== "playing" || state.laptopDone) return;
   const val = ui.getCodeInput();
   if (state.usbHolder === null) {
     ui.setModalStatus(false, "USB drive not inserted");
@@ -261,7 +267,9 @@ function onSubmitCode(): void {
     state.laptopDone = true;
     ui.setLaptopDone();
     audio.win();
+    const loop = state.loop;
     setTimeout(() => {
+      if (state.phase !== "playing" || state.loop !== loop) return;
       ui.closeLaptopModal();
       ui.toast("ACCESS GRANTED — exit door is unlocked!", "success");
       switchTurn();
@@ -273,32 +281,44 @@ function onSubmitCode(): void {
 }
 
 function onSafeDigit(digit: string): void {
+  if (safeBusy) return;
   audio.safeBeep();
   ui.appendSafeDigit(digit);
-  const current = ui.getSafeInput();
-  if (current.length === 4) {
-    setTimeout(onSafeEnter, 150);
-  }
+  if (ui.getSafeInput().length === 4) onSafeEnter();
+}
+
+function onSafeClear(): void {
+  if (!safeBusy) ui.clearSafeDigit();
 }
 
 function onSafeEnter(): void {
+  if (state.phase !== "playing" || safeBusy) return;
   const code = ui.getSafeInput();
   if (code.length < 4) return;
+  safeBusy = true;
+  const loop = state.loop;
   if (code === SAFE_CODE) {
     ui.setSafeStatus(true, "Combination accepted — vault open");
     state.safeOpen = true;
     ui.openSafeBody();
     audio.safeOpen();
     setTimeout(() => {
+      safeBusy = false;
+      if (state.phase !== "playing" || state.loop !== loop) return;
       ui.closeSafeModal();
-      ui.showUsb();
-      ui.toast(`${playerName()} cracks the vault — a USB drive is inside!`, "success");
+      if (state.usbHolder === null) {
+        ui.showUsb();
+        ui.toast(`${playerName()} cracks the vault — a USB drive is inside!`, "success");
+      } else {
+        ui.toast(`${playerName()} cracks the vault — it's empty. You already carry the USB.`);
+      }
       switchTurn();
     }, 1300);
   } else {
     ui.setSafeStatus(false, "Invalid combination");
     audio.fail();
     setTimeout(() => {
+      safeBusy = false;
       ui.resetSafeDigits();
       ui.setSafeStatus(false, "");
     }, 1000);
@@ -310,6 +330,7 @@ function onSafeEnter(): void {
 function startGame(): void {
   state = makeState();
   state.phase = "playing";
+  safeBusy = false;
   applyRoomReset();
   ui.updateLoop(state.loop);
   ui.updateTimer(state.timeLeft, LOOP_DURATION);
@@ -354,7 +375,11 @@ document.addEventListener("DOMContentLoaded", () => {
   bind("obj-painting", onClickPainting);
   bind("obj-key", onClickKey);
   bind("obj-cabinet", onClickCabinet);
-  bind("obj-photo", onClickPhoto);
+  // The photo sits inside the wardrobe, so its click must not also reach the wardrobe.
+  document.getElementById("obj-photo")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    onClickPhoto();
+  });
   bind("obj-corkboard", onClickCorkboard);
   bind("obj-safe", onClickSafe);
   bind("obj-usb", onClickUsb);
@@ -375,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Safe modal
   bind("safe-modal-close", ui.closeSafeModal);
-  bind("np-clear", ui.clearSafeDigit);
+  bind("np-clear", onSafeClear);
   bind("np-enter", onSafeEnter);
   document.querySelectorAll(".np-btn[data-digit]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -388,10 +413,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => {
     const ke = e as KeyboardEvent;
     const safeOpen = !document.getElementById("modal-safe")?.classList.contains("hidden");
-    if (!safeOpen) return;
-    if (ke.key >= "0" && ke.key <= "9") onSafeDigit(ke.key);
-    if (ke.key === "Backspace") ui.clearSafeDigit();
-    if (ke.key === "Enter") onSafeEnter();
+    if (!safeOpen || ke.repeat) return;
+    if (/^[0-9]$/.test(ke.key)) onSafeDigit(ke.key);
+    if (ke.key === "Backspace") onSafeClear();
+    if (ke.key === "Enter") {
+      // Stops Enter from also clicking whichever numpad button has focus.
+      ke.preventDefault();
+      onSafeEnter();
+    }
     if (ke.key === "Escape") ui.closeSafeModal();
   });
 });

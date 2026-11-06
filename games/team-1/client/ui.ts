@@ -80,20 +80,25 @@ export function updateLoop(loop: number): void {
   el("loop-num").textContent = String(loop);
 }
 
+function refreshSlot(player: PlayerId): void {
+  const slot = el(player === 1 ? "p1-slot" : "p2-slot");
+  slot.classList.toggle("has-item", slot.querySelector(".inv-item:not(.hidden)") !== null);
+}
+
 export function setPlayerKey(player: PlayerId, has: boolean): void {
-  const slotId = player === 1 ? "p1-slot" : "p2-slot";
-  const keyId = player === 1 ? "p1-key" : "p2-key";
-  setClass(keyId, "hidden", !has);
-  setClass(slotId, "has-item", has);
+  setClass(player === 1 ? "p1-key" : "p2-key", "hidden", !has);
+  refreshSlot(player);
 }
 
 export function setPlayerUsb(player: PlayerId, has: boolean): void {
-  const usbId = player === 1 ? "p1-usb" : "p2-usb";
-  setClass(usbId, "hidden", !has);
-  if (has) {
-    const slotId = player === 1 ? "p1-slot" : "p2-slot";
-    el(slotId).classList.add("has-item");
-  }
+  setClass(player === 1 ? "p1-usb" : "p2-usb", "hidden", !has);
+  refreshSlot(player);
+}
+
+export function setLaptopUsb(ready: boolean): void {
+  el("obj-laptop").classList.toggle("usb-inserted", ready);
+  const hint = el("obj-laptop").querySelector(".screen-usb-hint");
+  if (hint) hint.textContent = ready ? "[ USB DRIVE READY ]" : "[ USB DRIVE REQUIRED ]";
 }
 
 export function updateActivePlayer(player: PlayerId): void {
@@ -153,11 +158,12 @@ export function showSafe(): void {
 
 export function hideSafe(): void {
   el("obj-safe").classList.remove("safe-revealed");
-  setTimeout(() => hide("obj-safe"), 500);
+  el("obj-safe").querySelector(".safe-body")?.classList.remove("safe-open");
+  hide("obj-safe");
 }
 
 export function openSafeBody(): void {
-  el("obj-safe").classList.add("safe-open");
+  el("obj-safe").querySelector(".safe-body")?.classList.add("safe-open");
 }
 
 export function showUsb(): void {
@@ -167,7 +173,7 @@ export function showUsb(): void {
 
 export function hideUsb(): void {
   el("obj-usb").classList.remove("usb-revealed");
-  setTimeout(() => hide("obj-usb"), 300);
+  hide("obj-usb");
 }
 
 export function openCabinet(): void {
@@ -196,13 +202,19 @@ export function setLaptopDone(): void {
   hide("screen-locked");
   show("screen-open");
   el("obj-door").classList.add("door-unlocked");
+  setDoorLockIcon("🔓");
+}
+
+function setDoorLockIcon(icon: string): void {
+  const plate = el("obj-door").querySelector(".door-lock-plate");
+  if (plate) plate.textContent = icon;
 }
 
 export function resetLaptop(): void {
   show("screen-locked");
   hide("screen-open");
   el("obj-door").classList.remove("door-unlocked");
-  el("obj-laptop").classList.remove("usb-inserted");
+  setDoorLockIcon("🔒");
 }
 
 export function resetPaintCounter(): void {
@@ -308,7 +320,11 @@ export function toast(message: string, kind: ToastKind = "info"): void {
 
 // ── rain canvas ───────────────────────────────────────────────────────────────
 
+let rainStarted = false;
+
 export function startRain(): void {
+  if (rainStarted) return;
+  rainStarted = true;
   const canvas = document.getElementById("rain-canvas") as HTMLCanvasElement | null;
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
@@ -421,7 +437,11 @@ export function startParticles(): void {
 
 // ── lamp flicker ──────────────────────────────────────────────────────────────
 
+let flickerStarted = false;
+
 export function startLampFlicker(): void {
+  if (flickerStarted) return;
+  flickerStarted = true;
   const glow = document.getElementById("lamp-glow");
   if (!glow) return;
 
