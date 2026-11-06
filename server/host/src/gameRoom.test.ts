@@ -61,8 +61,8 @@ describe("createGameRoom", () => {
     expect(code).toMatch(/^[ABCDEFGHJKLMNPQRSTUVWXYZ]{4}$/);
     expect(room.metadata).toMatchObject({ code });
     expect(registry.byCode(code)?.roomId).toBe(room.roomId);
-    const client = await colyseus.sdk.joinById(room.roomId, { name: "Ada" });
-    await room.waitForNextPatch();
+    // connectTo waits for the client's first state; a bare sdk.joinById resolves before it arrives.
+    const client = await colyseus.connectTo(room, { name: "Ada" });
     expect(client.state.seats.size).toBe(1);
     expect(log.lines.some((l) => l.message === "room created" && l.fields.code === code)).toBe(true);
   });
