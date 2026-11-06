@@ -18,7 +18,7 @@ Claude Code will ask to install the **ponytail** plugin, which keeps code minima
 
 ## Testing
 
-Open `test.html` in a browser. It plays the full escape sequence and the loop reset, then shows PASS or FAIL for each step. GitHub Actions runs the same page on every push and PR.
+Open `test.html` in a browser. It plays the full escape sequence and the loop reset, then shows PASS or FAIL for each step. GitHub Actions runs the same page on every push.
 
 ## Escape sequence (first room)
 
@@ -53,5 +53,6 @@ Room calls `onObjectClick(id)`, and puzzles call the state functions (`addItem`,
 
 - Using an AI agent? It must follow `AGENTS.md`. Claude Code loads it automatically through `CLAUDE.md`, and most other agents read `AGENTS.md` directly.
 
-- Make a branch for each issue (`git switch -c timer`), then open a PR into `main`.
-- Don't push to `main` directly.
+- Each person works and pushes **only on their own branch** (it's named in their brief).
+- Only Zaid pushes to `main`, and GitHub blocks everyone else. Zaid pulls both branches, combines them, runs the tests and pushes the result to `main`.
+- No pull requests needed. Push your branch and tell Zaid when it's ready.

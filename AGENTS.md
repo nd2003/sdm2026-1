@@ -78,8 +78,13 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 ## Git
 
-- Work on a branch per issue (for example `git switch -c issue-3-puzzles`). Never push to `main`.
-- Open a pull request that says `Closes #N`, and keep it limited to that issue's files.
+**Only Zaid pushes to `main`.** GitHub rejects a push to `main` from anyone else.
+
+- Work only on the branch named in your brief. Commit often and push it: `git push -u origin <your-branch>`.
+- Never push, merge, rebase or force-push onto `main`, and never touch anyone else's branch.
+- Don't open pull requests or merge anything. Zaid pulls your branch, combines it with the other half, tests the result and pushes it to `main`.
+- To pick up changes that landed on `main`, run `git pull origin main` while on your branch. If it conflicts outside your own files, stop and tell your human.
+- When your "Done when" checklist is complete, push your branch and tell Zaid it's ready.
 - Before finishing, open `index.html` in a browser and check that the console has no errors.
 - Open `test.html` too. Every test for your half must pass. Tests for the other person's half may fail until their code is merged.
-- The QA workflow runs `test.html` on every push and PR. It stays red until both halves are on `main`.
+- The QA workflow runs `test.html` on every push. A red result on your own branch is expected for the other person's half.
