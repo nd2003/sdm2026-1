@@ -19,7 +19,7 @@ function render() {
     ? `<div class="card"><h1>Time Loop Escape</h1>
         <p class="wait" role="status"><span class="spinner" aria-hidden="true"></span>Waiting for your partner, ${esc(game.playerName)}…</p>
         <p>Send your partner this room code:</p>
-        <div class="code-row"><strong id="room-code-shown">${esc(game.code)}</strong><button type="button" id="copy-code">Copy</button></div></div>`
+        <div class="code-row"><strong id="room-code-shown">${esc(game.code)}</strong><button type="button" id="copy-code">Copy</button></div><p id="lobby-note" role="status"></p></div>`
     : `<form class="card" id="lobby-form" novalidate><h1>Time Loop Escape</h1>
         <p>Two people are trapped, and neither gets out alone. Half of your clues are in your partner's room.</p>
         <label for="player-name">Your name</label>
@@ -36,6 +36,11 @@ function render() {
         </div>
         <p id="lobby-error" role="alert" hidden></p>
         <button class="solo" name="how" value="solo">Play alone with a practice partner</button></form>`);
+  // net.js reports "room is full" and "nobody has opened this room" through game.message
+  if (phase === "lobby" && game.message) {
+    const box = $("lobby-error") || $("lobby-note");
+    if (box) { box.hidden = false; box.textContent = game.message; }
+  }
   if (phase === "lobby" && !game.playerName && !lobby._focused) { lobby._focused = true; setTimeout(() => $("player-name")?.focus()); }
 
   // Partner panel: name, level, loop, progress as 7 steps, and whether they're already out

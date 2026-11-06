@@ -558,3 +558,5 @@ body.asking #message { display: none; }  /* no stale message above an open input
 .obj:hover { filter: none; outline: 1px dashed #c9b45888; outline-offset: 5px; }  /* no repaint of the filtered art */
 #chat-log { scrollbar-width: thin; scrollbar-color: #2d3a2a #0000; }
 .dust { opacity: .24; }
+#lobby-note { margin: 14px auto 0; color: #e0655b; font-weight: 700; }
+#lobby-note:empty { display: none; }
