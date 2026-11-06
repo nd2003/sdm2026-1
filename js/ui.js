@@ -4,11 +4,13 @@ function render() {
   const $ = (id) => document.getElementById(id);
   const set = (el, prop, v) => { if (el && el["_" + prop] !== v) el[prop] = el["_" + prop] = v; };  // skip writes we already made
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const data = (key, v) => { if (document.body.dataset[key] !== String(v)) document.body.dataset[key] = v; };
+  const cssVar = (el, name, v) => { if (el && el["_" + name] !== v) { el["_" + name] = v; el.style.setProperty(name, v); } };
   const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };  // restart a CSS animation
 
   // Phase: CSS shows the lobby or the game from body[data-phase]
   const phase = game.phase || "lobby";
-  document.body.dataset.phase = phase;
+  data("phase", phase);
   updateSound();
 
   // Lobby: create or join a room, then "waiting" with the code once connect() has set playerName
@@ -50,10 +52,10 @@ function render() {
   set($("timer"), "textContent", "" + t + "s");
   $("timer").classList.toggle("low", t <= 10 && !out);
   document.body.classList.toggle("hurry", t <= 10 && !out && !game.won && phase === "playing");  // whole room goes red in the last 10s
-  $("hud").style.setProperty("--time", Math.min(1, t / (game.loopSeconds || 60)));  // drives the shrinking time bar
+  cssVar($("hud"), "--time", Math.min(1, t / (game.loopSeconds || 60)));  // drives the shrinking time bar
   set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
   if (stage > Number(document.body.dataset.stage || stage)) { replay($("bonus"), "show"); replay($("room"), "entering"); }  // +1:00 and the doors sliding apart
-  document.body.dataset.stage = stage;
+  data("stage", stage);
   if (stage === 2 && phase === "playing" && t <= ($("timer")._t ?? t) - 15) {
     replay($("room"), "vamp");
     replay($("drain"), "show");
@@ -71,13 +73,14 @@ function render() {
   // Chat: kept across loops, and it scrolls to the newest line
   const log = $("chat-log"), lines = game.chat || [];
   set(log, "innerHTML", lines.length
-    ? lines.map((m) => `<li${m.from === game.playerName ? ' class="me"' : ""}><b>${m.from === game.playerName ? "You" : esc(m.from)}:</b> ${esc(m.text)}</li>`).join("")
+    ? lines.map((m) => `<li${m.mine ? ' class="me"' : ""}><b>${m.mine ? "You" : esc(m.from)}:</b> ${esc(m.text)}</li>`).join("")
     : '<li class="empty">Tell your partner what you find. Half of your clues are in their room.</li>');
   if (lines.length !== log._count) { log._count = lines.length; log.scrollTop = log.scrollHeight; }
 
   // In-game input, whenever an object needs typing
   const box = $("game-input"), asking = phase === "playing" ? game.input : null;
   box.hidden = !asking;
+  document.body.classList.toggle("asking", !!asking);
   if (asking && box._for !== asking.for) {
     box._for = asking.for;
     $("game-input-label").textContent = asking.label;
@@ -120,8 +123,8 @@ function render() {
 
   // Room visual states
   const f = game.flags || {};
-  $("room").style.setProperty("--dread", Math.min(game.loop, 5));  // the figure stands closer every loop
-  $("obj-painting")?.style.setProperty("--clicks", f.paintingClicks || 0);  // tilts a bit more on every click
+  cssVar($("room"), "--dread", Math.min(game.loop, 5));  // the figure stands closer every loop
+  cssVar($("obj-painting"), "--clicks", f.paintingClicks || 0);  // tilts a bit more on every click
   $("obj-painting")?.classList.toggle("moved", !!f.paintingMoved);
   $("obj-cabinet")?.classList.toggle("open", !!f.cabinetOpen);
   $("obj-door")?.classList.toggle("unlocked", !!f.doorUnlocked);
@@ -133,6 +136,7 @@ function render() {
     let flash = $("loop-flash");
     if (!flash) {
       flash = document.createElement("div");
+      flash.addEventListener("animationend", () => flash.classList.remove("show"));
       flash.id = "loop-flash";
       flash.setAttribute("role", "status");
       document.body.append(flash);
@@ -141,7 +145,7 @@ function render() {
     replay(flash, "show");
     replay($("journal"), "remember");  // glows as the flash fades: "your clues survived"
   }
-  document.body.dataset.loop = game.loop;
+  data("loop", game.loop);
 
   // End screen: both escaped, or the partner left
   const over = phase === "over";
@@ -193,7 +197,7 @@ function render() {
   $("lobby").addEventListener("submit", (e) => {
     e.preventDefault();
     const name = $("player-name").value.trim(), code = $("room-code").value.trim().toUpperCase();
-    const how = document.activeElement === $("room-code") ? "join" : e.submitter?.value || "create";
+    const how = document.activeElement === $("room-code") || (!e.submitter && code) ? "join" : e.submitter?.value || "create";
     const problem = !name ? "Enter your name first." : how === "join" && !/^[A-Z]{4}$/.test(code) ? "A room code is 4 letters, like QXTR." : "";
     const error = $("lobby-error");
     error.hidden = !problem;

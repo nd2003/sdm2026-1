@@ -239,9 +239,9 @@ body.hurry .figure { opacity: 1; }
 #obj-lamp .tube { animation: stutter 7s steps(1) infinite; }
 @keyframes stutter { 0%, 41%, 45%, 47%, 83%, 86%, 100% { opacity: 1; } 42%, 46% { opacity: .2; } 84% { opacity: .45; } }
 #obj-lamp .art { filter: drop-shadow(0 0 2cqw #f3e9a688); }
-#obj-painting .art { filter: brightness(1.45) saturate(1.25); }  /* the clue needs it to stay clearly blue in the dark */
+#obj-painting .art { filter: brightness(1.45) saturate(1.25); }  /* the clue needs its colour to stay clear in the dark */
 #obj-painting.moved .art { transform: translate(-6%, 20%) rotate(-12deg) scale(.86); }
-body.hurry #obj-painting .art { filter: brightness(1.9) saturate(1.5); }  /* stays blue under the red light */
+body.hurry #obj-painting .art { filter: brightness(1.9) saturate(1.5); }  /* keeps its colour under the red light */
 
 /* The arm holding the flashlight swings toward where you look */
 .arm {
@@ -551,3 +551,10 @@ body { background: radial-gradient(ellipse at 40% 0, #2c2710, #090804 65%); }
 #journal { background-color: #b5aa86; clip-path: polygon(0 0, 100% 0, 100% 97%, 94% 100%, 86% 98%, 74% 100%, 61% 98%, 49% 100%, 36% 98%, 22% 100%, 10% 98%, 0 100%); }
 @media (prefers-reduced-motion: reduce) { .dust::before, .wipe { animation: none !important; } }
 body.no-flicker .dust { opacity: .25; }
+
+/* QA fixes */
+body.asking #message { display: none; }  /* no stale message above an open input box */
+#hud::after { width: 100%; transform-origin: left; transform: scaleX(var(--time, 1)); transition: transform 1s linear, background 1s; }  /* no layout on every tick */
+.obj:hover { filter: none; outline: 1px dashed #c9b45888; outline-offset: 5px; }  /* no repaint of the filtered art */
+#chat-log { scrollbar-width: thin; scrollbar-color: #2d3a2a #0000; }
+.dust { opacity: .24; }

@@ -22,7 +22,7 @@ function buildRoom() {
         <path d="M108 14v24M114 13v24M120 14v24M126 13v24M104 33l27-16M136 14v24M142 13v24M148 14v24M154 13v24M132 33l27-16"/>
         <path d="M108 48v24M114 47v24M120 48v24M126 47v24M104 67l27-16M136 48v24M142 47v24"/></g>
       <path d="M148 48v24M154 47v24" stroke="#d8d0ba" stroke-width="2.4" stroke-linecap="round"/></svg>`],
-    ["painting", "Blue painting", S("0 0 120 90", `
+    ["painting", "Painting", S("0 0 120 90", `
       <path d="M1 1h96l6 7 16-3v84H12l-4-9-7 2z" fill="#3f3019" ${ink}/><rect x="8" y="8" width="104" height="74" fill="#120d07"/>
       <rect x="11" y="11" width="98" height="68" fill="url(#sea)"/><circle cx="96" cy="26" r="6" fill="#c9d6f2"/>
       <path d="M11 56q12-9 24 0t25 0 25 0 24 0v23H11z" style="fill:var(--paint3,#0f338f)"/><path d="M11 65q12-8 24 0t25 0 25 0 24 0" fill="none" style="stroke:var(--paint4,#7fa8fb)" stroke-width="1.6"/>
@@ -303,16 +303,17 @@ function buildRoom() {
   // The beam is its own layer moved with transform, so following the pointer never repaints the room.
   room.insertAdjacentHTML("beforeend", '<div class="beam" aria-hidden="true"><div class="dust"></div></div><div class="wipe l" aria-hidden="true"></div><div class="wipe r" aria-hidden="true"></div>');
   const beam = room.querySelector(".beam");
-  let frame = 0, px = 0, py = 0;
+  const arm = room.querySelector(".arm");
+  let frame = 0, px = 0, py = 0, rect = null;
+  for (const type of ["resize", "scroll"]) addEventListener(type, () => { rect = null; }, { passive: true });
   const aim = (x, y) => {
     px = x; py = y;
     frame ||= requestAnimationFrame(() => {  // at most one update per screen frame
       frame = 0;
-      const r = room.getBoundingClientRect();
-      const nx = Math.min(1, Math.max(0, (px - r.left) / r.width)), ny = Math.min(1, Math.max(0, (py - r.top) / r.height));
+      if (!rect || !rect.width) rect = room.getBoundingClientRect();
+      const nx = Math.min(1, Math.max(0, (px - rect.left) / rect.width)), ny = Math.min(1, Math.max(0, (py - rect.top) / rect.height));
       beam.style.transform = `translate(${nx * 50}%, ${ny * 50}%)`;  // beam is 2x the room, so 50% = full width
-      room.style.setProperty("--nx", nx);
-      room.style.setProperty("--ny", ny);
+      for (const el of [scene, arm]) { el.style.setProperty("--nx", nx); el.style.setProperty("--ny", ny); }
     });
   };
   room.addEventListener("pointermove", (e) => aim(e.clientX, e.clientY));
