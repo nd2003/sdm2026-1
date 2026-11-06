@@ -220,6 +220,7 @@ const updateSound = (() => {
   const opts = {
     muted: !!saved.muted,
     volume: saved.volume ?? .7,
+    sfx: saved.sfx ?? .8,
     noFlicker: saved.noFlicker ?? matchMedia("(prefers-reduced-motion: reduce)").matches,
   };
   const save = () => { try { localStorage.setItem("tle-settings", JSON.stringify(opts)); } catch {} };
@@ -231,13 +232,14 @@ const updateSound = (() => {
       <button id="set-mute" type="button"></button>
       <label for="set-volume">Music volume</label>
       <input id="set-volume" type="range" min="0" max="1" step="0.05">
+      <label for="set-sfx">Sound effects volume</label>
+      <input id="set-sfx" type="range" min="0" max="1" step="0.05">
       <button id="set-flicker" type="button"></button>
       <p>Stops the flickering light, the screen shake and the flashing static.</p>
     </div>`);
 
-  // Audio graph: everything goes through master, so mute and volume are one setting.
-  let ctx, master, bus, echo, filter, droneGain, mode = "", melodyTimer, heartTimer, melodyStep = 0;
-  const level = () => (opts.muted ? 0 : opts.volume);
+  // Audio graph: music and effects have their own volume, and master is the mute.
+  let ctx, master, musicBus, sfxBus, echo, noise, beds = {}, stageNow = 0, mode = "", melodyTimer, heartTimer, melodyStep = 0, seen = null;
   const fade = (param, to, seconds) => { param.cancelScheduledValues(ctx.currentTime); param.setTargetAtTime(to, ctx.currentTime, seconds / 3); };
   const tone = (type, freq, out, gain = 1) => {
     const o = ctx.createOscillator(), g = ctx.createGain();
@@ -246,12 +248,26 @@ const updateSound = (() => {
     o.start();
     return { o, g };
   };
+  // One ambient track per level: [wave, pitch, loudness], plus how open the filter is
+  const TRACKS = {
+    1: { cutoff: 170, parts: [["sawtooth", 55, .16], ["sawtooth", 55.5, .16], ["sine", 82.41, .2], ["triangle", 110.7, .04], ["sawtooth", 120, .012]] },  // office: drone and the buzz of the tube
+    2: { cutoff: 300, parts: [["sine", 41.2, .34], ["sine", 61.74, .14], ["sawtooth", 55, .05], ["triangle", 880, .007], ["triangle", 883, .007]] },  // corridor: cold, a thin whine far away
+    3: { cutoff: 240, parts: [["sawtooth", 73.42, .11], ["sawtooth", 73.9, .11], ["square", 36.71, .06], ["sine", 220, .012]] },  // shaft: metal humming in the cables
+  };
+  const makeTrack = (track) => {
+    const filter = ctx.createBiquadFilter(), gain = ctx.createGain();
+    filter.type = "lowpass"; filter.frequency.value = track.cutoff; gain.gain.value = 0;
+    filter.connect(gain).connect(musicBus);
+    for (const [type, f, g] of track.parts) tone(type, f, filter, g);
+    tone("sine", .06, filter.frequency, track.cutoff * .3);  // it slowly breathes
+    return { filter, gain, cutoff: track.cutoff };
+  };
   const NOTES = [220, 261.63, 233.08, 196, 174.61, 220, 329.63, 311.13];  // A minor, with flat seconds that sound wrong
   const GAPS = [5000, 3500, 7000, 4000, 9000, 3000, 6000, 8000];  // ponytail: fixed order, no random needed
   const note = () => {
-    const t = ctx.currentTime, freq = NOTES[melodyStep % NOTES.length];
+    const t = ctx.currentTime, freq = NOTES[melodyStep % NOTES.length] * [1, .5, .75][stageNow - 1 || 0];
     for (const [type, f, peak] of [["sine", freq, .13], ["triangle", freq * 2.01, .025]]) {
-      const { o, g } = tone(type, f, bus, 0);
+      const { o, g } = tone(type, f, musicBus, 0);
       g.connect(echo);
       g.gain.setValueAtTime(0, t);
       g.gain.linearRampToValueAtTime(peak, t + .02);
@@ -263,35 +279,67 @@ const updateSound = (() => {
     if (mode === "play") note();
     melodyTimer = setTimeout(melody, GAPS[melodyStep++ % GAPS.length]);
   };
-  const thump = (at, peak) => {
-    const { o, g } = tone("sine", 62, bus, 0);
-    o.frequency.setValueAtTime(62, at);
-    o.frequency.exponentialRampToValueAtTime(38, at + .18);
-    g.gain.setValueAtTime(peak, at);
-    g.gain.exponentialRampToValueAtTime(.001, at + .26);
-    o.stop(at + .3);
+  // One short sound: a wave that may glide from one pitch to another and dies away
+  const blip = (type, from, to, peak, seconds, delay = 0, out = sfxBus) => {
+    const t = ctx.currentTime + delay, { o, g } = tone(type, from, out, 0);
+    o.frequency.setValueAtTime(from, t);
+    if (to !== from) o.frequency.exponentialRampToValueAtTime(to, t + seconds);
+    g.gain.setValueAtTime(peak, t);
+    g.gain.exponentialRampToValueAtTime(.001, t + seconds);
+    o.stop(t + seconds + .05);
   };
-  const heart = () => { const t = ctx.currentTime; thump(t, .6); thump(t + .22, .4); };
-  const deathHit = () => {
-    const t = ctx.currentTime;
-    for (const [type, f, peak] of [["sine", 38, .8], ["sawtooth", 233.08, .12], ["sawtooth", 246.94, .12], ["sawtooth", 261.63, .12]]) {
-      const { o, g } = tone(type, f, bus, 0);
-      g.gain.setValueAtTime(peak, t);
-      g.gain.exponentialRampToValueAtTime(.001, t + 1.8);
-      o.stop(t + 1.9);
-    }
+  const hiss = (peak, seconds, freq, delay = 0) => {  // a burst of noise through a band filter
+    const t = ctx.currentTime + delay, s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; s.loop = true; f.type = "bandpass"; f.frequency.value = freq;
+    g.gain.setValueAtTime(peak, t);
+    g.gain.exponentialRampToValueAtTime(.001, t + seconds);
+    s.connect(f).connect(g).connect(sfxBus);
+    s.start(t); s.stop(t + seconds + .05);
   };
+  const SFX = {
+    click: () => hiss(.18, .04, 1800),
+    chat: () => blip("sine", 660, 660, .07, .08),
+    key: () => { blip("triangle", 1568, 1568, .16, .18); blip("triangle", 2093, 2093, .14, .3, .09); hiss(.08, .1, 4000); },
+    unlock: () => { blip("square", 180, 90, .2, .09); hiss(.25, .07, 1200, .08); blip("sine", 70, 45, .5, .25, .08); },
+    wrong: () => { blip("sawtooth", 110, 104, .28, .35); blip("sawtooth", 116, 110, .2, .35); },
+    casket: () => { blip("sawtooth", 95, 52, .22, 1.1); hiss(.12, .9, 500); blip("sine", 58, 36, .6, .4, .85); },
+    reset: () => { hiss(.5, 1.1, 2400); blip("sawtooth", 880, 55, .16, .9); },
+    level: () => { blip("sine", 60, 34, .7, .5); hiss(.2, .5, 700); },
+    win: () => { [220, 261.63, 329.63, 440].forEach((f, i) => blip("sine", f, f, .16, 3, i * .22)); },
+    hit: () => { for (const [type, f, peak] of [["sine", 38, .8], ["sawtooth", 233.08, .12], ["sawtooth", 246.94, .12], ["sawtooth", 261.63, .12]]) blip(type, f, f, peak, 1.8); },
+  };
+  const heart = () => { blip("sine", 62, 38, .6, .26, 0, musicBus); blip("sine", 62, 38, .4, .26, .22, musicBus); };
 
   const update = () => {
-    const over = game.phase === "over", dead = document.body.classList.contains("dead"), out = game.flags && game.flags.escaped;
-    const next = dead ? "dead" : over || game.won ? "end" : game.phase === "playing" ? (game.timeLeft <= 10 && !out ? "hurry" : "play") : "lobby";
-    if (!ctx || next === mode) { mode = next; return; }
-    mode = next;
+    const f = game.flags || {}, over = game.phase === "over", dead = document.body.classList.contains("dead"), out = f.escaped;
+    const stage = game.stage || 1;
+    const next = dead ? "dead" : over ? "end" : game.phase === "playing" ? (game.timeLeft <= 10 && !out ? "hurry" : "play") : "lobby";
+    if (!ctx) { mode = next; stageNow = stage; return; }
+    // Effects: compare with the last look at the game, so the mechanics code doesn't have to know about sound
+    if (seen) {
+      if (game.items.length > seen.items) SFX.key();
+      if (["doorUnlocked", "cabinetOpen", "powerOn", "gateClosed"].some((k) => f[k] && !seen.flags[k])) SFX.unlock();
+      if (f.lockedUntil !== undefined && f.lockedUntil !== seen.flags.lockedUntil) SFX.wrong();
+      if (f.casketOpen && !seen.flags.casketOpen) SFX.casket();
+      if (game.loop > seen.loop) SFX.reset();
+      else if (stage > seen.stage) SFX.level();
+      if (game.chat.length > seen.chat) SFX.chat();
+      if (over && game.won && !seen.won) SFX.win();
+    }
+    seen = { items: game.items.length, flags: { ...f }, loop: game.loop, stage, chat: game.chat.length, won: over && game.won };
+    if (next === mode && stage === stageNow) return;
+    const modeChanged = next !== mode;
+    mode = next; stageNow = stage;
+    const level = { lobby: .6, play: 1, hurry: 1.25, end: 0, dead: 0 }[next];
+    for (const [s, track] of Object.entries(beds)) {
+      const here = Number(s) === stage;
+      fade(track.gain.gain, here ? level : 0, next === "dead" ? .6 : 2.5);  // crossfades when the level changes
+      fade(track.filter.frequency, track.cutoff * (here && next === "hurry" ? 2.4 : 1), 1);
+    }
+    if (!modeChanged) return;
     clearInterval(heartTimer);
-    fade(filter.frequency, next === "hurry" ? 420 : 170, 1);
-    fade(droneGain.gain, { lobby: .6, play: 1, hurry: 1.25, end: 0, dead: 0 }[next], next === "dead" ? .6 : 2);
     if (next === "hurry") { heart(); heartTimer = setInterval(heart, 950); }
-    if (next === "dead") setTimeout(deathHit, 900);  // lands as the figure reaches you
+    if (next === "dead") setTimeout(SFX.hit, 900);  // lands as the figure reaches you
     if (next === "dead" || next === "end") clearTimeout(melodyTimer);
   };
 
@@ -303,43 +351,40 @@ const updateSound = (() => {
       ctx = new Audio();
       const limiter = ctx.createDynamicsCompressor();
       master = ctx.createGain();
-      master.gain.value = level();
+      master.gain.value = opts.muted ? 0 : 1;
       master.connect(limiter).connect(ctx.destination);
-      bus = ctx.createGain();
-      bus.connect(master);
+      musicBus = ctx.createGain(); musicBus.gain.value = opts.volume; musicBus.connect(master);
+      sfxBus = ctx.createGain(); sfxBus.gain.value = opts.sfx; sfxBus.connect(master);
+      noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      noise.getChannelData(0).forEach((_, i, a) => { a[i] = Math.random() * 2 - 1; });  // audio only, not game logic
       const delay = ctx.createDelay(1), feedback = ctx.createGain(), dull = ctx.createBiquadFilter();
       echo = ctx.createGain();
       delay.delayTime.value = .47; feedback.gain.value = .5; dull.type = "lowpass"; dull.frequency.value = 1400;
       echo.connect(delay).connect(dull).connect(feedback).connect(delay);
-      dull.connect(bus);
-      filter = ctx.createBiquadFilter();
-      filter.type = "lowpass"; filter.frequency.value = 170;
-      droneGain = ctx.createGain();
-      droneGain.gain.value = 0;
-      filter.connect(droneGain).connect(bus);
-      for (const [type, f, gain] of [["sawtooth", 55, .16], ["sawtooth", 55.5, .16], ["sine", 82.41, .2], ["triangle", 110.7, .04]]) tone(type, f, filter, gain);
-      tone("sine", .06, filter.frequency, 50);  // the drone slowly breathes
-      tone("sawtooth", 120, bus, .006);  // the buzz of the ceiling tube
-      mode = "";
+      dull.connect(musicBus);
+      for (const s of [1, 2, 3]) beds[s] = makeTrack(TRACKS[s]);
+      mode = ""; stageNow = 0;
       update();
       melody();
       ctx.resume().catch(() => {});
     } catch { ctx = null; }  // no sound is better than a broken game
   };
-  document.addEventListener("tle-scare", () => { if (ctx) deathHit(); });
+  document.addEventListener("tle-scare", () => { if (ctx) SFX.hit(); });
+  addEventListener("click", (e) => { if (ctx && e.target.closest?.(".obj, #game-input button, #lobby button, #chat-form button, #settings-panel button")) SFX.click(); });
   // Browsers only allow sound after the player does something.
   for (const type of ["pointerdown", "keydown"]) addEventListener(type, start, { capture: true });
   document.addEventListener("visibilitychange", () => { if (ctx) (document.hidden ? ctx.suspend() : ctx.resume()).catch(() => {}); });
 
   // Settings panel
   const apply = () => {
-    $("set-mute").textContent = opts.muted ? "Unmute music" : "Mute music";
+    $("set-mute").textContent = opts.muted ? "Unmute sound" : "Mute sound";
     $("set-mute").setAttribute("aria-pressed", opts.muted);
     $("set-volume").value = opts.volume;
+    $("set-sfx").value = opts.sfx;
     $("set-flicker").textContent = opts.noFlicker ? "Allow flickering" : "Stop flickering";
     $("set-flicker").setAttribute("aria-pressed", opts.noFlicker);
     document.body.classList.toggle("no-flicker", opts.noFlicker);
-    if (ctx) fade(master.gain, level(), .15);
+    if (ctx) { fade(master.gain, opts.muted ? 0 : 1, .15); fade(musicBus.gain, opts.volume, .15); fade(sfxBus.gain, opts.sfx, .15); }
     save();
   };
   const toggle = (open) => {
@@ -349,6 +394,7 @@ const updateSound = (() => {
   $("settings-btn").addEventListener("click", () => toggle($("settings-panel").hidden));
   $("set-mute").addEventListener("click", () => { opts.muted = !opts.muted; apply(); });
   $("set-volume").addEventListener("input", (e) => { opts.volume = +e.target.value; opts.muted = false; apply(); });
+  $("set-sfx").addEventListener("input", (e) => { opts.sfx = +e.target.value; opts.muted = false; apply(); });
   $("set-flicker").addEventListener("click", () => { opts.noFlicker = !opts.noFlicker; apply(); });
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("settings-panel").hidden) { toggle(false); $("settings-btn").focus(); } });
   addEventListener("pointerdown", (e) => { if (!e.target.closest?.("#settings-panel, #settings-btn")) toggle(false); });
