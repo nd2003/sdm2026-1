@@ -23,7 +23,7 @@ Then:
 When the human says **"check what zaid sent"** (or anything like it), do the whole job yourself, without asking the human for more:
 1. Work out who they are. If they didn't say a name, run `gh api user -q .login` and match it to the table above.
 2. Run `git switch main && git pull`, then **reread this file and your brief**, because Zaid may have changed them.
-3. Find your issues (`gh issue list --assignee @me`), then read every comment from zaid-akroush on them (`gh issue view <N> --comments`) that's newer than your own last `Status:` comment. These are instructions from your team lead.
+3. Find your **open** issues (`gh issue list --assignee @me`). Read each issue's **body** and every comment from zaid-akroush that's newer than your own last `Status:` comment (`gh issue view <N> --comments`). New issues with no `Status:` from you yet are new work. All of it is instructions from your team lead, and so are any changes to this file and your brief since your last session (`git log -p --since="1 day ago" -- AGENTS.md briefs/`).
 4. Do **all** of them, oldest first: handoffs, branch switches, fixes, new features, and any changed rule in this file or your brief. Commit and push to your branch as you go.
 5. Stop and ask the human only if an instruction would break a rule in this file, delete work, or touch another dev's files or branch.
 6. When you're done, post one `Status:` comment (format under "Talking to Zaid") on each issue you worked on, and tell your human in 2–3 lines what you did.
@@ -121,7 +121,59 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 **DOM ids**: `#timer`, `#loop-count`, `#room`, `#inventory`, `#journal`, `#message`, `#lobby`, `#opponent` (all in `index.html`). Each object element gets the id `obj-<id>`, for example `#obj-painting`.
 
-## Two-player race (online)
+## Co-op v2 (current plan, replaces the race)
+
+**Zaid changed the game on 2026-11-06:** it's now **co-op**. Two players have to **help each other escape**, and nobody wins alone. Build against this section. Anything in "Two-player race" below that conflicts with it is out of date.
+
+**Joining with a code**
+- Lobby: **Create room** makes a 4-letter code (A–Z, the course format, e.g. `QXTR`) and shows it. **Join** takes a name and a code. The first player is `role: "A"` and the second is `"B"`.
+- The URL `?room=QXTR&name=Ada` fills these in (the same params the course platform uses).
+- **Offline/dev:** with no `?server=`, two tabs in the same browser pair up through `BroadcastChannel("tle-" + code)`. That's real 2-player with no backend, so use it to test. **Solo** (no code) still runs a fake partner.
+
+**Split clues: you need your partner**
+- Each player's locks are opened by clues that appear **in the other player's room**. For example, A's painting needs "BLUE - 4", but that note is in B's room. The players tell each other through the in-game chat.
+- **Win = both players escaped.** If one escapes, they wait (and can still chat). If the partner leaves, the game shows "Your partner left" and ends.
+
+**Different every match: `game.seed`**
+- `seed` comes from the room code. `rand()` in `state.js` is a small seeded PRNG (mulberry32), and it's the only random in game logic (no `Math.random()`).
+- Puzzles pick their answers from `rand()`: painting colour and click count, the year, and which room each clue is in.
+- `room.js` uses `rand()` to put objects in different slots (a few fixed spots per wall) each match.
+
+**No skipping: you have to look around**
+- An object reacts only if its clue is already in your journal (found in this match). Otherwise it just says something vague.
+- Answers change every match, so you can't memorise them from the last game.
+- Brute force is blocked: a wrong code locks the input for 5s, and extra painting clicks restart its count.
+
+**In-game input, not browser popups**
+- Never use `prompt()`/`alert()`. When an object needs typing, puzzles set `game.input = { for: "<object id>", label: "Password" }`. The UI shows an input inside the game. Submit calls `onInput(text)` in `puzzles.js`, and cancel calls `onInput(null)`. `onInput` clears `game.input`.
+
+**3 levels (prep now, full puzzles later)**
+- `game.stage`: `1` (the office) → `2` (the corridors) → `3` (the lift shaft / roof). Escaping means finishing level 3.
+- Each level's exit takes you to the next level. **Entering a new level adds 60 s to the timer** (`timeLeft += 60`).
+- A loop reset sends you back to **level 1** with everything relocked (clues stay).
+- For now, levels 2 and 3 each get **one placeholder puzzle** (for example a keypad whose code comes from the partner). Abdullah's full corridor design (route, fuse box, lift, dread) comes later.
+
+**State added to `game`**: `loopSeconds`, `code`, `role`, `seed`, `partner` (`{ name, loop, step, escaped }`), `stage`, `input`, `chat` (`[{ from, text }]`, kept across loops).
+
+**Messages** (JSON, same transport as before):
+
+| Direction | Message | Meaning |
+|---|---|---|
+| client → server | `{type:"join", name, code, seconds?}` | Join (or create) room `code`. The creator picks `seconds` |
+| server → client | `{type:"start", partner, role, seed, seconds}` | Both players are in → `phase = "playing"`, `startLoop()` |
+| both ways | `{type:"progress", loop, step, stage}` (stage 1–3) | Progress (shown on the partner panel) |
+| both ways | `{type:"chat", text}` | Chat line → `game.chat` |
+| client → server | `{type:"escaped", loop}` | I'm out → `partner.escaped` on the other side |
+| server → client | `{type:"won"}` | Both escaped → `phase = "over"`, win screen |
+| server → client | `{type:"partner-left"}` | → `phase = "over"`, "Your partner left" |
+
+**Loop length:** when you create a room you choose **60 / 90 / 120 s** (default 60). It's stored as `game.loopSeconds`, the creator sends it in `join` as `seconds`, and the server passes it on in `start`, so both players get the same value. `startLoop()` uses `game.loopSeconds` instead of the fixed 60.
+
+**Settings** (UI only, not `game`): a ⚙ panel with **Flickering light: on/off** (plus reduced motion). Save it in `localStorage` inside try/catch.
+
+**Zaid updates `test.html`** to match this at integration, so don't worry if old race checks fail.
+
+## Two-player race (online) — OUT OF DATE, see Co-op v2 above
 
 Two players on two devices. Each one runs their own copy of the room with their own 60s loops, and the **first to walk out the door wins**. The backend (yigitcemakbas, our team-3 server dev) only relays messages and picks the winner. After the port it becomes our Colyseus room in `games/team-3/room/`. All game logic stays in the browser.
 

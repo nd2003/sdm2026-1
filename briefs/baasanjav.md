@@ -24,6 +24,10 @@ You're helping build **Time Loop Escape**, a browser game. The player has 60 sec
 
 **Read `README.md` and `AGENTS.md` before writing any code.** `AGENTS.md` has the shared contract. Follow it exactly, because a teammate builds the other half against it at the same time.
 
+## Current work
+
+The game is now **co-op** (see "Co-op v2" in `AGENTS.md`). **Your current tasks are your open GitHub issues.** Each one has a "Done when" list. The sections below describe the older, finished work.
+
 ## Your scope
 
 You own GitHub issues **#2 (Room & objects)**, **#4 (UI)** and **#7 (Lobby & opponent UI)**. You may only edit:
