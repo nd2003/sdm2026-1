@@ -111,11 +111,12 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 | `onObjectClick(id)` | `puzzles.js` | `room.js`, on every click | Runs the puzzle logic for that object |
 | `startLoop()` / `resetLoop()` | `state.js` | `main.js` / the timer | Starts the 60s timer / resets when it hits 0 |
 | `addItem(id)`, `hasItem(id)`, `addClue(text)`, `setFlag(name, value)`, `say(text)` | `state.js` | `puzzles.js` | Change state, then call `render()` |
+| `placeObjects()` | `room.js` | `ui.js`, when a match starts | Puts objects in seeded slots with `rand()` and tints the painting |
 | `render()` | `ui.js` | `state.js`, after every change and every tick | Redraws the HUD, inventory, journal, message, room states and win screen from `game` |
 
 **Object ids** (used by both room and puzzles): `note`, `painting`, `cabinet`, `photo`, `computer`, `door`. Decoy objects use any other id. `onObjectClick` should just `say()` something for them.
 
-**Flags** (`game.flags`): `paintingClicks` (number), `paintingMoved`, `cabinetOpen`, `doorUnlocked` (booleans). `render()` uses these to show visual states, for example adding the class `open` to `#obj-cabinet`.
+**Flags** (`game.flags`, all reset every loop): `paintingClicks` (number), `paintingMoved`, `cabinetOpen`, `doorUnlocked`, `casketOpen`, `powerOn`, `gateClosed`, `escaped` (booleans), `lockedUntil` (a `timeLeft` value: the input is locked while `timeLeft > lockedUntil`). `render()` uses these to show visual states, for example adding the class `open` to `#obj-cabinet`.
 
 **Items**: `key`.
 
@@ -153,7 +154,7 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 - A loop reset sends you back to **level 1** with everything relocked (clues stay).
 - For now, levels 2 and 3 each get **one placeholder puzzle** (for example a keypad whose code comes from the partner). Abdullah's full corridor design (route, fuse box, lift, dread) comes later.
 
-**State added to `game`**: `loopSeconds`, `code`, `role`, `seed`, `partner` (`{ name, loop, step, escaped }`), `stage`, `input`, `chat` (`[{ from, text }]`, kept across loops).
+**State added to `game`**: `loopSeconds`, `code`, `role`, `seed`, `partner` (`{ name, loop, step, escaped }`), `stage`, `input`, `chat` (`[{ from, text, mine }]`, kept across loops. `mine: true` marks your own lines, so two players with the same name still work).
 
 **Messages** (JSON, same transport as before):
 
@@ -178,7 +179,10 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
   - Level 2: `fusebox` (new step: the keypad is dead until you throw it; flag `powerOn`), `shoes`, `bricked-door`, `candles`.
   - Level 3: `gate` (new step: the lift won't move until it's shut; flag `gateClosed`), `indicator`, `emergency-phone`, `graffiti`.
   - `powerOn` and `gateClosed` reset every loop.
+- Progress steps (co-op): 1 note, 2 key, 3 cabinet, 4 computer, 5 level 2, 6 casket, 7 level 3. The race list below is out of date.
 - Two tabs from disk (`file://`): `BroadcastChannel` can't connect them, so `net.js` falls back to `localStorage` storage events (same messages).
+
+**Admin skip (testing only):** if the player's name is exactly `admin` (any case), the HUD shows a **Skip level** button. It calls `adminSkip()` in `puzzles.js`, which moves on as if the current level's exit were solved: level 1 → 2 → 3 (with the usual +60s), and on level 3 it escapes. It sends the same `progress`/`escaped` messages as normal play. `// ponytail:` mark it. It's a cheat anyone can type, so in the course port it becomes a `?debug` debug command, which is rejected in production.
 
 **Settings** (UI only, not `game`): a ⚙ panel with **Flickering light: on/off** (plus reduced motion). Save it in `localStorage` inside try/catch.
 
