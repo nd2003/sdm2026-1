@@ -131,7 +131,7 @@ function onNetMessage(msg) {
 // Solo: a fake partner in a room you can't see. It chats you the clues that sit in "its" room, then escapes.
 const FAKE_SCRIPT = [  // [seconds after start, what it does]
   [6,   (a) => `There's a note for you in my room: "${a.color} - ${a.clicks}". It's in your handwriting. How?`],
-  [18,  (a) => (photoIsRemote() ? `My photo has you in it. Back says it's for you: ${a.year}.` : "My photo is for me. Check yours.")],
+  [18,  (a) => (photoIsRemote() ? `Your computer password is ${a.year}. It's on the photo in my room.` : "The photo in my room has my year. Yours is on your photo.")],
   [30,  (a) => `A card in my cabinet, for you: your code sleeps in the ${a.casket.toUpperCase()} casket. Don't open the other one.`],
   [45,  (a) => `My casket had a scrap for you: floor ${a.floor}. Something in the other casket is still moving.`],
   [100, () => "I'm out. It's dawn out here. Don't make me leave without you."],

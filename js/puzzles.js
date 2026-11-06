@@ -98,7 +98,8 @@ function onObjectClick(id) {
       const remote = photoIsRemote(), year = remote ? them.year : me.year;
       addClue(remote ? `For ${p}: the photo is dated ${year}` : `The photograph is dated ${year}`);
       say(`A photo of the night shift: "${NIGHT}, ${year}". Two people. One face is scratched out. The other is yours.`
-        + (remote ? ` On the back, in your handwriting: "For ${p}."` : ""));
+        + (remote ? ` On the back, in your handwriting: "${year} is ${p}'s password, not yours. Tell them. Yours is in their room."`
+                  : ` On the back: "Your password: the year."`));
       if (later) remember(`Every photo shows the same night, ${NIGHT}, in a different year. I'm in all of them.`);
       break;
     }
@@ -106,7 +107,7 @@ function onObjectClick(id) {
       if (!knows("Find the year")) { say("The screen asks for a password. You have no idea where to start."); break; }
       if (inputLocked()) { say("The screen is frozen. Something is still reading your last answer."); break; }
       game.input = { for: "computer", label: "Password" };
-      render();
+      say(photoIsRemote() ? `The screen wants your year. It isn't on your photo: ${partnerName()} has it.` : "The screen wants a password. The year on your photo.");
       break;
     case "door":
       if (!f.doorUnlocked) {
@@ -192,7 +193,8 @@ function onInput(text) {
   const me = mine(), answer = String(text).trim();
   const wrong = (msg) => { setFlag("lockedUntil", game.timeLeft - WRONG_CODE_LOCK); say(msg + ` (locked for ${WRONG_CODE_LOCK}s)`); };
   if (what === "computer") {
-    if (answer !== me.year) return wrong("Access denied. For a second the screen shows your face, from behind.");
+    if (answer !== me.year) return wrong("Access denied. For a second the screen shows your face, from behind."
+      + (photoIsRemote() ? ` The year on your photo is ${partnerName()}'s. Ask them for yours.` : ""));
     setFlag("doorUnlocked", true);
     if (game.loop >= 3) {
       say(`ACCESS GRANTED. One unread memo: "To whoever is left. The door opens for one. The one who stays feeds the clock. Unless two hold it open together." Behind you, the door unlocks.`);
