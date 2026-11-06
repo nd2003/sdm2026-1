@@ -25,6 +25,8 @@ export interface GameScreenState {
   cabinetUnlocked?: boolean;
   doorUnlocked?: boolean;
   escaped?: boolean;
+  timerRunning?: boolean;
+  loopExpired?: boolean;
   clues?: string[];
   inventory?: string[];
   feedbackMessage?: string;
@@ -52,6 +54,8 @@ interface InternalGameScreenState {
   cabinetUnlocked: boolean;
   doorUnlocked: boolean;
   escaped: boolean;
+  timerRunning: boolean;
+  loopExpired: boolean;
   clues: string[];
   inventory: string[];
   feedbackMessage: string;
@@ -91,11 +95,13 @@ export function renderGameScreen(
     cabinetUnlocked: initialState?.cabinetUnlocked ?? false,
     doorUnlocked: initialState?.doorUnlocked ?? false,
     escaped: initialState?.escaped ?? false,
+    timerRunning: initialState?.timerRunning ?? false,
+    loopExpired: initialState?.loopExpired ?? false,
     clues: initialState?.clues ? [...initialState.clues] : [],
     inventory: initialState?.inventory ? [...initialState.inventory] : [],
     feedbackMessage:
       initialState?.feedbackMessage ??
-      "Explore the room: inspect the open book on the desk to find your first clue.",
+      "Press ▶ Start to begin the 60-second time loop, then explore the room!",
   };
 
   container.innerHTML = `
@@ -108,9 +114,6 @@ export function renderGameScreen(
           </button>
           <button type="button" class="tle-icon-btn" id="btn-hint" title="Show Hint">
             <span>💡</span>
-          </button>
-          <button type="button" class="tle-icon-btn" id="btn-reset-loop" title="Rewind Time Loop">
-            <span>↺</span>
           </button>
           <span class="tle-loop-pill" id="hud-loop">LOOP #${state.loopCount}</span>
         </div>
@@ -140,6 +143,30 @@ export function renderGameScreen(
         </div>
 
         <div class="tle-header-right">
+          <button
+            type="button"
+            class="tle-ctrl-btn tle-ctrl-start"
+            id="btn-start-restart"
+            title="Start or Restart the Time Loop"
+          >
+            ▶ Start
+          </button>
+          <button
+            type="button"
+            class="tle-ctrl-btn tle-ctrl-stop"
+            id="btn-stop-loop"
+            title="Stop the Timer"
+          >
+            ⏹ Stop
+          </button>
+          <button
+            type="button"
+            class="tle-ctrl-btn tle-ctrl-restart"
+            id="btn-reset-loop"
+            title="Restart the Loop"
+          >
+            ↺ Restart
+          </button>
           <div class="tle-timer-pill" id="hud-timer">
             <span class="tle-hourglass">⏳</span>
             <span id="hud-timer-val">${formatTime(state.timeLeftSeconds)}</span>
@@ -635,6 +662,30 @@ export function renderGameScreen(
     renderState();
   }
 
+  function expireLoop(): void {
+    const clueCount = state.clues.length;
+    state = {
+      ...state,
+      timeLeftSeconds: 0,
+      timerRunning: false,
+      loopExpired: true,
+      statusText: "Loop Expired",
+      paintingClicks: 0,
+      keyRevealed: false,
+      keyCollected: false,
+      cabinetUnlocked: false,
+      doorUnlocked: false,
+      inventory: [],
+      feedbackMessage:
+        `⏰ Time's up! Items vanished, but ${clueCount} clue(s) remain. ` +
+        `Press ↺ Restart to run the next loop!`,
+    };
+    if (codeInput) codeInput.value = "";
+    inspectorModal?.classList.add("hidden");
+    resetBanner?.classList.remove("hidden");
+    renderState();
+  }
+
   function resetLoop(): void {
     const nextLoop = state.loopCount + 1;
     const clueCount = state.clues.length;
@@ -642,7 +693,9 @@ export function renderGameScreen(
       ...state,
       timeLeftSeconds: state.loopDurationSeconds,
       loopCount: nextLoop,
-      statusText: "Loop Reset",
+      timerRunning: true,
+      loopExpired: false,
+      statusText: "Loop Active",
       paintingClicks: 0,
       keyRevealed: false,
       keyCollected: false,
@@ -651,17 +704,12 @@ export function renderGameScreen(
       escaped: false,
       inventory: [],
       feedbackMessage:
-        `⏳ Loop #${nextLoop}: The room reset and items disappeared, ` +
+        `⏳ Loop #${nextLoop} running! Room reset, ` +
         `but your ${clueCount} discovered clue(s) remain!`,
     };
     if (codeInput) codeInput.value = "";
     inspectorModal?.classList.add("hidden");
-    if (resetBanner) {
-      resetBanner.classList.remove("hidden");
-      setTimeout(() => {
-        resetBanner.classList.add("hidden");
-      }, 3200);
-    }
+    resetBanner?.classList.add("hidden");
     callbacks.onLoopReset?.(state.loopCount);
     renderState();
   }
@@ -731,6 +779,28 @@ export function renderGameScreen(
     renderState();
   });
 
+  container.querySelector("#btn-start-restart")?.addEventListener("click", () => {
+    if (state.loopExpired || state.timeLeftSeconds <= 0 || state.escaped) {
+      resetLoop();
+    } else if (!state.timerRunning) {
+      state.timerRunning = true;
+      state.statusText = "Loop Active";
+      state.feedbackMessage =
+        `▶ Loop #${state.loopCount} timer started! Escape within ${state.timeLeftSeconds}s.`;
+      renderState();
+    }
+  });
+
+  container.querySelector("#btn-stop-loop")?.addEventListener("click", () => {
+    if (state.timerRunning) {
+      state.timerRunning = false;
+      state.statusText = "Stopped";
+      state.feedbackMessage =
+        "⏹ Timer stopped. Press ▶ Start to resume or ↺ Restart to reset the loop.";
+      renderState();
+    }
+  });
+
   container.querySelector("#btn-reset-loop")?.addEventListener("click", () => {
     resetLoop();
   });
@@ -766,6 +836,8 @@ export function renderGameScreen(
     const timerVal = container.querySelector<HTMLElement>("#hud-timer-val");
     const loopVal = container.querySelector<HTMLElement>("#hud-loop");
     const feedbackEl = container.querySelector<HTMLElement>("#action-feedback-text");
+    const startRestartBtn = container.querySelector<HTMLButtonElement>("#btn-start-restart");
+    const stopBtn = container.querySelector<HTMLButtonElement>("#btn-stop-loop");
 
     const isUrgent = state.timeLeftSeconds <= 15;
     rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
@@ -779,6 +851,24 @@ export function renderGameScreen(
     }
     if (feedbackEl) {
       feedbackEl.textContent = state.feedbackMessage;
+    }
+    if (startRestartBtn) {
+      if (state.loopExpired || state.timeLeftSeconds <= 0 || state.escaped) {
+        startRestartBtn.textContent = "↺ Restart";
+        startRestartBtn.classList.add("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = false;
+      } else if (state.timerRunning) {
+        startRestartBtn.textContent = "▶ Running";
+        startRestartBtn.classList.remove("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = true;
+      } else {
+        startRestartBtn.textContent = "▶ Start";
+        startRestartBtn.classList.remove("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = false;
+      }
+    }
+    if (stopBtn) {
+      stopBtn.disabled = !state.timerRunning;
     }
 
     // Painting & Hidden Key state
@@ -871,7 +961,7 @@ export function renderGameScreen(
       prevTime > 0 &&
       !state.escaped
     ) {
-      resetLoop();
+      expireLoop();
       return;
     }
 

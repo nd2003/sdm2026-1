@@ -18,10 +18,10 @@ function main(): void {
     statusText: "Time Loop Active",
   });
 
-  // 60-second Time Loop countdown: resets room & items at 00:00, keeps clues
+  // 60-second Time Loop countdown: ticks only while timerRunning is true
   setInterval(() => {
     const current = game.getState();
-    if (current.escaped) return;
+    if (!current.timerRunning || current.escaped) return;
 
     if (current.timeLeftSeconds > 0) {
       game.update({ timeLeftSeconds: current.timeLeftSeconds - 1 });
