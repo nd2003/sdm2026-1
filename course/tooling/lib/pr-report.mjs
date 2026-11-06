@@ -3,6 +3,7 @@
 // `pnpm check:pr`; this file adds what check:pr cannot see from the PR alone: the linked issue's team
 // label and the issue references in the commits.
 import { checkPr } from "../../../server/tooling/workflow/lib/check-pr.mjs";
+import { parsePrefix } from "../../../server/tooling/workflow/lib/rules.mjs";
 
 const CLOSING = /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)/i;
 const ANY_REFERENCE = /\b(?:refs|close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)/i;
@@ -21,15 +22,18 @@ export function linkedIssue(body, opts = {}) {
 }
 
 /**
- * Which team a PR belongs to in the report: its team label, else the title prefix, else the branch prefix.
+ * Which team a PR belongs to in the report: its team label, else the scope of its title
+ * (`feat(team-2): ...`), else the `[team-2]` prefix older PRs have, else the branch prefix.
  * @param {{ title: string, head: string, labels: string[] }} pr
  * @param {string[]} teamLabels
  */
 export function teamOf(pr, teamLabels) {
   const fromLabels = pr.labels.filter((l) => teamLabels.includes(l));
   if (fromLabels.length === 1) return fromLabels[0];
-  const title = /^\[([^\]]+)\]/.exec(pr.title.trim())?.[1];
-  if (title && teamLabels.includes(title)) return title;
+  const scope = parsePrefix(pr.title)?.scope;
+  if (scope && teamLabels.includes(scope)) return scope;
+  const prefix = /^\[([^\]]+)\]/.exec(pr.title.trim())?.[1];
+  if (prefix && teamLabels.includes(prefix)) return prefix;
   const branch = pr.head.split("/")[0];
   if (teamLabels.includes(branch)) return branch;
   const feature = /^feature\/(team-[1-4])$/.exec(pr.head)?.[1];
