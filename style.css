@@ -16,12 +16,12 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 #timer.low { color: #fff; background: #c22; animation: pulse 1s infinite; }
 @keyframes pulse { 50% { opacity: .55; } }
 
-/* Room: a wall and a floor, objects placed on them by id */
+/* Room: a wall and a floor. Wall objects are placed with top, floor objects with bottom. */
 #room {
   grid-area: room; position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 10px;
   container-type: inline-size;  /* lets object sizes scale with the room (cqw) */
   background:
-    linear-gradient(#0000 62%, #0000 62%),
+    radial-gradient(ellipse at 67% 40%, #ffdd7722, #0000 30%),                                            /* lamp light */
     repeating-linear-gradient(90deg, #4a3b33 0 12cqw, #45372f 12cqw 24cqw) top / 100% 62% no-repeat,  /* wallpaper */
     linear-gradient(#2a1f19 0 1.2cqw, #0000 0) 0 62% / 100% 100% no-repeat,                             /* skirting board */
     repeating-linear-gradient(90deg, #5a4030 0 9cqw, #523a2b 9cqw 9.3cqw) bottom / 100% 38% no-repeat;  /* floorboards */
@@ -29,41 +29,55 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 }
 .obj {
   position: absolute; transform: translateX(-50%);  /* left = centre of object */
-  display: flex; flex-direction: column; align-items: center; gap: .3cqw;
-  padding: .6cqw; border: 2px solid transparent; border-radius: 8px;
-  background: none; color: inherit; font: inherit; cursor: pointer; transition: filter .2s, border-color .2s;
+  display: grid; place-items: end center; min-width: 44px; min-height: 44px;  /* finger-sized tap target */
+  padding: 0; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; cursor: pointer;
+  transition: filter .2s;
 }
-.obj:hover, .obj:focus-visible { outline: none; border-color: #fc6; background: #ffcc6614; filter: drop-shadow(0 0 8px #fc69); }
-.obj .art { font-size: 7cqw; line-height: 1; transition: transform .5s; filter: drop-shadow(0 .6cqw .4cqw #0009); }
-.obj .label { position: relative; z-index: 1; font-size: clamp(10px, 1.5cqw, 13px); padding: 1px 6px; border-radius: 999px; background: #000a; white-space: nowrap; }
+.obj:hover { filter: drop-shadow(0 0 .8cqw #fc6) brightness(1.08); }
+.obj:focus-visible { outline: 2px dashed #fc6; outline-offset: 4px; }
+.obj .art { position: relative; z-index: 1; display: block; width: var(--w); transition: transform .5s; filter: drop-shadow(0 .5cqw .4cqw #0009); }
+.obj svg, .desk svg { display: block; width: 100%; height: auto; }
+.obj .label {
+  position: absolute; z-index: 2; top: calc(100% + 3px); left: 50%; transform: translateX(-50%);
+  font-size: clamp(10px, 1.5cqw, 13px); padding: 1px 6px; border-radius: 999px; background: #000b; white-space: nowrap;
+}
+.desk { position: absolute; left: 58%; bottom: 14%; width: 28cqw; transform: translateX(-50%); filter: drop-shadow(0 .6cqw .5cqw #0009); }
 
 /* wall */
-#obj-clock    { left: 9%;  top: 10%; }
-#obj-painting { left: 30%; top: 7%; }
-#obj-photo    { left: 52%; top: 14%; }
-#obj-photo .art { font-size: 5.5cqw; }
+#obj-clock    { left: 10%; top: 9%;  --w: 8cqw; }
+#obj-painting { left: 30%; top: 7%;  --w: 18cqw; }
+#obj-photo    { left: 50%; top: 13%; --w: 6.5cqw; }
+#obj-door     { left: 85%; bottom: 36%; --w: 13cqw; }
 /* floor */
-#obj-door     { left: 84%; top: 14%; }
-#obj-door .art { font-size: 21cqw; }
-#obj-shelf    { left: 9%;  top: 40%; }
-#obj-shelf .art { font-size: 10cqw; }
-#obj-cabinet  { left: 29%; top: 44%; }
-#obj-cabinet .art { font-size: 10cqw; }
-#obj-computer { left: 50%; top: 58%; }
-#obj-note     { left: 64%; top: 72%; }
-#obj-note .art { font-size: 4.5cqw; }
-#obj-lamp     { left: 66%; top: 44%; }
+#obj-shelf    { left: 10%; bottom: 20%; --w: 13cqw; }
+#obj-cabinet  { left: 27%; bottom: 20%; --w: 12cqw; }
+/* on the desk */
+#obj-computer { left: 51%; bottom: 32%; --w: 11cqw; }
+#obj-note     { left: 60%; bottom: 32%; --w: 4.5cqw; }
+#obj-lamp     { left: 67%; bottom: 32%; --w: 6.5cqw; }
 
-/* the painting: a framed, clearly BLUE canvas */
-#obj-painting .art {
-  font-size: 8cqw; padding: 1.2cqw 2cqw; background: linear-gradient(#5b8cff, #1e4fd0 60%, #123a9e);
-  border: 1.2cqw solid #b8862b; box-shadow: inset 0 0 0 .3cqw #6b4a12;
+/* living details */
+#obj-clock .sec { transform-origin: 50px 50px; animation: tick 60s steps(60) infinite; }  /* one lap = one loop */
+@keyframes tick { to { transform: rotate(360deg); } }
+#obj-computer .cursor { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* states (classes set by render() from game.flags) */
+#obj-painting.moved .art { transform: translate(-30%, 34%) rotate(-14deg); }
+#obj-painting.moved::before {  /* the hole the key was hiding in */
+  content: ""; position: absolute; inset: 25% 30% 30%; border-radius: 3px; background: #120c08; box-shadow: inset 0 0 1cqw #000;
 }
-#obj-painting.moved .art { transform: translate(35%, 10%) rotate(14deg); }
-
-/* states */
-#obj-cabinet.open .art { transform: perspective(300px) rotateY(-40deg); filter: drop-shadow(0 0 1.5cqw #fc6); }
-#obj-door.unlocked .art { filter: drop-shadow(0 0 2cqw #4f4); }
+#obj-cabinet .dl, #obj-cabinet .dr { transform-box: fill-box; transition: transform .7s ease-in-out; }
+#obj-cabinet .dl { transform-origin: left center; }
+#obj-cabinet .dr { transform-origin: right center; }
+#obj-cabinet.open .dl, #obj-cabinet.open .dr { transform: scaleX(.12); }
+#obj-door .lock { transition: fill .4s; }
+#obj-door.unlocked .lock { fill: #3f6; }
+#obj-door.unlocked .art { filter: drop-shadow(0 0 1.5cqw #4f4); }
+#obj-computer .screen { transition: fill .4s; }
+#obj-computer.unlocked .screen { fill: #2fbf6a; }
+#obj-computer.unlocked .txt { stroke: #eaffef; }
+#obj-computer.unlocked .cursor { fill: #eaffef; }
 #obj-painting.moved .label::after { content: " · moved"; }
 #obj-cabinet.open .label::after { content: " · open"; }
 #obj-door.unlocked .label::after { content: " · unlocked"; color: #6f6; }
@@ -132,8 +146,6 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 /* last 10 seconds: the room pulses red */
 body.hurry #room { animation: hurry 1s infinite; }
 @keyframes hurry { 50% { box-shadow: inset 0 0 90px #c22c, 0 8px 24px #0008; } }
-/* finger-sized tap targets, even for small objects like the note */
-.obj { min-width: 44px; min-height: 44px; justify-content: flex-end; }
 /* new item in the inventory */
 #inventory li.new { animation: got 1.2s ease-out; }
 @keyframes got { from { transform: scale(1.4); background: #fc6; color: #111; } }

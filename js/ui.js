@@ -46,6 +46,7 @@ function render() {
   $("obj-painting")?.classList.toggle("moved", !!f.paintingMoved);
   $("obj-cabinet")?.classList.toggle("open", !!f.cabinetOpen);
   $("obj-door")?.classList.toggle("unlocked", !!f.doorUnlocked);
+  $("obj-computer")?.classList.toggle("unlocked", !!f.doorUnlocked);  // screen turns green after the right password
 
   // Loop-reset flash when game.loop goes up (last loop stored on the DOM, not as extra global state)
   const prev = Number(document.body.dataset.loop || game.loop);
