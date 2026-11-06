@@ -26,7 +26,7 @@ function render() {
 
   // Opponent panel: name, loop, progress as 5 steps (1 clue, 2 key, 3 cabinet, 4 door unlocked, 5 escaped)
   const o = game.opponent, opp = $("opponent");
-  set(opp, "innerHTML", !o ? "" : `<h2>⚔️ ${esc(o.name)} <small>Loop ${o.loop}</small></h2>
+  set(opp, "innerHTML", !o ? "" : `<h2>${esc(o.name)} <small>Loop ${o.loop}</small></h2>
     <ol class="steps" aria-label="${esc(o.name)}: step ${o.step} of 5">`
     + ["Clue", "Key", "Cabinet", "Door", "Out"].map((s, i) => `<li${i < o.step ? ' class="done"' : ""}>${s}</li>`).join("") + "</ol>");
   if (o && o.step > (opp._step ?? o.step)) replay(opp, "bump");  // flashes when they get closer
@@ -34,7 +34,7 @@ function render() {
 
   // HUD
   const t = Math.max(0, Math.ceil(game.timeLeft));
-  set($("timer"), "textContent", "⏳ " + t + "s");
+  set($("timer"), "textContent", "" + t + "s");
   $("timer").classList.toggle("low", t <= 10);
   document.body.classList.toggle("hurry", t <= 10 && !game.won && phase === "playing");  // whole room goes red in the last 10s
   $("hud").style.setProperty("--time", t / 60);  // drives the shrinking time bar
@@ -44,7 +44,7 @@ function render() {
   const inv = $("inventory");
   const had = inv._count ?? game.items.length;
   set(inv, "innerHTML", "<h2>Inventory</h2>" + (game.items.length
-    ? "<ul>" + game.items.map((i) => `<li>${i === "key" ? "🔑 " : ""}${esc(i)}</li>`).join("") + "</ul>"
+    ? "<ul>" + game.items.map((i) => `<li>${i === "key" ? '<svg viewBox="0 0 60 28" aria-hidden="true"><path d="M23 14h34M46 14v8M52 14v6" fill="none" stroke="#85683c" stroke-width="4"></path><circle cx="14" cy="14" r="10" fill="none" stroke="#85683c" stroke-width="4"></circle></svg>' : ""}${esc(i)}</li>`).join("") + "</ul>"
     : '<p class="empty">Empty pockets.</p>'));
   inv.querySelectorAll("li").forEach((li, i) => { if (i >= had) li.classList.add("new"); });
   inv._count = game.items.length;
@@ -52,7 +52,7 @@ function render() {
   // Clue journal (survives the reset). The newest clue gets highlighted when it's written.
   const journal = $("journal");
   const known = journal._count ?? game.clues.length;  // first render: nothing counts as new
-  set(journal, "innerHTML", "<h2>📓 Journal</h2>" + (game.clues.length
+  set(journal, "innerHTML", "<h2>Journal</h2>" + (game.clues.length
     ? "<ol>" + game.clues.map((c) => `<li>${esc(c)}</li>`).join("") + "</ol>"
     : '<p class="empty">Nothing written yet. Clues you find stay here, even when the loop resets.</p>'));
   journal.querySelectorAll("li").forEach((li, i) => { if (i >= known) li.classList.add("new"); });
@@ -84,7 +84,7 @@ function render() {
       flash.setAttribute("role", "status");
       document.body.append(flash);
     }
-    flash.innerHTML = `<div>⏰ Time's up. The loop resets…<small>Your items are gone, but your journal remembers. Loop ${game.loop}</small></div>`;
+    flash.innerHTML = `<div>Time's up. The loop resets…<small>Your items are gone, but your journal remembers. Loop ${game.loop}</small></div>`;
     replay(flash, "show");
     replay($("journal"), "remember");  // glows as the flash fades: "your clues survived"
   }
@@ -105,8 +105,8 @@ function render() {
     const first = game.winner === game.playerName;
     const loops = `${game.loop} loop${game.loop === 1 ? "" : "s"}`;
     set(win, "innerHTML", !over
-      ? `<div><h1>🚪 You're out!</h1><p class="wait"><span class="spinner" aria-hidden="true"></span>Checking who escaped first…</p></div>`
-      : `<div class="${first ? "first" : "second"}"><h1>${first ? "🏆 You escaped first!" : `😵 ${esc(game.winner || "Your opponent")} escaped first`}</h1>`
+      ? `<div><h1>You're out!</h1><p class="wait"><span class="spinner" aria-hidden="true"></span>Checking who escaped first…</p></div>`
+      : `<div class="${first ? "first" : "second"}"><h1>${first ? "You escaped first!" : `${esc(game.winner || "Your opponent")} escaped first`}</h1>`
         + `<p>${first ? `It took you ${loops}.` : `You were on loop ${game.loop}. So close.`}</p>`
         + `<button type="button" onclick="location.reload()">Play again</button></div>`);
     if (over && !win._focused) { win._focused = true; setTimeout(() => win.querySelector("button")?.focus()); }  // keyboard users land on "Play again"

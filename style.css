@@ -1,8 +1,9 @@
 /* Owner: UI (see README) */
+@import url("https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap");
 * { box-sizing: border-box; }
 body {
   margin: 0 auto; padding: 16px; max-width: 1040px; min-height: 100vh;
-  font-family: system-ui, sans-serif; color: #eee; background: radial-gradient(circle at 50% 0, #232030, #0c0b10 70%);
+  font-family: "Courier Prime", "Courier New", monospace; color: #e4dcbc; background: radial-gradient(circle at 50% 0, #2a2612, #0b0a05 70%);
   display: grid; gap: 12px; align-content: start;
   grid-template-columns: minmax(0, 1fr) 270px;
   grid-template-areas: "hud hud" "lobby lobby" "room opponent" "room journal" "message journal" "inventory journal";
@@ -21,10 +22,16 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
   grid-area: room; position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 10px;
   container-type: inline-size;  /* lets object sizes scale with the room (cqw) */
   background:
-    radial-gradient(ellipse at 67% 40%, #ffdd7722, #0000 30%),                                            /* lamp light */
-    repeating-linear-gradient(90deg, #4a3b33 0 12cqw, #45372f 12cqw 24cqw) top / 100% 62% no-repeat,  /* wallpaper */
-    linear-gradient(#2a1f19 0 1.2cqw, #0000 0) 0 62% / 100% 100% no-repeat,                             /* skirting board */
-    repeating-linear-gradient(90deg, #5a4030 0 9cqw, #523a2b 9cqw 9.3cqw) bottom / 100% 38% no-repeat;  /* floorboards */
+    linear-gradient(#0000 0 5.4%, #3d3820 5.4% 6%, #0000 6%),                                              /* ceiling edge */
+    repeating-linear-gradient(90deg, #8a8150 0 .25cqw, #0000 .25cqw 11cqw) top / 100% 6% no-repeat,        /* ceiling tiles */
+    linear-gradient(#b8ae78, #b8ae78) top / 100% 6% no-repeat,
+    radial-gradient(ellipse 7cqw 15cqw at 20% 6%, #4a401c99, #0000),                                       /* damp stains */
+    radial-gradient(ellipse 5cqw 11cqw at 60% 6%, #4a401c80, #0000),
+    radial-gradient(ellipse 20cqw 5cqw at 40% 84%, #2c2610b0, #0000),
+    radial-gradient(ellipse 14cqw 4cqw at 78% 93%, #2c2610a0, #0000),
+    linear-gradient(#0000 0 61.4%, #4a4322 61.4% 62.6%, #0000 62.6%),                                      /* skirting board */
+    repeating-linear-gradient(90deg, #a09556 0 2.5cqw, #998e50 2.5cqw 2.7cqw, #a09556 2.7cqw 5.2cqw) top / 100% 62% no-repeat,  /* wallpaper */
+    repeating-linear-gradient(0deg, #5f5630 0 .4cqw, #5a5130 .4cqw .8cqw) bottom / 100% 38% no-repeat;     /* carpet */
   box-shadow: inset 0 0 60px #000c, 0 8px 24px #0008;
 }
 .obj {
@@ -33,8 +40,8 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
   padding: 0; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; cursor: pointer;
   transition: filter .2s;
 }
-.obj:hover { filter: drop-shadow(0 0 .8cqw #fc6) brightness(1.08); }
-.obj:focus-visible { outline: 2px dashed #fc6; outline-offset: 4px; }
+.obj:hover { filter: drop-shadow(0 0 .8cqw #c9b458) brightness(1.08); }
+.obj:focus-visible { outline: 2px dashed #c9b458; outline-offset: 4px; }
 .obj .art { position: relative; z-index: 1; display: block; width: var(--w); transition: transform .5s; filter: drop-shadow(0 .5cqw .4cqw #0009); }
 .obj svg, .desk svg { display: block; width: 100%; height: auto; }
 .obj .label {
@@ -54,7 +61,7 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 /* on the desk */
 #obj-computer { left: 51%; bottom: 32%; --w: 11cqw; }
 #obj-note     { left: 60%; bottom: 32%; --w: 4.5cqw; }
-#obj-lamp     { left: 67%; bottom: 32%; --w: 6.5cqw; }
+#obj-lamp     { left: 67%; top: 0; --w: 16cqw; }  /* tube in the ceiling */
 
 /* living details */
 #obj-clock .sec { transform-origin: 50px 50px; animation: tick 60s steps(60) infinite; }  /* one lap = one loop */
@@ -72,35 +79,41 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 #obj-cabinet .dr { transform-origin: right center; }
 #obj-cabinet.open .dl, #obj-cabinet.open .dr { transform: scaleX(.12); }
 #obj-door .lock { transition: fill .4s; }
-#obj-door.unlocked .lock { fill: #3f6; }
-#obj-door.unlocked .art { filter: drop-shadow(0 0 1.5cqw #4f4); }
+#obj-door .bolt { transition: transform .4s; }
+#obj-door.unlocked .bolt { transform: translateX(-13px); }
+#obj-cabinet .padlock { transition: opacity .3s; }
+#obj-cabinet.open .padlock { opacity: 0; }
+#obj-door.unlocked .lock { fill: #8fbf86; }
+#obj-door.unlocked .art { filter: drop-shadow(0 0 1.5cqw #8fbf86); }
 #obj-computer .screen { transition: fill .4s; }
-#obj-computer.unlocked .screen { fill: #2fbf6a; }
-#obj-computer.unlocked .txt { stroke: #eaffef; }
-#obj-computer.unlocked .cursor { fill: #eaffef; }
+#obj-computer.unlocked .screen { fill: #24402c; }
+#obj-computer.unlocked text.txt { fill: #d9ecd2; }
+#obj-computer.unlocked path.txt { stroke: #d9ecd2; }
+#obj-computer.unlocked .cursor { fill: #d9ecd2; }
 #obj-painting.moved .label::after { content: " · moved"; }
 #obj-cabinet.open .label::after { content: " · open"; }
 #obj-door.unlocked .label::after { content: " · unlocked"; color: #6f6; }
 
 /* Message */
-#message { grid-area: message; min-height: 2.6em; padding: 10px 14px; background: #1c1a22; border-left: 4px solid #fc6; border-radius: 6px; }
+#message { grid-area: message; min-height: 2.6em; padding: 10px 14px; background: #1b190f; border-left: 4px solid #c9b458; border-radius: 6px; }
 #message:empty::before { content: "Click something in the room."; opacity: .5; }
 
 /* Inventory (lost every loop) */
-#inventory { grid-area: inventory; display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #1c1a22; border-radius: 6px; }
+#inventory { grid-area: inventory; display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #1b190f; border-radius: 6px; }
 #inventory h2::after { content: ":"; }
 #inventory ul { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
-#inventory li { padding: 4px 10px; background: #fc62; border: 1px solid #fc6; border-radius: 6px; }
+#inventory li { padding: 4px 10px; background: #c9b45822; border: 1px solid #c9b458; border-radius: 6px; }
+#inventory li svg { width: 2em; height: auto; margin-right: .4em; vertical-align: middle; }
 
 /* Journal: a notebook that survives the reset. Text sits on 24px ruled lines. */
 #journal {
   grid-area: journal; align-self: stretch; padding: 24px 14px 24px 40px; border-radius: 4px 10px 10px 4px;
-  color: #23314f; font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive; line-height: 24px;
-  background: #f6edd2 repeating-linear-gradient(#0000 0 23px, #a9c2d6 23px 24px);
-  box-shadow: inset 32px 0 0 -30px #e66, inset 8px 0 12px -6px #0003, 4px 6px 16px #000a;  /* red margin + spine */
+  color: #231e15; font-family: "Special Elite", "Courier New", monospace; line-height: 24px;
+  background: radial-gradient(ellipse 60px 40px at 78% 72%, #6d5f3a66, #0000), radial-gradient(ellipse 34px 26px at 24% 30%, #6d5f3a55, #0000), #b5aa86 repeating-linear-gradient(#0000 0 23px, #92875f 23px 24px);
+  box-shadow: inset 32px 0 0 -30px #8c1a15, inset 8px 0 12px -6px #0003, 4px 6px 16px #000a;  /* red margin + spine */
   transform: rotate(.6deg);
 }
-#journal h2 { font-family: inherit; color: #8a2b2b; }
+#journal h2 { font-family: inherit; color: #6e1410; }
 #journal ol { margin: 0; padding-left: 18px; }
 .empty { margin: 0; opacity: .6; font-style: italic; }
 
@@ -110,13 +123,13 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
   background: #fff; color: #111; font-size: 2rem; font-weight: bold; text-align: center; padding: 16px;
 }
 #loop-flash.show { animation: flash 1.6s ease-out; }
-@keyframes flash { 0% { opacity: 1; } 60% { opacity: .85; background: #111; color: #fc6; } 100% { opacity: 0; background: #111; } }
+@keyframes flash { 0% { opacity: 1; } 60% { opacity: .85; background: #111; color: #c9b458; } 100% { opacity: 0; background: #111; } }
 
 /* Win screen */
 #win { position: fixed; inset: 0; display: grid; place-items: center; background: #000d; text-align: center; padding: 16px; }
 #win[hidden] { display: none; }
-#win > div { padding: 24px 32px; border-radius: 12px; background: #1c1a22; border: 1px solid #fc6; }
-#win button { font: inherit; font-weight: bold; padding: 8px 18px; border: 0; border-radius: 6px; background: #fc6; color: #111; cursor: pointer; }
+#win > div { padding: 24px 32px; border-radius: 12px; background: #1b190f; border: 1px solid #c9b458; }
+#win button { font: inherit; font-weight: bold; padding: 8px 18px; border: 0; border-radius: 6px; background: #c9b458; color: #111; cursor: pointer; }
 
 @media (max-width: 700px) {
   body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hud" "lobby" "opponent" "room" "message" "inventory" "journal"; grid-template-rows: none; }
@@ -129,7 +142,7 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 #hud { position: relative; padding-bottom: 10px; }
 #hud::after {
   content: ""; position: absolute; left: 0; bottom: 0; height: 4px; border-radius: 2px;
-  width: calc(var(--time, 1) * 100%); background: hsl(calc(var(--time, 1) * 120) 70% 50%);  /* green -> yellow -> red */
+  width: calc(var(--time, 1) * 100%); background: hsl(calc(var(--time, 1) * 52) 55% 45%);  /* yellow -> red */
   transition: width 1s linear, background 1s;
 }
 /* painting tilts a little more on each click until it swings aside on the 4th */
@@ -138,20 +151,20 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
 .obj:active .art { scale: .9; }
 /* new message pops in */
 #message.pop { animation: pop .35s ease-out; }
-@keyframes pop { from { transform: translateY(4px); background: #fc63; } }
+@keyframes pop { from { transform: translateY(4px); background: #c9b45833; } }
 /* newly written clue glows like fresh ink */
 #journal li.new { animation: ink 2.5s ease-out; }
-@keyframes ink { from { background: #fc68; color: #8a2b2b; } }
+@keyframes ink { from { background: #c9b45888; color: #8a2b2b; } }
 #loop-flash small { display: block; margin-top: 8px; font-size: 1rem; font-weight: normal; }
 /* last 10 seconds: the room pulses red */
 body.hurry #room { animation: hurry 1s infinite; }
 @keyframes hurry { 50% { box-shadow: inset 0 0 90px #c22c, 0 8px 24px #0008; } }
 /* new item in the inventory */
 #inventory li.new { animation: got 1.2s ease-out; }
-@keyframes got { from { transform: scale(1.4); background: #fc6; color: #111; } }
+@keyframes got { from { transform: scale(1.4); background: #c9b458; color: #111; } }
 /* after a reset the journal glows: the clues survived */
 #journal.remember { animation: remember 1.2s 1.2s ease-out; }
-@keyframes remember { 40% { box-shadow: 0 0 0 4px #fc6, 0 0 40px #fc6c; } }
+@keyframes remember { 40% { box-shadow: 0 0 0 4px #c9b458, 0 0 40px #c9b458cc; } }
 /* game title between the timer and the loop counter */
 #hud::before { content: "Time Loop Escape"; order: 1; font-weight: bold; letter-spacing: .08em; text-transform: uppercase; font-size: .85rem; opacity: .6; }
 #loop-count { order: 2; }
@@ -163,23 +176,23 @@ body[data-phase="lobby"] :is(#hud, #opponent, #room, #message, #inventory, #jour
 #lobby { grid-area: lobby; }
 #lobby:empty, #opponent:empty { display: none; }
 #lobby .card {
-  max-width: 440px; margin: 10vh auto 0; padding: 28px; border-radius: 14px; background: #1c1a22; border: 1px solid #fc65;
+  max-width: 440px; margin: 10vh auto 0; padding: 28px; border-radius: 14px; background: #1b190f; border: 1px solid #c9b45855;
   box-shadow: 0 12px 40px #000a; text-align: center;
 }
-#lobby h1 { margin: 0 0 8px; letter-spacing: .06em; text-transform: uppercase; color: #fc6; }
+#lobby h1 { margin: 0 0 8px; letter-spacing: .06em; text-transform: uppercase; color: #c9b458; }
 #lobby p { margin: 0 0 18px; opacity: .8; line-height: 1.4; }
 #lobby label { display: block; text-align: left; font-size: .85rem; opacity: .7; margin-bottom: 4px; }
 #lobby .row { display: flex; gap: 8px; }
-#lobby input { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid #555; background: #0f0e13; color: inherit; }
-#lobby input:focus-visible { outline: 2px solid #fc6; border-color: transparent; }
-#lobby button, #win button { font: inherit; font-weight: bold; padding: 10px 20px; border: 0; border-radius: 8px; background: #fc6; color: #111; cursor: pointer; }
+#lobby input { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid #555; background: #0d0c06; color: inherit; }
+#lobby input:focus-visible { outline: 2px solid #c9b458; border-color: transparent; }
+#lobby button, #win button { font: inherit; font-weight: bold; padding: 10px 20px; border: 0; border-radius: 8px; background: #c9b458; color: #111; cursor: pointer; }
 #lobby button:focus-visible, #win button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .wait { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.spinner { width: 18px; height: 18px; border-radius: 50%; border: 3px solid #fc63; border-top-color: #fc6; animation: spin .8s linear infinite; }
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 3px solid #c9b45833; border-top-color: #c9b458; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* opponent panel: their name, loop and 5 progress steps */
-#opponent { grid-area: opponent; padding: 10px 12px; border-radius: 8px; background: #1c1a22; border: 1px solid #e5535355; }
+#opponent { grid-area: opponent; padding: 10px 12px; border-radius: 8px; background: #1b190f; border: 1px solid #e5535355; }
 #opponent h2 { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
 #opponent small { font-weight: normal; opacity: .7; }
 .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 0; padding: 0; list-style: none; }
@@ -189,6 +202,38 @@ body[data-phase="lobby"] :is(#hud, #opponent, #room, #message, #inventory, #jour
 @keyframes bump { 30% { box-shadow: 0 0 0 3px #e55, 0 0 24px #e558; } }
 
 /* race result */
-#win .first { border-color: #fc6; box-shadow: 0 0 60px #fc64; }
+#win .first { border-color: #c9b458; box-shadow: 0 0 60px #c9b45844; }
 #win .second { border-color: #e55; }
 #win p { opacity: .85; }
+
+/* --- Eerie restyle: an empty office that goes on forever --- */
+h1, h2, #timer, #loop-count, #hud::before { font-family: "Special Elite", "Courier New", monospace; }
+#room { box-shadow: inset 0 0 60px #0009, 0 8px 24px #000a; }
+/* doorway into another empty room. A figure stands in it only during the last 10 seconds. */
+#room::before {
+  content: ""; position: absolute; left: 68%; width: 8.5%; top: 6%; bottom: 38%; box-shadow: 0 0 0 .3cqw #4a4322;
+  background:
+    var(--figure, linear-gradient(#0000, #0000)),
+    linear-gradient(#7d7440, #7d7440) 50% 62% / 46% 62% no-repeat,
+    linear-gradient(#3a3519, #3a3519) 50% 70% / 74% 80% no-repeat,
+    #171409;
+}
+body.hurry #room::before { --figure: radial-gradient(circle at 50% 60%, #050402 0 .62cqw, #0000 .68cqw), linear-gradient(#050402, #050402) 50% 81.4% / 20% 22% no-repeat; }
+/* the dim light: corners fall away, and the whole room dips when the tube stutters */
+#room::after {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background-image: radial-gradient(ellipse 100% 110% at 50% 6%, #0000 0 45%, #0b0a0540 75%, #050402a0 100%);
+  animation: dip 7s steps(1) infinite;
+}
+@keyframes dip { 0%, 41%, 45%, 47%, 83%, 86%, 100% { background-color: #0a090400; } 42%, 46% { background-color: #0a0904b0; } 84% { background-color: #0a090470; } }
+#obj-lamp .tube { animation: stutter 7s steps(1) infinite; }
+@keyframes stutter { 0%, 41%, 45%, 47%, 83%, 86%, 100% { opacity: 1; } 42%, 46% { opacity: .25; } 84% { opacity: .5; } }
+#obj-lamp .art { filter: drop-shadow(0 0 2cqw #f3e9a6aa); }
+/* last 10 seconds: red in the corners and a slight shake */
+body.hurry #room { animation: hurry 1s infinite, shake .35s steps(2) infinite; }
+@keyframes shake { 50% { transform: translate(.15cqw, -.1cqw); } }
+/* loop reset: harsh static instead of a white flash */
+#loop-flash { background: repeating-linear-gradient(0deg, #d9cf8a 0 2px, #15130a 2px 5px); color: #fff; text-shadow: 0 0 6px #000, 0 0 2px #000, 0 0 14px #000; }
+#loop-flash.show { animation: staticburst 1.6s linear; }
+@keyframes staticburst { 0% { opacity: 1; } 8% { opacity: .35; } 16% { opacity: 1; } 26% { opacity: .5; } 34%, 60% { opacity: .9; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #room::after { animation: none !important; } }
