@@ -145,9 +145,8 @@ function buildRoom() {
     <path d="M16 78L6 94 28 118 40 96z" fill="#f4e8ab"/>
   </svg>
   <svg class="killer" viewBox="0 0 200 400" aria-hidden="true">
-    <path d="M100 8c-26 0-38 22-36 50 1 18 12 32 20 38-34 8-44 28-46 60L14 330l20 8 26-130 8 192h64l8-192 26 130 20-8-24-174c-2-32-12-52-46-60 8-6 19-20 20-38 2-28-10-50-36-50z" fill="#020101"/>
-    <path d="M80 52l14 7-13 4zM120 52l-14 7 13 4z" fill="#d8d0ba"/>
-    <path d="M84 76q16 10 32 0l-5 12q-11 6-22 0z" fill="#5a120d"/>
+    <ellipse cx="112" cy="44" rx="23" ry="33" transform="rotate(24 112 44)" fill="#020101"/>
+    <path d="M92 74l20 8c26 6 38 22 42 50l10 92 8 96 6 62-7 16-9-15-5 12-7-14-8-70-12-92-4 62 2 119H72l-3-119-7-62-10 96-6 66-8 14-5-12-9 15-7-16 9-64 8-98 9-88c4-30 20-48 49-58z" fill="#020101"/>
   </svg>`;
   const scene = room.querySelector(".scene");
   for (const [id, label, art] of objects) {
