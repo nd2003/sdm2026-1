@@ -226,7 +226,6 @@ export function renderGameScreen(
                   opacity="0.65"
                 />
               </svg>
-              <span class="tle-painting-badge" id="state-painting">0/4</span>
               <span class="tle-cursor-hint" aria-hidden="true">👆</span>
             </button>
           </div>
@@ -281,7 +280,7 @@ export function renderGameScreen(
                   <rect x="64" y="32" width="8" height="26" fill="#334155" />
                 </svg>
               </div>
-              <div class="tle-polaroid-caption">1998</div>
+              <div class="tle-polaroid-caption" id="polaroid-caption">••••</div>
             </div>
             <div class="tle-sticky tle-sticky-1"></div>
             <div class="tle-sticky tle-sticky-2"></div>
@@ -390,20 +389,30 @@ export function renderGameScreen(
               <h3 id="inspector-title">Inspect</h3>
               <div class="tle-inspector-body" id="inspector-body"></div>
 
-              <!-- Computer Passcode Entry Box -->
+              <!-- Computer Passcode Entry Box (Full 0-9 Keypad, no spoilers) -->
               <div class="tle-passcode-area hidden" id="terminal-code-group">
-                <div class="tle-keypad-row">
+                <div class="tle-keypad-grid">
                   <button type="button" class="tle-kp-btn" data-digit="1">1</button>
-                  <button type="button" class="tle-kp-btn" data-digit="9">9</button>
-                  <button type="button" class="tle-kp-btn" data-digit="8">8</button>
+                  <button type="button" class="tle-kp-btn" data-digit="2">2</button>
+                  <button type="button" class="tle-kp-btn" data-digit="3">3</button>
                   <button type="button" class="tle-kp-btn" data-digit="4">4</button>
+                  <button type="button" class="tle-kp-btn" data-digit="5">5</button>
+                  <button type="button" class="tle-kp-btn" data-digit="6">6</button>
+                  <button type="button" class="tle-kp-btn" data-digit="7">7</button>
+                  <button type="button" class="tle-kp-btn" data-digit="8">8</button>
+                  <button type="button" class="tle-kp-btn" data-digit="9">9</button>
                   <button type="button" class="tle-kp-btn" id="btn-clear-code">CLR</button>
+                  <button type="button" class="tle-kp-btn" data-digit="0">0</button>
+                  <button type="button" class="tle-kp-btn tle-kp-enter" id="btn-kp-enter">
+                    OK
+                  </button>
                 </div>
                 <div class="tle-code-input-row">
                   <input
-                    type="text"
+                    type="password"
+                    inputmode="numeric"
                     maxlength="4"
-                    placeholder="1998"
+                    placeholder="****"
                     class="tle-code-input"
                     id="terminal-code-input"
                     aria-label="Enter 4-digit computer password"
@@ -507,10 +516,10 @@ export function renderGameScreen(
             state.keyRevealed = true;
             state.score += 25;
             state.feedbackMessage =
-              "Clicked the Blue Painting 4 times! It slides aside and reveals a hidden Golden Key!";
+              "The Blue Painting slides aside and reveals a hidden Golden Key!";
           } else {
             state.feedbackMessage =
-              `Clicked the Blue Painting (${state.paintingClicks}/4) — the frame shifts slightly...`;
+              "You touch the Blue Painting — the frame shifts slightly...";
           }
         } else {
           state.feedbackMessage =
@@ -560,15 +569,14 @@ export function renderGameScreen(
         break;
 
       case "photo":
-        addClue("Photograph Year: 1998");
         state.feedbackMessage =
-          'Examined the corkboard photograph: the handwritten year at the bottom is "1998".';
+          "You inspect the photograph pinned to the corkboard closely.";
         openInspector(
           "📷 Corkboard Photograph",
           `<div class="tle-zoom-card">` +
             `<div class="tle-zoom-photo-year">🏛️ <span>1998</span></div>` +
-            `<p class="tle-zoom-sub">The photograph has <strong>1998</strong> written ` +
-            `under the building. Use it as the computer password!</p>` +
+            `<p class="tle-zoom-sub">A faded photograph of the old building with ` +
+            `handwritten ink along the bottom border.</p>` +
             `</div>`,
         );
         break;
@@ -577,12 +585,10 @@ export function renderGameScreen(
         if (state.doorUnlocked) {
           state.feedbackMessage = "The computer is unlocked and the Exit Door is open!";
         } else {
-          state.feedbackMessage =
-            "Enter the 4-digit year from the photograph to unlock the Exit Door.";
+          state.feedbackMessage = "The computer terminal requires a 4-digit passcode.";
           openInspector(
             "💻 Locked Computer Terminal",
-            `<p class="tle-zoom-sub">Enter the 4-digit year from the photograph ` +
-              `(<strong>1998</strong>):</p>`,
+            `<p class="tle-zoom-sub">Enter the 4-digit security passcode to unlock the Exit Door:</p>`,
             true,
           );
         }
@@ -624,7 +630,7 @@ export function renderGameScreen(
       inspectorModal?.classList.add("hidden");
     } else {
       state.feedbackMessage =
-        `Incorrect password ("${entered || "----"}"). Check the year written on the photograph (1998).`;
+        "Incorrect passcode. Search the room for clues to find the 4-digit code.";
     }
     renderState();
   }
@@ -688,6 +694,10 @@ export function renderGameScreen(
     if (codeInput) codeInput.value = "";
   });
 
+  container.querySelector("#btn-kp-enter")?.addEventListener("click", () => {
+    submitPasscode();
+  });
+
   container.querySelector("#btn-submit-code")?.addEventListener("click", () => {
     submitPasscode();
   });
@@ -702,18 +712,21 @@ export function renderGameScreen(
 
   container.querySelector("#btn-hint")?.addEventListener("click", () => {
     if (!state.clues.includes("BLUE - 4")) {
-      state.feedbackMessage = "💡 Hint: Click the open book on the left desk to find the first clue.";
+      state.feedbackMessage =
+        "💡 Hint: Inspect the open journal on the study desk to find your first clue.";
     } else if (!state.keyRevealed) {
-      state.feedbackMessage = "💡 Hint: Clue says BLUE - 4. Click the Blue Painting 4 times!";
+      state.feedbackMessage =
+        "💡 Hint: Follow the first clue you discovered in the journal.";
     } else if (!state.keyCollected) {
-      state.feedbackMessage = "💡 Hint: Take the Golden Key revealed behind the Blue Painting!";
+      state.feedbackMessage = "💡 Hint: Take the Golden Key from the wall recess!";
     } else if (!state.cabinetUnlocked) {
-      state.feedbackMessage = "💡 Hint: Click the locked wooden cabinet in the center to open it.";
+      state.feedbackMessage = "💡 Hint: Use the Golden Key on the locked wooden cabinet.";
     } else if (!state.doorUnlocked) {
       state.feedbackMessage =
-        "💡 Hint: Check the year on the corkboard photo (1998) and enter it on the computer!";
+        "💡 Hint: Follow the clue from the cabinet and inspect the corkboard.";
     } else {
-      state.feedbackMessage = "💡 Hint: The Exit Door on the right is unlocked — click it to escape!";
+      state.feedbackMessage =
+        "💡 Hint: The Exit Door on the right is unlocked — click it to escape!";
     }
     renderState();
   });
@@ -770,12 +783,8 @@ export function renderGameScreen(
 
     // Painting & Hidden Key state
     const paintingBtn = container.querySelector<HTMLElement>("#obj-painting");
-    const paintingBadge = container.querySelector<HTMLElement>("#state-painting");
     const keyBtn = container.querySelector<HTMLElement>("#obj-key");
     paintingBtn?.classList.toggle("tle-painting-open", state.keyRevealed);
-    if (paintingBadge) {
-      paintingBadge.textContent = state.keyRevealed ? "OPEN" : `${state.paintingClicks}/4`;
-    }
     keyBtn?.classList.toggle("hidden", !state.keyRevealed || state.keyCollected);
 
     // Cabinet state

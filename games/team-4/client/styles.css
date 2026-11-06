@@ -1039,8 +1039,9 @@ body {
   gap: 10px;
 }
 
-.tle-keypad-row {
-  display: flex;
+.tle-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
   justify-content: center;
   gap: 6px;
 }
@@ -1050,9 +1051,17 @@ body {
   border: 1px solid #a855f7;
   color: #f8fafc;
   font-weight: 700;
-  padding: 6px 12px;
+  padding: 7px 0;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.tle-kp-btn:hover {
+  background: #3b2d5c;
+}
+
+.tle-kp-enter {
+  background: #4c1d95;
 }
 
 .tle-code-input-row {
