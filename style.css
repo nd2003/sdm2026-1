@@ -279,3 +279,29 @@ body.dead #win h1 { margin: 0 0 8px; color: #c6352c; font-size: clamp(2.6rem, 9v
 @media (min-width: 701px) {
   #journal { height: 0; min-height: 100%; overflow-y: auto; background-attachment: local; scrollbar-width: thin; scrollbar-color: #6d5f3a #0000; }
 }
+
+/* Settings: music and flicker */
+#hud { padding-right: 112px; }
+#settings-btn, #settings-panel button {
+  font: 700 .9rem "Courier Prime", "Courier New", monospace; color: #e4dcbc; background: #1b190f;
+  border: 1px solid #c9b45866; border-radius: 6px; padding: 8px 12px; cursor: pointer;
+}
+#settings-btn:hover, #settings-panel button:hover { background: #2a2612; border-color: #c9b458; }
+#settings-btn:focus-visible, #settings-panel button:focus-visible, #set-volume:focus-visible { outline: 2px dashed #c9b458; outline-offset: 2px; }
+#settings-btn { position: absolute; z-index: 11; top: 16px; right: max(16px, calc(50vw - 504px)); }
+#settings-panel {
+  position: absolute; z-index: 12; top: 60px; right: max(16px, calc(50vw - 504px)); width: min(280px, calc(100vw - 32px));
+  display: grid; gap: 10px; padding: 14px; background: #14120a; border: 1px solid #c9b45866; border-radius: 8px; box-shadow: 0 10px 30px #000c;
+}
+#settings-panel[hidden] { display: none; }
+#settings-panel label { font-size: .85rem; margin-bottom: -6px; }
+#settings-panel input { width: 100%; accent-color: #c9b458; }
+#settings-panel p { margin: 0; font-size: .8rem; line-height: 1.35; color: #a79f8a; }
+@media (max-width: 560px) { #hud::before { display: none; } }
+
+/* Stop flickering: the room's light holds steady, and the reset message fades instead of flashing */
+body.no-flicker #room::after, body.no-flicker #obj-lamp .tube, body.no-flicker #timer.low, body.no-flicker #obj-computer .cursor { animation: none; }
+body.no-flicker.hurry #room { animation: none; }
+body.no-flicker #loop-flash { background: #0b0a05; color: #c9b458; text-shadow: none; }
+body.no-flicker #loop-flash.show { animation: calmfade 1.6s ease-out; }
+@keyframes calmfade { 0%, 60% { opacity: .95; } 100% { opacity: 0; } }
