@@ -56,6 +56,7 @@ function render() {
     ? "<ol>" + game.clues.map((c) => `<li>${esc(c)}</li>`).join("") + "</ol>"
     : '<p class="empty">Nothing written yet. Clues you find stay here, even when the loop resets.</p>'));
   journal.querySelectorAll("li").forEach((li, i) => { if (i >= known) li.classList.add("new"); });
+  if (game.clues.length > known) journal.scrollTop = journal.scrollHeight;  // show the clue just written
   journal._count = game.clues.length;
 
   // Message: pops each time an object says something new

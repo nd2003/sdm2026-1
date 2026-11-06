@@ -274,3 +274,8 @@ body.dead #win { background: #030201; animation: deathcard .5s 1.6s both; }
 body.dead #win > div { background: none; border: 0; }
 body.dead #win h1 { margin: 0 0 8px; color: #c6352c; font-size: clamp(2.6rem, 9vw, 4.5rem); letter-spacing: .04em; }
 #win, #loop-flash { z-index: 10; }  /* above the arm and the figure in #room */
+
+/* A long journal scrolls inside its own column instead of stretching the whole page */
+@media (min-width: 701px) {
+  #journal { height: 0; min-height: 100%; overflow-y: auto; background-attachment: local; scrollbar-width: thin; scrollbar-color: #6d5f3a #0000; }
+}
