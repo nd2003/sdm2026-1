@@ -164,6 +164,7 @@ function onObjectClick(id) {
     }
     case "keypad":
       if (game.stage !== 2) { say("A keypad, dead and cold."); break; }
+      if (!f.powerOn) { say("The keypad is dead. No light, no sound. Somewhere in the corridor there must be power."); break; }
       if (!knows("The keypad code is")) { say("Three digits. You could guess, but something is listening for wrong ones."); break; }
       if (inputLocked()) { say("The keypad is still flashing red. Wait."); break; }
       game.input = { for: "keypad", label: "Code" };
@@ -173,10 +174,89 @@ function onObjectClick(id) {
     // ---------- Level 3: the lift ----------
     case "lift":
       if (game.stage !== 3) { say("A lift door, painted shut."); break; }
+      if (!f.gateClosed) { say("The lift won't move while its cage gate hangs open."); break; }
       if (!partnerSaid("floor", me.floor)) { say("The lift has every button from G to 20. Scratched into the wall: THE DOOR OPENS FOR ONE."); break; }
       if (inputLocked()) { say("The buttons are dark. Wait."); break; }
       game.input = { for: "lift", label: "Floor" };
       render();
+      break;
+
+    // ---------- Story props (#15): no puzzle, just the story. Each one only exists at its own level. ----------
+    // Level 1
+    case "phone":
+      if (game.stage !== 1) break;
+      say(atLoop(['You lift the receiver. Dial tone. Then breathing. Then your own voice: "Don\'t answer it next time."',
+                  `It rings before you touch it. Your voice again: "Is ${p} still with you? Don't let go of them."`,
+                  "The cord has been cut. It's still ringing."]));
+      if (later) remember("The office phone calls from inside the building. It has my voice.");
+      break;
+    case "coat":
+      if (game.stage !== 1) break;
+      say(atLoop([`A coat on the hook. In the pocket: a Meridian Trust payslip in your name, dated ${NIGHT}. Paid in cash.`,
+                  "The same coat. Dust lies thick on the shoulders, like it's been hanging here for years. It's your size."]));
+      remember(later ? "The coat by the door is mine. It's been hanging there for years."
+                     : `There's a payslip in the coat with my name on it, dated ${NIGHT}.`);
+      break;
+    case "vending":
+      if (game.stage !== 1) break;
+      say(atLoop(['The vending machine hums. Every slot holds the same packet, labelled "TIME". The price tag reads: one of you.',
+                  "You press a button. Something drops: a Meridian Trust badge with a bite taken out of it."]));
+      if (later) remember("A bitten staff badge came out of the vending machine. Somebody paid with a person.");
+      break;
+    case "scratches":
+      if (game.stage !== 1) break;
+      say(atLoop(["Fingernail marks gouged into the inside of the door frame. Someone wanted out very badly.",
+                  "Among the scratches, two names. One of them is yours. The marks under your name are fresh."]));
+      if (later) remember("My name is scratched into the door frame, under someone else's.");
+      break;
+    // Level 2
+    case "fusebox":
+      if (game.stage !== 2) break;
+      if (f.powerOn) { say("The switch is up. The bulbs buzz. Don't look at what they show you."); break; }
+      setFlag("powerOn", true);
+      say("You throw the big switch. The corridor bulbs flicker on, one by one, toward you. The keypad lights up.");
+      break;
+    case "shoes":
+      if (game.stage !== 2) break;
+      say(atLoop(["A pair of office shoes, placed neatly side by side. Your size. The laces are still tied.",
+                  "The shoes have moved. They're facing you now."]));
+      if (later) remember("There are shoes in the corridor in my size. They move when I look away.");
+      break;
+    case "bricked-door":
+      if (game.stage !== 2) break;
+      say(atLoop(["A bricked-up office door. From behind it, someone knocks twice, like a question.",
+                  "You knock back twice. The knocking stops. Then it starts again on every door at once."]));
+      if (much) remember("Every bricked-up door in the corridor has someone behind it, still knocking.");
+      break;
+    case "candles":
+      if (game.stage !== 2) break;
+      say(atLoop(["Candles burnt down to stubs, still burning. Nobody lit them.",
+                  "In the candle smoke, two shapes are holding a door open between them."]));
+      if (later) remember("In the candle smoke I saw two people holding a door open together.");
+      break;
+    // Level 3
+    case "gate":
+      if (game.stage !== 3) break;
+      if (f.gateClosed) { say("The gate is shut. Through the bars, the shaft goes down further than the building is tall."); break; }
+      setFlag("gateClosed", true);
+      say("You drag the cage gate shut. It screams the whole way. The lift buttons glow.");
+      break;
+    case "indicator":
+      if (game.stage !== 3) break;
+      say(atLoop(["The floor needle swings past 14 and keeps going. There's no 15 printed on the dial, but it stops there anyway.",
+                  "The needle points at you."]));
+      break;
+    case "emergency-phone":
+      if (game.stage !== 3) break;
+      say(atLoop(['A red emergency phone. A tired voice: "Meridian Trust night desk. Have you both signed out?" Click.',
+                  '"Night desk. We only ever see one of you at sunrise. Every year, one." Click.']));
+      remember("The night desk asked if we had both signed out. Only one ever comes down at sunrise.");
+      break;
+    case "graffiti":
+      if (game.stage !== 3) break;
+      say(atLoop(["Scratched into the wall by many hands: THE DOOR OPENS FOR ONE.",
+                  "Under THE DOOR OPENS FOR ONE, newer and deeper, in your handwriting: UNLESS."]));
+      if (later) remember('Someone, me, scratched "UNLESS" under THE DOOR OPENS FOR ONE.');
       break;
 
     default:
