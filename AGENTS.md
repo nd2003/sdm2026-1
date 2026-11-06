@@ -41,8 +41,8 @@ The devs (and their agents) work here at the same time, each in their own files.
 | Core loop | `js/state.js`, `js/main.js` | #1 |
 | Room & objects | `js/room.js`, `assets/` | #2 |
 | Puzzles | `js/puzzles.js` | #3 |
-| Networking (2-player) | `js/net.js` | #5 |
-| Lobby & opponent UI | `js/ui.js`, `style.css` | #6 |
+| Networking (2-player) | `js/net.js` | #6 |
+| Lobby & opponent UI | `js/ui.js`, `style.css` | #7 |
 | UI | `js/ui.js`, `style.css` | #4 |
 
 If the task seems to need a change in someone else's file, don't make it. Stop and tell the human, or write what's needed as a comment on the matching issue.

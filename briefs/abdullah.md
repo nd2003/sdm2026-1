@@ -35,7 +35,7 @@ You own GitHub issues **#2 (Room & objects)** and **#4 (UI)**. You may only edit
 - Room visual states from `game.flags`: painting shifted when `paintingMoved`, cabinet `open` when `cabinetOpen`, door looks unlocked when `doorUnlocked`
 - Win screen when `game.won`. Add a short "the loop resets…" flash when `game.loop` goes up.
 
-## Two-player update (issue #6)
+## Two-player update (issue #7)
 
 The game is now an **online two-player race**. Read "Two-player race" in `AGENTS.md` first. Add to `render()`:
 

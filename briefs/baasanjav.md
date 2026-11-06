@@ -38,7 +38,7 @@ This is the chain from the README. Use the flag and item names from `AGENTS.md`:
 6. `door` → if `doorUnlocked`, set `game.won = true` and `render()`. Otherwise `say("The door won't budge.")`.
 7. Any other id (a decoy) → `say()` something flavourful.
 
-## Two-player update (issue #5)
+## Two-player update (issue #6)
 
 The game is now an **online two-player race**. Read "Two-player race" in `AGENTS.md` first. On your branch, also own `js/net.js`:
 
