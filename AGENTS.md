@@ -47,6 +47,13 @@ Zaid's agent does QA and integration. It talks to you only through **your GitHub
   ```
 - Never change the contract on your own. If you need a new name, flag, message or field, ask in an issue comment and wait for Zaid to update `AGENTS.md`.
 
+## Found a problem? Fix it
+
+If you notice a bug, a failing `test.html` check, a console error, or something that looks or plays wrong:
+- **In your own files:** fix it right away. Commit it as its own small commit ("Fix …"), push, and mention it in your next `Status:` comment. You don't need to ask first.
+- **In the other dev's files:** don't edit them. Post a comment on *their* issue with the file:line, how to reproduce it, and a suggested fix.
+- **In the contract** (`AGENTS.md`, `test.html`): comment on your issue and tag Zaid.
+
 ## Final destination: the course repo
 
 The finished game goes into the professor's repo, https://github.com/nd2003/sdm2026-1, under **`games/team-3/`** (we are **team-3**: label `team-3`, titles `[team-3] ...`, branches `team-3/<issue>-<desc>`). Its rules live in its **`CLAUDE.md`** (its `AGENTS.md` only points there). Also read `GETTING_STARTED.md` and `server/CLAUDE.md` once. Rules that matter **now**, so the port is easy:
