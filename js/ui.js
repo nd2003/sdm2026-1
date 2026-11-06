@@ -2,13 +2,15 @@
 // render() redraws everything from `game`. Cheap and idempotent: safe to call every tick.
 function render() {
   const $ = (id) => document.getElementById(id);
-  const set = (el, prop, v) => { if (el && el[prop] !== v) el[prop] = v; };  // skip no-op DOM writes
+  const set = (el, prop, v) => { if (el && el["_" + prop] !== v) el[prop] = el["_" + prop] = v; };  // skip writes we already made
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };  // restart a CSS animation
 
   // HUD
   const t = Math.max(0, Math.ceil(game.timeLeft));
   set($("timer"), "textContent", "⏳ " + t + "s");
   $("timer").classList.toggle("low", t <= 10);
+  $("hud").style.setProperty("--time", t / 60);  // drives the shrinking time bar
   set($("loop-count"), "textContent", "Loop " + game.loop);
 
   // Inventory (resets every loop)
@@ -16,17 +18,26 @@ function render() {
     ? "<ul>" + game.items.map((i) => `<li>${i === "key" ? "🔑 " : ""}${esc(i)}</li>`).join("") + "</ul>"
     : '<p class="empty">Empty pockets.</p>'));
 
-  // Clue journal (survives the reset)
-  set($("journal"), "innerHTML", "<h2>📓 Journal</h2>" + (game.clues.length
+  // Clue journal (survives the reset). The newest clue gets highlighted when it's written.
+  const journal = $("journal");
+  const known = journal._count ?? game.clues.length;  // first render: nothing counts as new
+  set(journal, "innerHTML", "<h2>📓 Journal</h2>" + (game.clues.length
     ? "<ol>" + game.clues.map((c) => `<li>${esc(c)}</li>`).join("") + "</ol>"
-    : '<p class="empty">Nothing written yet…</p>'));
+    : '<p class="empty">Nothing written yet. Clues you find stay here, even when the loop resets.</p>'));
+  journal.querySelectorAll("li").forEach((li, i) => { if (i >= known) li.classList.add("new"); });
+  journal._count = game.clues.length;
 
-  // Message
-  set($("message"), "textContent", game.message || "");
-  $("message").setAttribute("aria-live", "polite");
+  // Message: pops each time an object says something new
+  const msg = $("message");
+  if (msg.textContent !== (game.message || "")) {
+    msg.textContent = game.message || "";
+    if (game.message) replay(msg, "pop");
+  }
+  msg.setAttribute("aria-live", "polite");
 
   // Room visual states
   const f = game.flags || {};
+  $("obj-painting")?.style.setProperty("--clicks", f.paintingClicks || 0);  // tilts a bit more on every click
   $("obj-painting")?.classList.toggle("moved", !!f.paintingMoved);
   $("obj-cabinet")?.classList.toggle("open", !!f.cabinetOpen);
   $("obj-door")?.classList.toggle("unlocked", !!f.doorUnlocked);
@@ -41,10 +52,8 @@ function render() {
       flash.setAttribute("role", "status");
       document.body.append(flash);
     }
-    flash.textContent = "⏰ Time's up. The loop resets… (Loop " + game.loop + ")";
-    flash.classList.remove("show");
-    void flash.offsetWidth;  // restart the CSS animation
-    flash.classList.add("show");
+    flash.innerHTML = `<div>⏰ Time's up. The loop resets…<small>Your items are gone, but your journal remembers. Loop ${game.loop}</small></div>`;
+    replay(flash, "show");
   }
   document.body.dataset.loop = game.loop;
 
@@ -59,7 +68,7 @@ function render() {
   }
   if (win) {
     win.hidden = !game.won;
-    set(win, "innerHTML", `<div><h1>🎉 You escaped!</h1><p>It took you ${game.loop} loop${game.loop === 1 ? "" : "s"}.</p>`
+    set(win, "innerHTML", `<div><h1>🎉 You escaped!</h1><p>It took you ${game.loop} loop${game.loop === 1 ? "" : "s"}, with ${t}s left on the clock.</p>`
       + `<button type="button" onclick="location.reload()">Play again</button></div>`);
   }
 }

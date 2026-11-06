@@ -109,3 +109,22 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
   #journal { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* --- Feedback for the puzzle half (driven by render()) --- */
+/* time bar under the HUD, shrinks with game.timeLeft */
+#hud { position: relative; padding-bottom: 10px; }
+#hud::after {
+  content: ""; position: absolute; left: 0; bottom: 0; height: 4px; border-radius: 2px;
+  width: calc(var(--time, 1) * 100%); background: linear-gradient(90deg, #c22, #fc6 30%, #6c6); transition: width 1s linear;
+}
+/* painting tilts a little more on each click until it swings aside on the 4th */
+#obj-painting:not(.moved) .art { transform: rotate(calc(var(--clicks, 0) * -4deg)); }
+/* pressed objects squish, so every click feels registered */
+.obj:active .art { scale: .9; }
+/* new message pops in */
+#message.pop { animation: pop .35s ease-out; }
+@keyframes pop { from { transform: translateY(4px); background: #fc63; } }
+/* newly written clue glows like fresh ink */
+#journal li.new { animation: ink 2.5s ease-out; }
+@keyframes ink { from { background: #fc68; color: #8a2b2b; } }
+#loop-flash small { display: block; margin-top: 8px; font-size: 1rem; font-weight: normal; }
