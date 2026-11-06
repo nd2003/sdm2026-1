@@ -11,6 +11,8 @@
     <span id="timer">60</span>
     <span id="loop-count">Loop 1</span>
   </div>
+  <div id="lobby"></div>
+  <div id="opponent"></div>
   <div id="room"></div>
   <div id="message"></div>
   <div id="inventory"></div>
@@ -18,6 +20,7 @@
 
   <!-- Order matters: state first, main last. Plain scripts so index.html opens without a server. -->
   <script src="js/state.js"></script>
+  <script src="js/net.js"></script>
   <script src="js/room.js"></script>
   <script src="js/puzzles.js"></script>
   <script src="js/ui.js"></script>

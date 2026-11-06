@@ -1,5 +1,7 @@
 # Time Loop Escape
 
+**Two-player online race:** both players are trapped in identical rooms on their own devices, and the first one out wins.
+
 You're trapped in a room with 60 seconds to escape. When the timer hits zero the room resets and your items disappear, **but you keep every clue you found.** Each loop teaches you a bit more until you know the full escape sequence.
 
 ## Run it
@@ -20,6 +22,10 @@ Claude Code will ask to install the **ponytail** plugin, which keeps code minima
 
 Open `test.html` in a browser. It plays the full escape sequence and the loop reset, then shows PASS or FAIL for each step. Zaid also runs it on GitHub Actions after combining everyone's work.
 
+## Play two-player
+
+Open `index.html?server=ws://<backend-address>` on both devices. Without `?server`, you race a fake offline opponent, which is handy for development.
+
 ## Escape sequence (first room)
 
 1. Find the clue **"BLUE - 4"**, then click the blue painting 4 times. It moves aside and reveals a key.
@@ -35,6 +41,7 @@ Each person owns one file, which keeps merge conflicts rare.
 | Area | Files | Owner |
 |---|---|---|
 | QA and integration: tests, PR review, making the halves fit | `test.html`, `.github/` | @zaid-akroush |
+| Networking: lobby connection, progress, winner | `js/net.js` | @BaasanjavBatchuluun |
 | Core loop: timer, reset, knowledge that persists | `js/state.js`, `js/main.js` | @BaasanjavBatchuluun |
 | Room & objects: layout, art, clickable objects | `js/room.js`, `assets/` | @abdullahwaseem6 |
 | Puzzles: painting, cabinet, photo, computer, door | `js/puzzles.js` | @BaasanjavBatchuluun |

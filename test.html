@@ -8,6 +8,8 @@
 <body>
   <!-- Same markup as index.html: keep in sync -->
   <div id="hud"><span id="timer"></span><span id="loop-count"></span></div>
+  <div id="lobby"></div>
+  <div id="opponent"></div>
   <div id="room"></div>
   <div id="message"></div>
   <div id="inventory"></div>
@@ -17,6 +19,7 @@
   <ol id="log"></ol>
 
   <script src="js/state.js"></script>
+  <script src="js/net.js"></script>
   <script src="js/room.js"></script>
   <script src="js/puzzles.js"></script>
   <script src="js/ui.js"></script>
@@ -37,9 +40,14 @@
   const click = (id) => onObjectClick(id);
 
   window.addEventListener("load", () => {  // registered after main.js, so the game has already started
-    let year;
+    let year; const sent = [];
     const results = [
-      check("contract functions exist", () => ["buildRoom","onObjectClick","startLoop","resetLoop","addItem","hasItem","addClue","setFlag","say","render"].every(f => typeof window[f] === "function" || (()=>{throw new Error(f + " missing")})())),
+      check("starts in lobby, timer not running", () => game.phase === "lobby" && game.timeLeft === 60),
+      check("connect() offline starts match vs fake opponent", () => {
+        connect("Tester"); window.send = (type, data) => sent.push(type);   // spy after connect
+        return game.phase === "playing" && game.playerName === "Tester" && !!game.opponent;
+      }),
+      check("contract functions exist", () => ["connect","send","onNetMessage","buildRoom","onObjectClick","startLoop","resetLoop","addItem","hasItem","addClue","setFlag","say","render"].every(f => typeof window[f] === "function" || (()=>{throw new Error(f + " missing")})())),
       check("starts on loop 1 with ≤60s", () => game.loop === 1 && game.timeLeft <= 60 && game.timeLeft > 50),
       check("room has all puzzle objects", () => ["note","painting","cabinet","photo","computer","door"].every(id => document.getElementById("obj-" + id) || (()=>{throw new Error("#obj-" + id + " missing")})())),
       check("clicking #obj-note element adds BLUE - 4", () => { document.getElementById("obj-note").click(); return game.clues.includes("BLUE - 4"); }),
@@ -52,7 +60,10 @@
       check("door locked before computer", () => { click("door"); return !game.won; }),
       check("wrong password rejected", () => { window.__answer = "0000"; click("computer"); return !game.flags.doorUnlocked; }),
       check("right password unlocks door", () => { window.__answer = year; click("computer"); return game.flags.doorUnlocked === true; }),
-      check("door wins", () => { click("door"); return game.won === true; }),
+      check("progress sent while solving", () => sent.includes("progress")),
+      check("opponent progress message updates panel state", () => { onNetMessage({type:"progress", loop: 3, step: 2}); return game.opponent.step === 2 && game.opponent.loop === 3; }),
+      check("door wins and sends escaped", () => { click("door"); return game.won === true && sent.includes("escaped"); }),
+      check("winner message ends the race", () => { onNetMessage({type:"winner", name:"Tester"}); return game.phase === "over" && game.winner === "Tester"; }),
       check("decoy click doesn't throw", () => { click("not-a-real-object"); }),
       check("reset: items/flags/message cleared, clues kept, loop+1", () => {
         const clues = [...game.clues];

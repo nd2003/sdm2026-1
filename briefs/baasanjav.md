@@ -38,7 +38,18 @@ This is the chain from the README. Use the flag and item names from `AGENTS.md`:
 6. `door` → if `doorUnlocked`, set `game.won = true` and `render()`. Otherwise `say("The door won't budge.")`.
 7. Any other id (a decoy) → `say()` something flavourful.
 
-## Working without the other half
+## Two-player update (issue #5)
+
+The game is now an **online two-player race**. Read "Two-player race" in `AGENTS.md` first. On your branch, also own `js/net.js`:
+
+- `connect(name)`: with `?server=` in the URL, open a `WebSocket`, send `join`, and route incoming JSON to `onNetMessage`. Without it, run a **fake opponent**: start the match immediately, then raise its step by 1 every ~12s and declare it the winner at step 5. Keep it under 20 lines.
+- `send(type, data)`: a no-op in fake mode. In fake mode, `escaped` should make you the winner.
+- `onNetMessage(msg)`: handle `start`, `progress`, `winner` and `opponent-left` exactly as the contract table says.
+- `state.js`: add `phase`, `playerName`, `opponent` and `winner` to `game`. The timer must stop when `phase === "over"`. `resetLoop()` sends `progress` with step 0.
+- `puzzles.js`: send `progress` at each step (1–4). At the door, send `escaped`.
+- `main.js`: on load, call `buildRoom(); render();` only. Don't call `startLoop()`; `start` does that now.
+
+
 
 Until Abdullah's code lands, add temporary stubs at the **top of `main.js`** (above the `buildRoom(); startLoop();` call) so you can test from the browser console:
 
@@ -51,6 +62,8 @@ if (typeof buildRoom === "undefined") window.buildRoom = () => {};
 Then test from the console with calls like `onObjectClick("note")` and `onObjectClick("painting")` ×4.
 
 ## Done when
+- [ ] Offline (no `?server`): `connect("Me")` in the console starts the match, the fake opponent progresses, and whoever escapes first wins
+- [ ] Every message matches the table in `AGENTS.md`
 - [ ] The timer counts 60 → 0, then the loop resets: items and flags are gone, clues are kept, and `loop` goes up
 - [ ] The full chain note → painting ×4 → key → cabinet → photo → computer → door wins
 - [ ] Clicking the cabinet before getting the key says it's locked
