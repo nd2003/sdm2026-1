@@ -63,31 +63,77 @@ body {
   box-shadow: 0 0 16px rgba(192, 132, 252, 0.45);
 }
 
-.tle-loop-pill {
-  background: rgba(88, 28, 135, 0.45);
-  border: 1px solid rgba(192, 132, 252, 0.45);
-  color: #e9d5ff;
-  font-size: 0.74rem;
+.tle-lobby-corner-btn {
+  padding: 6px 13px;
+  border-radius: 9px;
+  background: rgba(127, 29, 29, 0.35);
+  border: 1.5px solid rgba(248, 113, 113, 0.55);
+  color: #fecaca;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 4px 9px;
-  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
-.tle-score-cluster {
-  display: flex;
+.tle-lobby-corner-btn:hover {
+  background: rgba(185, 28, 28, 0.55);
+  transform: translateY(-1px);
+}
+
+.tle-corner-loop-badge {
+  background: rgba(88, 28, 135, 0.55);
+  border: 1.5px solid #c084fc;
+  color: #f3e8ff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 5px 12px;
+  border-radius: 9px;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.35);
+}
+
+.tle-players-bar {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.tle-best-pill {
-  background: rgba(234, 179, 8, 0.16);
-  border: 1px solid rgba(250, 204, 21, 0.5);
-  color: #fef08a;
-  font-size: 0.74rem;
-  font-weight: 700;
-  padding: 4px 10px;
+.tle-player-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
   border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #f8fafc;
+  background: rgba(24, 20, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  cursor: pointer;
+}
+
+.tle-player-you {
+  border-color: rgba(74, 222, 128, 0.55);
+}
+
+.tle-player-friend {
+  border-color: rgba(56, 189, 248, 0.55);
+}
+
+.tle-p-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tle-dot-you {
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+}
+
+.tle-dot-friend {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
 }
 
 .tle-diff-group {
@@ -814,15 +860,16 @@ body {
   position: absolute;
   inset: 8px;
   border-radius: 4px;
+  border: 2px solid #fde047;
   background: radial-gradient(circle at 50% 45%, #fde047 0%, #c084fc 45%, #3b0764 100%);
-  box-shadow: inset 0 0 28px rgba(250, 204, 21, 0.8);
+  box-shadow: inset 0 0 28px rgba(250, 204, 21, 0.8), 0 0 24px rgba(250, 204, 21, 0.5);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   text-align: center;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .tle-portal-cyber {
@@ -1255,6 +1302,95 @@ body {
   opacity: 0 !important;
   transform: translate(-50%, -10px) !important;
   pointer-events: none !important;
+}
+
+.tle-green-escape-pill {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 78, 59, 0.95);
+  border: 1.5px solid #4ade80;
+  color: #bbf7d0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 6px 20px;
+  border-radius: 999px;
+  box-shadow: 0 0 24px rgba(74, 222, 128, 0.55);
+  z-index: 30;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+/* ================= ROOM 2: THE GOLDEN ALCHEMIST'S PARLOR ================= */
+.tle-r2-backdrop {
+  position: absolute;
+  inset: 0 0 24% 0;
+  background: radial-gradient(circle at 50% 35%, #581c3c 0%, #2c0b1e 60%, #14050e 100%);
+  border-bottom: 5px solid #d97706;
+}
+
+.tle-r2-rose-arch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 110px;
+  opacity: 0.85;
+}
+
+.tle-rose-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.35));
+}
+
+.tle-r2-pillars {
+  position: absolute;
+  inset: 0 12%;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.tle-r2-pillar {
+  width: 28px;
+  height: 100%;
+  background: linear-gradient(90deg, #451a03, #78350f, #451a03);
+  border-left: 2px solid #fbbf24;
+  border-right: 2px solid #fbbf24;
+  opacity: 0.55;
+}
+
+.tle-r2-marble-floor {
+  position: absolute;
+  inset: 76% 0 0 0;
+  background: repeating-linear-gradient(
+    90deg,
+    #1f122b 0px,
+    #1f122b 64px,
+    #2e1a40 64px,
+    #2e1a40 128px
+  );
+  border-top: 3px solid #fbbf24;
+}
+
+.tle-gram-svg,
+.tle-vault-svg {
+  width: 68px;
+  height: 68px;
+}
+
+.tle-r3-neon-arch {
+  position: absolute;
+  inset: 14px 18% 0;
+  border: 2px solid rgba(34, 211, 238, 0.35);
+  border-bottom: none;
+  border-radius: 32px 32px 0 0;
+  box-shadow: inset 0 0 30px rgba(34, 211, 238, 0.18);
+  pointer-events: none;
 }
 
 /* ================= ROOM 2: THE CRIMSON PARLOR & CIPHER LOUNGE ================= */
@@ -2028,9 +2164,71 @@ body {
   color: #bbf7d0;
 }
 
-.tle-btn-full {
+.tle-ready-toggle-btn {
   width: 100%;
-  font-size: 0.78rem;
+  padding: 9px 14px;
+  border-radius: 9px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  background: rgba(234, 179, 8, 0.18);
+  border: 1.5px solid #facc15;
+  color: #fef08a;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.tle-ready-toggle-btn.tle-ready-active {
+  background: rgba(22, 163, 74, 0.32);
+  border-color: #4ade80;
+  color: #bbf7d0;
+}
+
+.tle-game-end-card {
+  max-width: 390px;
+}
+
+.tle-game-end-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.2);
+  border: 1.5px solid #facc15;
+  color: #fef08a;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+
+.tle-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tle-stat-card {
+  background: rgba(20, 16, 38, 0.9);
+  border: 1.5px solid rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tle-stat-winner {
+  border-color: #4ade80;
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.3);
+}
+
+.tle-stat-name {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.tle-stat-loops {
+  font-size: 1.15rem;
+  color: #fef08a;
 }
 
 .tle-whatsapp-hint {
