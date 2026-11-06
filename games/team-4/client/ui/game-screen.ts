@@ -396,6 +396,27 @@ export function renderGameScreen(
       <!-- Main Escape Room Stage -->
       <main class="tle-stage-wrapper">
         <div class="tle-room-stage game-viewport" id="game-viewport">
+          <!-- Tactical CCTV Surveillance HUD Frame & Scanline Overlay -->
+          <div class="tle-cctv-hud-overlay" aria-hidden="true">
+            <div class="tle-crt-scanlines"></div>
+            <div class="tle-vhs-rewind-layer hidden" id="vhs-rewind-layer">
+              <span class="tle-vhs-text">⏪ REWIND // 00:00 // TEMPORAL RESET</span>
+            </div>
+            <span class="tle-cam-bracket tle-cam-bracket-tl">┌</span>
+            <span class="tle-cam-bracket tle-cam-bracket-tr">┐</span>
+            <span class="tle-cam-bracket tle-cam-bracket-bl">└</span>
+            <span class="tle-cam-bracket tle-cam-bracket-br">┘</span>
+            <div class="tle-cam-crosshair"></div>
+            <div class="tle-cam-top-telemetry" id="hud-cam-telemetry">
+              <span class="tle-cam-rec-dot"></span>
+              <span id="hud-cam-label">ROOM_CAM_04 // ANOMALY DETECTED</span>
+            </div>
+            <div class="tle-cam-bottom-coords">
+              <span>OPT_GRID // X:042.8 · Y:118.4 · Z:-09.2m</span>
+              <span>ISO-3D FEED // 60Hz // NOISE: 0.02%</span>
+            </div>
+          </div>
+
           <!-- Blurrable Room Content Container -->
           <div class="tle-room-blur-target" id="room-blur-target">
             <!-- Auto-fading Room Banner (1.4s then disappears!) -->
@@ -407,37 +428,39 @@ export function renderGameScreen(
             </div>
 
             <!-- ===================================================================
-                 ROOM 1: THE MIDNIGHT STUDY (60s)
+                 ROOM 1: SUB-LEVEL SURVEILLANCE OFFICE (Isometric 3D Perspective)
                  =================================================================== -->
-            <div class="tle-scene tle-scene-basic" id="scene-basic">
-              <div class="tle-wall-back"></div>
-              <div class="tle-wall-left">
+            <div class="tle-scene tle-scene-basic tle-iso-scene" id="scene-basic">
+              <div class="tle-wall-back tle-iso-wall-back">
+                <div class="tle-iso-grid-plane"></div>
+              </div>
+              <div class="tle-wall-left tle-iso-wall-left">
                 <button
                   type="button"
-                  class="tle-window-frame"
+                  class="tle-window-frame tle-iso-hotspot"
                   id="obj-window"
                   data-object-id="window"
-                  title="Window"
+                  title="ENV_VIEWPORT_00"
                 >
                   <span class="tle-window-sky">
                     <span class="tle-rain-layer"></span>
                   </span>
                   <span class="tle-window-blinds"></span>
+                  <span class="tle-reticle-tag">[ ⛶ ENV_VIEWPORT_00 ]</span>
                 </button>
-                <div class="tle-ivy-left" aria-hidden="true">🌿</div>
               </div>
-              <div class="tle-floor"></div>
+              <div class="tle-floor tle-iso-floor"></div>
               <div class="tle-lamp-cone" id="lamp-cone"></div>
 
-              <!-- 1. Blue Mountain Painting + Hidden Wall Safe -->
-              <div class="tle-painting-zone">
+              <!-- 1. Wall Relic Frame with Cyan Anomaly Glow + Hidden Safe -->
+              <div class="tle-painting-zone tle-iso-depth-card">
                 <div class="tle-wall-safe" id="wall-safe">
                   <button
                     type="button"
                     class="tle-safe-key-btn hidden"
                     id="obj-key"
                     data-object-id="key"
-                    title="Golden Key"
+                    title="ARTIFACT_KEY_01"
                   >
                     <svg viewBox="0 0 64 64" class="tle-svg-key">
                       <circle cx="20" cy="20" r="10" fill="none" stroke="#fbbf24" stroke-width="5" />
@@ -445,47 +468,47 @@ export function renderGameScreen(
                       <line x1="42" y1="42" x2="36" y2="48" stroke="#f59e0b" stroke-width="4" />
                       <line x1="49" y1="49" x2="43" y2="55" stroke="#f59e0b" stroke-width="4" />
                     </svg>
-                    <span class="tle-key-sparkle">✨ Key</span>
+                    <span class="tle-reticle-tag">[ ⛶ ARTIFACT_KEY_01 ]</span>
                   </button>
                 </div>
 
                 <button
                   type="button"
-                  class="tle-painting-btn"
+                  class="tle-painting-btn tle-iso-hotspot tle-cyan-anomaly-glow"
                   id="obj-painting"
                   data-object-id="painting"
-                  title="Blue Painting"
+                  title="OBJ_RELIC_01"
                 >
                   <svg viewBox="0 0 160 200" class="tle-painting-svg" aria-hidden="true">
                     <defs>
                       <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#1e3a8a" />
-                        <stop offset="55%" stop-color="#3b82f6" />
-                        <stop offset="100%" stop-color="#1d4ed8" />
+                        <stop offset="0%" stop-color="#082f49" />
+                        <stop offset="55%" stop-color="#0284c7" />
+                        <stop offset="100%" stop-color="#1e3a8a" />
                       </linearGradient>
                     </defs>
                     <rect width="160" height="200" fill="url(#skyGrad)" />
-                    <polygon points="0,130 45,65 95,130" fill="#1e40af" />
-                    <polygon points="55,135 115,55 160,135" fill="#1d4ed8" />
-                    <polygon points="0,165 65,95 160,155 160,200 0,200" fill="#172554" />
+                    <polygon points="0,130 45,65 95,130" fill="#0369a1" />
+                    <polygon points="55,135 115,55 160,135" fill="#0284c7" />
+                    <polygon points="0,165 65,95 160,155 160,200 0,200" fill="#082f49" />
                     <path
                       d="M 75 135 Q 90 165 55 200 L 95 200 Q 115 165 88 135 Z"
-                      fill="#60a5fa"
-                      opacity="0.65"
+                      fill="#22d3ee"
+                      opacity="0.75"
                     />
                   </svg>
+                  <span class="tle-reticle-tag">[ ⛶ OBJ_RELIC_01 ]</span>
                 </button>
               </div>
 
-              <!-- 2. Wooden Double-Door Cabinet -->
-              <div class="tle-cabinet-zone">
-                <div class="tle-cabinet-ivy" aria-hidden="true">🌿🌱🌿</div>
+              <!-- 2. Mechanical Security Cabinet -->
+              <div class="tle-cabinet-zone tle-iso-depth-card">
                 <button
                   type="button"
-                  class="tle-cabinet-btn"
+                  class="tle-cabinet-btn tle-iso-hotspot"
                   id="obj-cabinet"
                   data-object-id="cabinet"
-                  title="Cabinet"
+                  title="SEC_LOCKER_02"
                 >
                   <div class="tle-cabinet-top-trim"></div>
                   <div class="tle-cabinet-doors" id="cabinet-doors">
@@ -499,19 +522,20 @@ export function renderGameScreen(
                     </div>
                   </div>
                   <div class="tle-cabinet-interior" id="cabinet-interior">
-                    <span class="tle-interior-scroll">📜 Clue</span>
+                    <span class="tle-interior-scroll">DATA_LOG</span>
                   </div>
                   <span class="tle-glow-badge" id="state-cabinet">🔒</span>
+                  <span class="tle-reticle-tag">[ ⛶ SEC_LOCKER_02 ]</span>
                 </button>
               </div>
 
-              <!-- 3. Cork Bulletin Board with 1998 Photograph -->
+              <!-- 3. Evidence Frame with Archival Metadata -->
               <button
                 type="button"
-                class="tle-corkboard-btn"
+                class="tle-corkboard-btn tle-iso-hotspot tle-iso-depth-card"
                 id="obj-photo"
                 data-object-id="photo"
-                title="Photograph"
+                title="ARCHIVE_FRAME_03"
               >
                 <div class="tle-polaroid">
                   <div class="tle-pin"></div>
@@ -529,71 +553,73 @@ export function renderGameScreen(
                 </div>
                 <div class="tle-sticky tle-sticky-1"></div>
                 <div class="tle-sticky tle-sticky-2"></div>
-                <div class="tle-sticky tle-sticky-3"></div>
+                <span class="tle-reticle-tag">[ ⛶ ARCHIVE_FRAME_03 ]</span>
               </button>
 
-              <!-- 4. Computer Desk & Locked Monitor -->
-              <div class="tle-computer-desk-zone">
+              <!-- 4. Angled Surveillance Terminal Desk -->
+              <div class="tle-computer-desk-zone tle-iso-depth-card">
                 <button
                   type="button"
-                  class="tle-monitor-btn"
+                  class="tle-monitor-btn tle-iso-hotspot"
                   id="obj-computer"
                   data-object-id="computer"
-                  title="Computer"
+                  title="CONSOLE_TERMINAL"
                 >
                   <div class="tle-monitor-screen" id="monitor-screen">
                     <span class="tle-monitor-lock" id="state-computer">🔒</span>
                     <div class="tle-monitor-passbox" id="monitor-passbox">* * * *</div>
                   </div>
                   <div class="tle-monitor-stand"></div>
+                  <span class="tle-reticle-tag">[ ⛶ CONSOLE_TERMINAL ]</span>
                 </button>
-                <div class="tle-pencil-cup" aria-hidden="true">✏️</div>
                 <div class="tle-right-desk">
                   <div class="tle-desk-leg tle-leg-l"></div>
                   <div class="tle-desk-leg tle-leg-r"></div>
                 </div>
               </div>
 
-              <!-- 5. Visibly Opening 3D Doorway into Room 2 -->
-              <div class="tle-door-zone" id="r1-door-zone">
+              <!-- 5. Heavy Security Blast Door with Digital Keypad -->
+              <div class="tle-door-zone tle-iso-blast-door" id="r1-door-zone">
                 <button
                   type="button"
                   class="tle-door-portal-Light"
                   data-object-id="door"
-                  title="Enter Room 2"
+                  title="ENTER_SECTOR_02"
                 >
                   <span class="tle-portal-sparkle">✨</span>
-                  <span class="tle-portal-text">ROOM 2<br/>ENTER ➔</span>
+                  <span class="tle-portal-text">SECTOR 02<br/>ENTER ➔</span>
                 </button>
                 <button
                   type="button"
-                  class="tle-exit-door-btn"
+                  class="tle-exit-door-btn tle-iso-hotspot"
                   id="obj-door"
                   data-object-id="door"
-                  title="Door"
+                  title="BLAST_DOOR_01"
                 >
                   <div class="tle-exit-panel"></div>
                   <div class="tle-exit-panel tle-exit-panel-mid"></div>
                   <div class="tle-exit-panel"></div>
                   <span class="tle-door-handle"></span>
                   <span class="tle-door-badge" id="state-door">🔒</span>
+                  <span class="tle-reticle-tag">[ ⛶ BLAST_DOOR_01 ]</span>
                 </button>
               </div>
 
-              <!-- 6. Foreground Left Study Desk, Lamp & Open Book -->
-              <div class="tle-left-desk-zone">
+              <!-- 6. Foreground Angled Command Desk, Lumen Lamp & Logbook -->
+              <div class="tle-left-desk-zone tle-iso-depth-card">
                 <div class="tle-left-desk-surface">
                   <button
                     type="button"
-                    class="tle-lamp-btn"
+                    class="tle-lamp-btn tle-iso-hotspot"
                     id="obj-lamp"
                     data-object-id="lamp"
-                    title="Lamp"
+                    title="LUMEN_EMITTER_02"
                   >
                     <span class="tle-lamp-shade"></span>
                     <span class="tle-lamp-bulb"></span>
                     <span class="tle-lamp-arm"></span>
                     <span class="tle-lamp-base"></span>
+                    <span class="tle-reticle-tag">[ ⛶ LUMEN_02 ]</span>
                   </button>
                   <div class="tle-book-stack" aria-hidden="true">
                     <div class="tle-stacked-book"></div>
@@ -601,45 +627,44 @@ export function renderGameScreen(
                   </div>
                   <button
                     type="button"
-                    class="tle-open-book-btn"
+                    class="tle-open-book-btn tle-iso-hotspot"
                     id="obj-book"
                     data-object-id="book"
-                    title="Journal"
+                    title="OBJ_LOGBOOK_00"
                   >
                     <div class="tle-book-pages">
                       <div class="tle-page-left"></div>
                       <div class="tle-page-right"></div>
                     </div>
-                    <span class="tle-magnifier-badge">🔍</span>
+                    <span class="tle-reticle-tag">[ ⛶ OBJ_LOGBOOK_00 ]</span>
                   </button>
                 </div>
               </div>
             </div>
 
             <!-- ===================================================================
-                 ROOM 2: SUB-ZERO CRYO-LAB & CONTAINMENT PARLOR (60s)
+                 ROOM 2: SUB-ZERO CRYO-CONTAINMENT (Isometric 3D Bulkhead Chamber)
                  =================================================================== -->
-            <div class="tle-scene tle-scene-medium hidden" id="scene-medium">
-              <div class="tle-r2-backdrop">
-                <!-- Flashing Cryo Telemetry Header Strip -->
+            <div class="tle-scene tle-scene-medium tle-iso-scene hidden" id="scene-medium">
+              <div class="tle-r2-backdrop tle-iso-wall-back">
+                <div class="tle-iso-grid-plane"></div>
                 <div class="tle-r2-telemetry-bar">
                   <span class="tle-r2-hazard-dot"></span>
-                  <span>CRYO-CONTAINMENT // TEMP: -196°C // DUAL-VALVE ACTIVE</span>
+                  <span>CRYO-BULKHEAD // -196°C // HYDRAULIC LINE_02</span>
                 </div>
                 <div class="tle-r2-hazard-strip"></div>
-                <!-- Stained Glass / Frosted Cryo Observation Arch in Center Ceiling -->
                 <div class="tle-r2-rose-arch">
                   <svg viewBox="0 0 220 110" class="tle-rose-svg" aria-hidden="true">
                     <path
                       d="M10,110 A100,100 0 0,1 210,110 Z"
-                      fill="#1e1035"
-                      stroke="#fbbf24"
+                      fill="#041e30"
+                      stroke="#06b6d4"
                       stroke-width="4"
                     />
-                    <circle cx="110" cy="72" r="34" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
-                    <line x1="110" y1="10" x2="110" y2="110" stroke="#fbbf24" stroke-width="2"/>
-                    <line x1="40" y1="50" x2="180" y2="95" stroke="#c084fc" stroke-width="1.5"/>
-                    <line x1="180" y1="50" x2="40" y2="95" stroke="#c084fc" stroke-width="1.5"/>
+                    <circle cx="110" cy="72" r="34" fill="none" stroke="#22d3ee" stroke-width="2.5"/>
+                    <line x1="110" y1="10" x2="110" y2="110" stroke="#06b6d4" stroke-width="2"/>
+                    <line x1="40" y1="50" x2="180" y2="95" stroke="#eab308" stroke-width="1.5"/>
+                    <line x1="180" y1="50" x2="40" y2="95" stroke="#eab308" stroke-width="1.5"/>
                   </svg>
                 </div>
                 <div class="tle-r2-pillars">
@@ -647,54 +672,53 @@ export function renderGameScreen(
                   <span class="tle-r2-pillar"></span>
                 </div>
               </div>
-              <div class="tle-r2-marble-floor"></div>
+              <div class="tle-r2-marble-floor tle-iso-floor"></div>
 
-              <!-- Left: Golden Phonograph (Gives Riddle for Coffee Table!) -->
+              <!-- Left: Acoustic Telemetry Unit -->
               <button
                 type="button"
-                class="tle-r2-gramophone"
+                class="tle-r2-gramophone tle-iso-hotspot tle-iso-depth-card"
                 data-object-id="r2-gramophone"
-                title="Gramophone (Inspect for Riddle)"
+                title="ACOUSTIC_LOG_01"
               >
                 <svg viewBox="0 0 100 120" class="tle-gram-svg">
                   <path
                     d="M50,55 C65,18 95,12 92,45 C89,68 62,62 50,55 Z"
-                    fill="#fbbf24"
-                    stroke="#b45309"
+                    fill="#06b6d4"
+                    stroke="#eab308"
                     stroke-width="3"
                   />
-                  <ellipse cx="42" cy="76" rx="28" ry="8" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+                  <ellipse cx="42" cy="76" rx="28" ry="8" fill="#0f172a" stroke="#22d3ee" stroke-width="2"/>
                   <rect
                     x="18"
                     y="82"
                     width="52"
                     height="28"
                     rx="4"
-                    fill="#78350f"
-                    stroke="#f59e0b"
+                    fill="#083344"
+                    stroke="#06b6d4"
                     stroke-width="2.5"
                   />
                 </svg>
-                <span class="tle-obj-tag">🎵 Gramophone</span>
+                <span class="tle-reticle-tag">[ ⛶ ACOUSTIC_LOG_01 ]</span>
               </button>
 
-              <!-- Center-Left Foreground: Ornate Round Coffee Table with Scrambled Letter Tiles -->
+              <!-- Center-Left Foreground: Cryo-Matrix Console -->
               <button
                 type="button"
-                class="tle-r2-coffee-table"
+                class="tle-r2-coffee-table tle-iso-hotspot tle-iso-depth-card"
                 id="r2-coffee-table-btn"
                 data-object-id="r2-coffee-table"
-                title="Coffee Table"
+                title="CRYO_MATRIX_02"
               >
                 <div class="tle-table-top">
-                  <span class="tle-teacup">☕</span>
                   <div class="tle-mini-tiles">
                     <span class="tle-mini-tile">M</span>
                     <span class="tle-mini-tile">E</span>
                     <span class="tle-mini-tile">T</span>
                     <span class="tle-mini-tile">I</span>
                   </div>
-                  <span class="tle-table-badge" id="r2-table-badge">Coffee Table</span>
+                  <span class="tle-reticle-tag">[ ⛶ CRYO_MATRIX_02 ]</span>
                 </div>
                 <div class="tle-table-legs">
                   <span></span>
@@ -702,52 +726,52 @@ export function renderGameScreen(
                 </div>
               </button>
 
-              <!-- Center: Gothic Hearth & Astrolabe Rotary Vault -->
-              <div class="tle-r2-fireplace-zone">
+              <!-- Center: Glowing Cryogenic Stasis Core & Pipe Valve -->
+              <div class="tle-r2-fireplace-zone tle-iso-depth-card">
                 <button
                   type="button"
-                  class="tle-r2-vault-btn"
+                  class="tle-r2-vault-btn tle-iso-hotspot"
                   id="r2-vault-btn"
                   data-object-id="r2-vault"
-                  title="Astrolabe Vault"
+                  title="STASIS_CORE_04"
                 >
                   <svg viewBox="0 0 90 90" class="tle-vault-svg">
-                    <circle cx="45" cy="45" r="38" fill="#0f172a" stroke="#fbbf24" stroke-width="4"/>
+                    <circle cx="45" cy="45" r="38" fill="#020b14" stroke="#06b6d4" stroke-width="4"/>
                     <circle
                       cx="45"
                       cy="45"
                       r="24"
                       fill="none"
-                      stroke="#f59e0b"
+                      stroke="#eab308"
                       stroke-width="2"
                       stroke-dasharray="6 4"
                     />
-                    <line x1="45" y1="12" x2="45" y2="78" stroke="#fbbf24" stroke-width="3"/>
-                    <line x1="12" y1="45" x2="78" y2="45" stroke="#fbbf24" stroke-width="3"/>
-                    <circle cx="45" cy="45" r="9" fill="#fbbf24"/>
+                    <line x1="45" y1="12" x2="45" y2="78" stroke="#22d3ee" stroke-width="3"/>
+                    <line x1="12" y1="45" x2="78" y2="45" stroke="#22d3ee" stroke-width="3"/>
+                    <circle cx="45" cy="45" r="9" fill="#06b6d4"/>
                   </svg>
-                  <span class="tle-vault-status" id="r2-vault-status">🔒 Vault</span>
+                  <span class="tle-reticle-tag">[ ⛶ STASIS_CORE_04 ]</span>
                 </button>
 
                 <div class="tle-r2-fireplace">
                   <div class="tle-mantle-shelf">
-                    <span>🕯️</span>
+                    <span>❄️</span>
                     <span>⚗️</span>
-                    <span>🕯️</span>
+                    <span>❄️</span>
                   </div>
                   <div class="tle-fire-hearth">
-                    <div class="tle-fire-flames">🔥</div>
+                    <div class="tle-fire-flames">🧊</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Right-Center: Grand Arcane Bookshelf -->
+              <!-- Right-Center: Hydraulic Thermal Valve Manifold -->
               <button
                 type="button"
-                class="tle-r2-bookshelf"
+                class="tle-r2-bookshelf tle-iso-hotspot tle-iso-depth-card"
                 id="r2-bookshelf-btn"
                 data-object-id="r2-bookshelf"
-                title="Bookshelf"
+                title="THERMAL_VALVES_03"
               >
                 <div class="tle-shelf-row">
                   <span class="tle-spine tle-spine-blue"></span>
@@ -760,55 +784,58 @@ export function renderGameScreen(
                   <span class="tle-spine tle-spine-gold"></span>
                   <span class="tle-spine tle-spine-red"></span>
                 </div>
-                <span class="tle-bookshelf-badge" id="r2-books-badge">Bookshelf</span>
+                <span class="tle-reticle-tag">[ ⛶ THERMAL_VALVES_03 ]</span>
               </button>
 
-              <!-- Far Right: Visibly Opening 3D Parlor Gate into Room 3 -->
-              <div class="tle-door-zone">
+              <!-- Far Right: Cryo-Containment Airlock Door -->
+              <div class="tle-door-zone tle-iso-blast-door">
                 <button
                   type="button"
                   class="tle-door-portal-Light tle-portal-cyber"
                   data-object-id="r2-door"
-                  title="Enter Room 3"
+                  title="ENTER_SECTOR_03"
                 >
                   <span class="tle-portal-sparkle">⚡</span>
-                  <span class="tle-portal-text">ROOM 3<br/>ENTER ➔</span>
+                  <span class="tle-portal-text">SECTOR 03<br/>ENTER ➔</span>
                 </button>
                 <button
                   type="button"
-                  class="tle-exit-door-btn tle-r2-door-btn"
+                  class="tle-exit-door-btn tle-r2-door-btn tle-iso-hotspot"
                   id="r2-door-btn"
                   data-object-id="r2-door"
-                  title="Parlor Gate"
+                  title="CRYO_AIRLOCK_02"
                 >
                   <div class="tle-exit-panel"></div>
                   <div class="tle-exit-panel tle-exit-panel-mid"></div>
                   <div class="tle-exit-panel"></div>
                   <span class="tle-door-handle"></span>
                   <span class="tle-door-badge" id="r2-door-badge">🔒</span>
+                  <span class="tle-reticle-tag">[ ⛶ CRYO_AIRLOCK_02 ]</span>
                 </button>
               </div>
             </div>
 
             <!-- ===================================================================
-                 ROOM 3: QUANTUM CORE VOID & EVENT-HORIZON LAB (60s)
+                 ROOM 3: QUANTUM SINGULARITY CORE (Isometric 3D Non-Euclidean Bay)
                  =================================================================== -->
-            <div class="tle-scene tle-scene-hard hidden" id="scene-hard">
-              <div class="tle-r3-wall">
+            <div class="tle-scene tle-scene-hard tle-iso-scene hidden" id="scene-hard">
+              <div class="tle-r3-wall tle-iso-wall-back">
                 <div class="tle-r3-grid-lines"></div>
                 <div class="tle-r3-neon-arch"></div>
+                <div class="tle-r3-magnetic-ring tle-ring-outer" aria-hidden="true"></div>
+                <div class="tle-r3-magnetic-ring tle-ring-inner" aria-hidden="true"></div>
                 <div class="tle-r3-anomaly tle-anomaly-1" aria-hidden="true">✦</div>
                 <div class="tle-r3-anomaly tle-anomaly-2" aria-hidden="true">◈</div>
               </div>
-              <div class="tle-r3-floor"></div>
+              <div class="tle-r3-floor tle-iso-floor"></div>
 
-              <!-- Left: 3x3 Reactor Power Matrix -->
+              <!-- Left: Harmonic Frequency Emitter Matrix -->
               <button
                 type="button"
-                class="tle-r3-breaker"
+                class="tle-r3-breaker tle-iso-hotspot tle-iso-depth-card"
                 id="r3-breaker-btn"
                 data-object-id="r3-breaker"
-                title="Power Grid"
+                title="HARMONIC_COIL_01"
               >
                 <div class="tle-breaker-mini-grid">
                   <span class="tle-bm-dot tle-bm-on"></span>
@@ -821,41 +848,41 @@ export function renderGameScreen(
                   <span class="tle-bm-dot"></span>
                   <span class="tle-bm-dot tle-bm-on"></span>
                 </div>
-                <span class="tle-r3-tag" id="r3-breaker-tag">Power Grid</span>
+                <span class="tle-reticle-tag">[ ⛶ HARMONIC_COIL_01 ]</span>
               </button>
 
-              <!-- Center-Left Foreground: Floating 3D Hologram Table -->
+              <!-- Center-Left Foreground: Floating Magnetic Holo-Projection Console -->
               <button
                 type="button"
-                class="tle-r3-holo-table"
+                class="tle-r3-holo-table tle-iso-hotspot tle-iso-depth-card"
                 id="r3-holo-btn"
                 data-object-id="r3-holo-table"
-                title="Holo-Table"
+                title="HOLO_CONTAINMENT_02"
               >
                 <div class="tle-holo-beam">
                   <span class="tle-holo-letters">O · P · L · O</span>
                 </div>
                 <div class="tle-holo-base">
-                  <span class="tle-r3-tag" id="r3-holo-tag">Holo-Table</span>
+                  <span class="tle-reticle-tag">[ ⛶ HOLO_CONTAINMENT_02 ]</span>
                 </div>
               </button>
 
-              <!-- Center Back Wall: Live Laser & Mirror Optics Grid -->
+              <!-- Center Back Wall: Pulsing Violet Laser Emitter Coils -->
               <button
                 type="button"
-                class="tle-r3-laser-panel"
+                class="tle-r3-laser-panel tle-iso-hotspot tle-iso-depth-card"
                 id="r3-laser-btn"
                 data-object-id="r3-laser-grid"
-                title="Laser Grid"
+                title="VIOLET_EMITTER_03"
               >
                 <svg viewBox="0 0 180 120" class="tle-laser-preview-svg">
-                  <rect width="180" height="120" rx="8" fill="#050811" />
+                  <rect width="180" height="120" rx="8" fill="#05020c" />
                   <line
                     x1="16"
                     y1="28"
                     x2="75"
                     y2="28"
-                    stroke="#ef4444"
+                    stroke="#d946ef"
                     stroke-width="3"
                     stroke-dasharray="4 2"
                   />
@@ -864,7 +891,7 @@ export function renderGameScreen(
                     y1="28"
                     x2="75"
                     y2="92"
-                    stroke="#ef4444"
+                    stroke="#d946ef"
                     stroke-width="3"
                     stroke-dasharray="4 2"
                   />
@@ -873,52 +900,53 @@ export function renderGameScreen(
                     y1="92"
                     x2="155"
                     y2="92"
-                    stroke="#22d3ee"
+                    stroke="#a855f7"
                     stroke-width="3"
                   />
-                  <circle cx="16" cy="28" r="6" fill="#ef4444" />
-                  <circle cx="155" cy="92" r="7" fill="#22d3ee" />
+                  <circle cx="16" cy="28" r="6" fill="#d946ef" />
+                  <circle cx="155" cy="92" r="7" fill="#a855f7" />
                 </svg>
-                <span class="tle-r3-tag" id="r3-laser-tag">Laser Grid</span>
+                <span class="tle-reticle-tag">[ ⛶ VIOLET_EMITTER_03 ]</span>
               </button>
 
-              <!-- Right-Center: Cryo-Core Reactor Console -->
+              <!-- Right-Center: Singularity Reactor Core -->
               <button
                 type="button"
-                class="tle-r3-cryo"
+                class="tle-r3-cryo tle-iso-hotspot tle-iso-depth-card"
                 id="r3-cryo-btn"
                 data-object-id="r3-cryo-core"
-                title="Cryo-Core"
+                title="SINGULARITY_CORE_04"
               >
                 <div class="tle-cryo-tube">
-                  <div class="tle-cryo-plasma">🧬</div>
+                  <div class="tle-cryo-plasma">⚛️</div>
                 </div>
-                <span class="tle-r3-tag" id="r3-cryo-tag">Cryo-Core</span>
+                <span class="tle-reticle-tag">[ ⛶ SINGULARITY_CORE_04 ]</span>
               </button>
 
-              <!-- Far Right: Visibly Opening 3D Quantum Airlock Door -->
-              <div class="tle-door-zone">
+              <!-- Far Right: Event-Horizon Quantum Portal -->
+              <div class="tle-door-zone tle-iso-blast-door">
                 <button
                   type="button"
                   class="tle-door-portal-Light tle-portal-victory"
                   data-object-id="r3-door"
-                  title="Escape"
+                  title="ESCAPE_SINGULARITY"
                 >
                   <span class="tle-portal-sparkle">🏆</span>
                   <span class="tle-portal-text">ESCAPE ➔</span>
                 </button>
                 <button
                   type="button"
-                  class="tle-exit-door-btn tle-r3-door-btn"
+                  class="tle-exit-door-btn tle-r3-door-btn tle-iso-hotspot"
                   id="r3-door-btn"
                   data-object-id="r3-door"
-                  title="Airlock Door"
+                  title="EVENT_HORIZON_03"
                 >
                   <div class="tle-exit-panel"></div>
                   <div class="tle-exit-panel tle-exit-panel-mid"></div>
                   <div class="tle-exit-panel"></div>
                   <span class="tle-door-handle"></span>
                   <span class="tle-door-badge" id="r3-door-badge">🔒</span>
+                  <span class="tle-reticle-tag">[ ⛶ EVENT_HORIZON_03 ]</span>
                 </button>
               </div>
             </div>
@@ -972,9 +1000,13 @@ export function renderGameScreen(
             <div class="tle-pubg-timer-bar" id="pubg-timer-bar"></div>
           </aside>
 
-          <!-- Interactive Mini-Puzzle / Inspector Overlay -->
-          <div class="tle-overlay hidden" id="inspector-modal">
-            <div class="tle-modal-card tle-puzzle-modal">
+          <!-- Interactive Mini-Puzzle / Tactical Inspector Overlay -->
+          <div class="tle-overlay tactical-inspect-view hidden" id="inspector-modal">
+            <div class="tle-modal-card tle-puzzle-modal tle-tactical-modal">
+              <div class="tle-tactical-modal-header">
+                <span class="tle-tactical-bracket">[ ⛶ TACTICAL_INSPECT_VIEW ]</span>
+                <span class="tle-tactical-sync-tag">NEURAL_SYNC // ACTIVE</span>
+              </div>
               <h3 id="inspector-title">Inspect</h3>
               <div class="tle-inspector-body" id="inspector-body"></div>
 
@@ -1338,7 +1370,7 @@ export function renderGameScreen(
             if (state.r2WordInput.join("") === "TIME") {
               state.r2TableSolved = true;
               addInventoryItem("Winding Key");
-              addClue("Bookmark: Ruby → Gold → Emerald");
+              addClue("DECRYPTED: VALVE_SEQ = RED > GOLD > GREEN");
               if (isCurrentRoomAllSolved()) {
                 state.doorUnlocked = true;
               }
@@ -1425,7 +1457,7 @@ export function renderGameScreen(
                 state.r2BooksSolved = true;
                 state.r2BooksError = "";
                 addInventoryItem("Ruby Lens");
-                addClue("Astrolabe: 30 - 70 - 15");
+                addClue("DECRYPTED: PIPE_PSI = 30-70-15");
                 if (isCurrentRoomAllSolved()) {
                   state.doorUnlocked = true;
                 }
@@ -1541,7 +1573,7 @@ export function renderGameScreen(
   /** Room 3 Puzzle: 3x3 Power Grid */
   function openCircuitBreakerPuzzle(): void {
     const renderBreakerModal = (): void => {
-      addClue("Reactor: Charge the 4 corner nodes (↖ ↗ ↙ ↘)");
+      addClue("DECRYPTED: DIODE_CORNERS = ↖ ↗ ↙ ↘");
       const cellsHtml = state.r3GridCells
         .map(
           (isOn, idx) =>
@@ -1577,7 +1609,7 @@ export function renderGameScreen(
             if (solved && !state.r3BreakerSolved) {
               state.r3BreakerSolved = true;
               addInventoryItem("Optic Mirror");
-              addClue("Holo-Table: Endless cycle (O-P-L-O)");
+              addClue("DECRYPTED: CYCLE_CIPHER = O-P-L-O");
               if (isCurrentRoomAllSolved()) {
                 state.doorUnlocked = true;
               }
@@ -1650,7 +1682,7 @@ export function renderGameScreen(
             if (state.r3HoloInput.join("") === "LOOP") {
               state.r3HoloSolved = true;
               addInventoryItem("Plasma Cell");
-              addClue("Mirrors: M1 [＼] · M2 [＼] · M3 [／]");
+              addClue("DECRYPTED: OPTIC_VECTORS = [＼][＼][／]");
               if (isCurrentRoomAllSolved()) {
                 state.doorUnlocked = true;
               }
@@ -1752,7 +1784,7 @@ export function renderGameScreen(
             ) {
               state.r3LaserSolved = true;
               addInventoryItem("Quantum Keycard");
-              addClue("Cryo-Core: 2026");
+              addClue("DECRYPTED: CORE_FREQ = 2026");
               if (isCurrentRoomAllSolved()) {
                 state.doorUnlocked = true;
               }
@@ -1854,7 +1886,7 @@ export function renderGameScreen(
     switch (objectId) {
       // ==================== ROOM 1 ====================
       case "window":
-        flashFeedbackToast("Rain streaks down the glass.");
+        flashFeedbackToast("ENV_VIEWPORT_00 // Rain streaks across reinforced glass.");
         break;
 
       case "lamp":
@@ -1863,12 +1895,13 @@ export function renderGameScreen(
 
       case "book":
         state.bookRead = true;
-        addClue("BLUE - 4");
+        addClue("DECRYPTED: AZURE_PULSE x4");
         if (isCurrentRoomAllSolved()) state.doorUnlocked = true;
         openInspector(
-          "📖 Journal",
+          "OBJ_LOGBOOK_00 // TACTICAL SCAN",
           `<div class="tle-zoom-card">` +
-            `<p class="tle-zoom-handwriting"><strong>BLUE - 4</strong></p>` +
+            `<p class="tle-zoom-sub">Surface scan detected scratched tally marks:</p>` +
+            `<p class="tle-zoom-handwriting"><strong>|||| — AZURE_PULSE x4</strong></p>` +
             `</div>`,
         );
         break;
@@ -1893,25 +1926,27 @@ export function renderGameScreen(
       case "cabinet":
         if (state.keyCollected) {
           state.cabinetUnlocked = true;
-          addClue("Find the year on the photograph");
+          addClue("DECRYPTED: SCAN_ARCHIVE_03_YEAR");
           if (isCurrentRoomAllSolved()) state.doorUnlocked = true;
           openInspector(
-            "🔓 Cabinet",
+            "SEC_LOCKER_02 // DECRYPTED LOG",
             `<div class="tle-zoom-card">` +
-              `<p class="tle-zoom-handwriting">"Find the year on the photograph"</p>` +
+              `<p class="tle-zoom-handwriting">"Cross-reference ARCHIVE_FRAME_03 timestamp year"</p>` +
               `</div>`,
           );
         } else {
-          flashFeedbackToast("🔒 Locked");
+          flashFeedbackToast("🔒 SEC_LOCKER_02 // Physical key required");
         }
         break;
 
       case "photo":
         state.photoInspected = true;
+        addClue("NEURAL_LOG: ARCHIVE_YEAR = 1998");
         if (isCurrentRoomAllSolved()) state.doorUnlocked = true;
         openInspector(
-          "📷 Photograph",
+          "ARCHIVE_FRAME_03 // METADATA SCAN",
           `<div class="tle-zoom-card">` +
+            `<p class="tle-zoom-sub">Etched micro-serial uncovered on frame reverse:</p>` +
             `<div class="tle-zoom-photo-year">🏛️ <span>1998</span></div>` +
             `</div>`,
         );
@@ -1919,7 +1954,7 @@ export function renderGameScreen(
 
       case "computer":
         if (!state.codeEntered) {
-          openInspector("💻 Terminal", "", true);
+          openInspector("CONSOLE_TERMINAL // KEYPAD", "", true);
         }
         break;
 
@@ -1934,12 +1969,12 @@ export function renderGameScreen(
       // ==================== ROOM 2 ====================
       case "r2-gramophone":
         state.r2GramophoneRead = true;
-        addClue("Gramophone: Spell what ticks (M-E-T-I)");
+        addClue("DECRYPTED: CRYO_CIPHER = M-E-T-I");
         openInspector(
-          "🎺 Gramophone Riddle",
+          "ACOUSTIC_LOG_01 // FREQUENCY TRACE",
           `<div class="tle-zoom-card">` +
             `<p class="tle-zoom-handwriting">"I have no voice, yet I tick away every loop.<br/>` +
-            `Arrange the 4 brass tiles on the Coffee Table: <strong>M - E - T - I</strong>"</p>` +
+            `Align the 4 cryo-tiles on CRYO_MATRIX_02: <strong>M - E - T - I</strong>"</p>` +
             `</div>`,
         );
         break;
@@ -2067,7 +2102,24 @@ export function renderGameScreen(
     renderState();
   }
 
+  /** Triggers a 0.4s VHS/static glitch rewind animation on loop reset (00:00). */
+  function triggerVhsGlitchRewind(): void {
+    const viewport = container.querySelector<HTMLElement>("#game-viewport");
+    const vhsLayer = container.querySelector<HTMLElement>("#vhs-rewind-layer");
+    if (viewport) {
+      viewport.classList.remove("vhs-glitch-rewind");
+      void viewport.offsetWidth;
+      viewport.classList.add("vhs-glitch-rewind");
+    }
+    vhsLayer?.classList.remove("hidden");
+    window.setTimeout(() => {
+      viewport?.classList.remove("vhs-glitch-rewind");
+      vhsLayer?.classList.add("hidden");
+    }, 400);
+  }
+
   function expireLoop(): void {
+    triggerVhsGlitchRewind();
     const endedLoop = Math.max(1, state.loopCount);
     state = {
       ...state,
@@ -2114,6 +2166,7 @@ export function renderGameScreen(
   }
 
   function resetLoop(): void {
+    triggerVhsGlitchRewind();
     const nextLoop = state.loopCount + 1;
     state = {
       ...state,
@@ -2394,12 +2447,13 @@ export function renderGameScreen(
     const timerVal = container.querySelector<HTMLElement>("#hud-timer-val");
     const loopVal = container.querySelector<HTMLElement>("#hud-loop");
     const roomIndEl = container.querySelector<HTMLElement>("#hud-room-indicator");
+    const camLabelEl = container.querySelector<HTMLElement>("#hud-cam-label");
     const p1NameEl = container.querySelector<HTMLElement>("#hud-p1-name");
     const p2NameEl = container.querySelector<HTMLElement>("#hud-p2-name");
     const startRestartBtn = container.querySelector<HTMLButtonElement>("#btn-start-restart");
     const stopBtn = container.querySelector<HTMLButtonElement>("#btn-stop-loop");
 
-    const isUrgent = state.timeLeftSeconds <= 15 && state.timerRunning;
+    const isUrgent = state.timeLeftSeconds < 15 && state.timerRunning;
     const isFrostDecay =
       state.difficulty === "medium" && state.timeLeftSeconds <= 30 && state.timerRunning;
     const isGravityWarp =
@@ -2417,8 +2471,18 @@ export function renderGameScreen(
     rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
     blurTarget?.classList.toggle("tle-room-blurred", Boolean(isPopupOpen));
     timerPill?.classList.toggle("tle-timer-urgent", isUrgent);
+    viewport?.classList.toggle("emergency-strobe", isUrgent);
     viewport?.classList.toggle("frost-decay", isFrostDecay);
     viewport?.classList.toggle("gravity-warp", isGravityWarp);
+
+    if (camLabelEl) {
+      camLabelEl.textContent =
+        state.difficulty === "basic"
+          ? "ROOM_CAM_04 // ANOMALY DETECTED"
+          : state.difficulty === "medium"
+            ? "ROOM_CAM_05 // CRYO-CONTAINMENT"
+            : "ROOM_CAM_06 // SINGULARITY CORE";
+    }
 
     sceneBasic?.classList.toggle("hidden", state.difficulty !== "basic");
     sceneMedium?.classList.toggle("hidden", state.difficulty !== "medium");

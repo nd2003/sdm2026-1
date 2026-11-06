@@ -2872,3 +2872,351 @@ body {
     inset 0 0 70px rgba(217, 70, 239, 0.45),
     0 0 36px rgba(168, 85, 247, 0.55) !important;
 }
+
+/* ================= ISOMETRIC 3D PERSPECTIVE & CCTV SURVEILLANCE CONSOLE ================= */
+.tle-cctv-hud-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 0 0 85px rgba(0, 0, 0, 0.72);
+}
+
+.tle-crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.18) 0px,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+}
+
+.tle-cam-bracket {
+  position: absolute;
+  font-family: "Courier New", monospace;
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: rgba(56, 189, 248, 0.75);
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.65);
+  line-height: 1;
+}
+
+.tle-cam-bracket-tl {
+  top: 10px;
+  left: 12px;
+}
+
+.tle-cam-bracket-tr {
+  top: 10px;
+  right: 12px;
+}
+
+.tle-cam-bracket-bl {
+  bottom: 112px;
+  left: 12px;
+}
+
+.tle-cam-bracket-br {
+  bottom: 112px;
+  right: 12px;
+}
+
+.tle-cam-crosshair {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border: 1px dashed rgba(56, 189, 248, 0.28);
+  border-radius: 50%;
+}
+
+.tle-cam-crosshair::before,
+.tle-cam-crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(56, 189, 248, 0.35);
+}
+
+.tle-cam-crosshair::before {
+  top: 50%;
+  left: -6px;
+  right: -6px;
+  height: 1px;
+}
+
+.tle-cam-crosshair::after {
+  left: 50%;
+  top: -6px;
+  bottom: -6px;
+  width: 1px;
+}
+
+.tle-cam-top-telemetry {
+  position: absolute;
+  top: 12px;
+  right: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(8, 15, 28, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #7dd3fc;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
+}
+
+.tle-cam-rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+  animation: tle-pulse-urgent 0.85s infinite alternate;
+}
+
+.tle-cam-bottom-coords {
+  position: absolute;
+  bottom: 114px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  justify-content: space-between;
+  font-family: "Courier New", monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(148, 163, 184, 0.78);
+}
+
+/* Isometric 3D Perspective Room Geometry & Ground Shadows */
+.tle-iso-scene {
+  perspective: 800px;
+  transform-style: preserve-3d;
+}
+
+.tle-iso-grid-plane {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.tle-iso-floor {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(56, 189, 248, 0.08) 0px,
+      rgba(56, 189, 248, 0.08) 1px,
+      transparent 1px,
+      transparent 48px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(56, 189, 248, 0.08) 0px,
+      rgba(56, 189, 248, 0.08) 1px,
+      transparent 1px,
+      transparent 24px
+    );
+  box-shadow: inset 0 18px 36px rgba(0, 0, 0, 0.8);
+}
+
+.tle-iso-depth-card {
+  transform: perspective(800px) rotateX(2deg) rotateY(-3deg);
+  filter: drop-shadow(0 16px 22px rgba(0, 0, 0, 0.85));
+  transition: transform 0.22s ease, filter 0.22s ease;
+}
+
+.tle-iso-depth-card:hover {
+  transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateY(-3px) scale(1.02);
+  filter: drop-shadow(0 20px 28px rgba(6, 182, 212, 0.45));
+}
+
+.tle-iso-blast-door {
+  transform: perspective(800px) rotateY(-12deg);
+  filter: drop-shadow(-10px 16px 24px rgba(0, 0, 0, 0.88));
+}
+
+.tle-cyan-anomaly-glow {
+  border-color: #22d3ee !important;
+  box-shadow:
+    0 0 24px rgba(34, 211, 238, 0.65),
+    inset 0 0 18px rgba(34, 211, 238, 0.35) !important;
+}
+
+/* Floating Magnetic Containment Rings in Room 3 */
+@keyframes tle-spin-ring {
+  0% {
+    transform: translate(-50%, -50%) perspective(800px) rotateX(62deg) rotateZ(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) perspective(800px) rotateX(62deg) rotateZ(360deg);
+  }
+}
+
+.tle-r3-magnetic-ring {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  border-radius: 50%;
+  border: 2px dashed rgba(217, 70, 239, 0.55);
+  box-shadow: 0 0 28px rgba(168, 85, 247, 0.45);
+  pointer-events: none;
+  animation: tle-spin-ring 12s linear infinite;
+}
+
+.tle-ring-outer {
+  width: 340px;
+  height: 340px;
+}
+
+.tle-ring-inner {
+  width: 220px;
+  height: 220px;
+  border-color: rgba(56, 189, 248, 0.55);
+  animation-direction: reverse;
+  animation-duration: 8s;
+}
+
+/* Hover / Proximity Tactical Reticle Bracket [ ⛶ ] (Zero Spoiler Overlays) */
+.tle-reticle-tag {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(6, 14, 26, 0.95);
+  border: 1px solid #22d3ee;
+  color: #67e8f9;
+  font-family: "Courier New", monospace;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.45);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 30;
+}
+
+.tle-iso-hotspot:hover .tle-reticle-tag,
+.tle-iso-hotspot:focus-visible .tle-reticle-tag,
+.tle-safe-key-btn:hover .tle-reticle-tag {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Focused Tactical Inspection Modal (.tactical-inspect-view) */
+.tactical-inspect-view .tle-tactical-modal {
+  background: linear-gradient(180deg, #0b1324 0%, #070b16 100%);
+  border: 1.5px solid #22d3ee;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.92),
+    0 0 32px rgba(34, 211, 238, 0.35);
+}
+
+.tle-tactical-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(34, 211, 238, 0.28);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  font-family: "Courier New", monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.tle-tactical-bracket {
+  color: #67e8f9;
+}
+
+.tle-tactical-sync-tag {
+  color: #4ade80;
+}
+
+/* Red Emergency Strobe (< 15s remaining) */
+@keyframes emergencyStrobe {
+  0%,
+  100% {
+    box-shadow: inset 0 0 45px rgba(220, 38, 38, 0.25);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 110px rgba(239, 68, 68, 0.72),
+      0 0 36px rgba(239, 68, 68, 0.65);
+  }
+}
+
+.emergency-strobe {
+  animation: emergencyStrobe 0.75s ease-in-out infinite !important;
+}
+
+/* 0.4s VHS / Static Glitch Rewind on Loop Reset (00:00) */
+@keyframes vhsGlitchRewind {
+  0% {
+    filter: contrast(1.8) brightness(1.5) saturate(0.2);
+    transform: translateX(-6px) skewX(-6deg);
+  }
+  35% {
+    filter: invert(0.85) hue-rotate(160deg);
+    transform: translateX(6px) skewX(8deg);
+  }
+  70% {
+    filter: contrast(2) brightness(1.3);
+    transform: translateX(-3px) skewX(-3deg);
+  }
+  100% {
+    filter: none;
+    transform: none;
+  }
+}
+
+.vhs-glitch-rewind {
+  animation: vhsGlitchRewind 0.4s steps(4, end);
+}
+
+.tle-vhs-rewind-layer {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.14) 0px,
+    rgba(255, 255, 255, 0.14) 2px,
+    rgba(6, 182, 212, 0.2) 2px,
+    rgba(0, 0, 0, 0.6) 6px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.tle-vhs-text {
+  font-family: "Courier New", monospace;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: #f8fafc;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 8px 18px;
+  border: 1.5px solid #22d3ee;
+  text-shadow: 2px 0 #ef4444, -2px 0 #06b6d4;
+}
