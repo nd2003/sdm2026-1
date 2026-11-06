@@ -70,7 +70,7 @@
         && need(document.querySelector('#lobby button[value=create]') && document.querySelector('#lobby button[value=join]') && document.querySelector('#lobby button[value=solo]'), "buttons");
     });
     check("makeRoomCode() gives 4 letters A-Z", () => [1, 2, 3, 4, 5].every(() => need(/^[A-Z]{4}$/.test(realMakeRoomCode()), "bad code")));
-    check("room has all objects for levels 1-3", () => ["note", "painting", "cabinet", "photo", "computer", "door", "casket-left", "casket-right", "keypad", "lift"]
+    check("room has all objects for levels 1-3", () => ["note", "painting", "cabinet", "photo", "computer", "door", "casket-left", "casket-right", "keypad", "lift", "fusebox", "gate", "phone", "coat", "vending", "scratches", "shoes", "bricked-door", "candles", "indicator", "emergency-phone", "graffiti"]
       .every((id) => need(document.getElementById("obj-" + id), "#obj-" + id + " missing")));
 
     // Seeds: same seed -> same answers, different seeds -> different answers, A and B differ
@@ -136,6 +136,8 @@
     check("keypad needs the casket clue first", () => { click("keypad"); return game.input === null; });
     check("wrong casket costs 20s and stays shut", () => { const t = game.timeLeft; click("casket-" + (a.casket === "left" ? "right" : "left")); return game.timeLeft === t - 20 && !game.flags.casketOpen; });
     check("right casket gives the keypad code", () => { click("casket-" + a.casket); return game.flags.casketOpen === true && game.clues.includes("The keypad code is " + a.keypad); });
+    check("keypad is dead until the fuse box is thrown", () => { click("keypad"); return game.input === null; });
+    check("fuse box turns the power on", () => { click("fusebox"); return game.flags.powerOn === true; });
     check("wrong keypad code locks", () => { click("keypad"); onInput("000"); click("keypad"); return game.stage === 2 && game.input === null; });
     check("right keypad code: level 3, +60s", () => { game.timeLeft -= 5; click("keypad"); const t = game.timeLeft; onInput(a.keypad); return game.stage === 3 && game.timeLeft === t + 60 && visible("obj-lift"); });
 
@@ -149,13 +151,15 @@
     await checkAsync("timer ticks at 1/s after a reset (no double timer)", async () => { const t = game.timeLeft; await sleep(3100); const d = t - game.timeLeft; return need(d >= 2 && d <= 4, `${d} ticks in 3.1s`); });
     check("loop 2: back to level 3 with the kept clues", () => {
       game.timeLeft = 60;
-      click("computer"); onInput(a.year); click("door"); click("casket-" + a.casket); click("keypad"); onInput(a.keypad);
+      click("computer"); onInput(a.year); click("door"); click("casket-" + a.casket); click("fusebox"); click("keypad"); onInput(a.keypad);
       return game.stage === 3;
     });
 
     // Level 3 and the co-op win
     check("lift needs the floor from the partner", () => { click("lift"); return game.input === null; });
-    check("wrong floor locks", () => { partnerChat(`My casket had a scrap for you: floor ${a.floor}`); click("lift"); onInput("99"); click("lift"); return game.input === null && !game.flags.escaped; });
+    check("lift won't move until the gate is shut", () => { partnerChat(`My casket had a scrap for you: floor ${a.floor}`); click("lift"); return game.input === null; });
+    check("gate closes", () => { click("gate"); return game.flags.gateClosed === true; });
+    check("wrong floor locks", () => { click("lift"); onInput("99"); click("lift"); return game.input === null && !game.flags.escaped; });
     check("right floor: I'm out, but no win alone", () => {
       game.timeLeft -= 5; click("lift"); onInput(a.floor);
       return game.flags.escaped === true && sent.includes("escaped") && game.won === false && game.phase === "playing";
