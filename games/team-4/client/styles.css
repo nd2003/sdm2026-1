@@ -376,20 +376,21 @@ body {
   filter: drop-shadow(0 0 8px #facc15);
 }
 
-/* Feedback & Reset Toasts */
+/* Feedback & Reset Toasts (z-index 95 so it is NEVER behind modals!) */
 .tle-feedback-toast {
   position: absolute;
-  top: 46px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(15, 12, 28, 0.92);
-  border: 1px solid rgba(192, 132, 252, 0.45);
-  color: #f1f5f9;
-  padding: 6px 18px;
+  background: rgba(15, 12, 28, 0.96);
+  border: 1.5px solid #c084fc;
+  color: #f8fafc;
+  padding: 7px 18px;
   border-radius: 999px;
   font-size: 0.84rem;
-  z-index: 25;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  font-weight: 600;
+  z-index: 95;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.75);
   white-space: nowrap;
   pointer-events: none;
   transition: opacity 0.35s ease, transform 0.35s ease;
@@ -795,7 +796,7 @@ body {
   right: 12px;
 }
 
-/* ================= 5. PANELED EXIT DOOR (Far Right) ================= */
+/* ================= 5. PANELED EXIT DOOR + 3D PORTAL (Far Right) ================= */
 .tle-door-zone {
   position: absolute;
   top: 18%;
@@ -806,6 +807,42 @@ body {
   background: #14111d;
   border-radius: 4px 4px 0 0;
   z-index: 5;
+  perspective: 750px;
+}
+
+.tle-door-portal-Light {
+  position: absolute;
+  inset: 8px;
+  border-radius: 4px;
+  background: radial-gradient(circle at 50% 45%, #fde047 0%, #c084fc 45%, #3b0764 100%);
+  box-shadow: inset 0 0 28px rgba(250, 204, 21, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.tle-portal-cyber {
+  background: radial-gradient(circle at 50% 45%, #67e8f9 0%, #0284c7 50%, #0f172a 100%);
+}
+
+.tle-portal-victory {
+  background: radial-gradient(circle at 50% 45%, #86efac 0%, #16a34a 50%, #052e16 100%);
+}
+
+.tle-portal-sparkle {
+  font-size: 2rem;
+}
+
+.tle-portal-text {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
 }
 
 .tle-exit-door-btn {
@@ -821,7 +858,17 @@ body {
   justify-content: space-between;
   padding: 14px;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transform-origin: left center;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tle-exit-door-btn.tle-door-swung-open {
+  transform: rotateY(-102deg);
+  border-color: #4ade80;
+  box-shadow: 0 0 32px rgba(74, 222, 128, 0.85);
 }
 
 .tle-exit-door-btn:hover {
@@ -1883,6 +1930,210 @@ body {
   font-weight: 700;
   font-size: 0.86rem;
   margin: 8px 0 0;
+}
+
+/* In-Modal Puzzle Alert Banner (Right inside the active puzzle modal!) */
+.tle-modal-alert {
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.tle-modal-alert-error {
+  background: rgba(153, 27, 27, 0.45);
+  border: 1.5px solid #f87171;
+  color: #fecaca;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.45);
+}
+
+.tle-modal-alert-success {
+  background: rgba(20, 83, 45, 0.48);
+  border: 1.5px solid #4ade80;
+  color: #bbf7d0;
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.4);
+}
+
+/* ================= 2-PLAYER READY LOBBY & 5-4-3-2-1 COUNTDOWN ================= */
+.tle-ctrl-lobby {
+  background: rgba(30, 58, 138, 0.75);
+  border-color: #60a5fa;
+}
+
+.tle-lobby-card {
+  max-width: 520px;
+}
+
+.tle-lobby-header-pill {
+  display: inline-block;
+  background: rgba(88, 28, 135, 0.5);
+  border: 1px solid #c084fc;
+  color: #f3e8ff;
+  font-size: 0.78rem;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 6px;
+}
+
+.tle-lobby-players-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.tle-lobby-player-box {
+  background: rgba(30, 24, 52, 0.9);
+  border: 1.5px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.tle-lobby-box-ready {
+  border-color: #4ade80;
+  background: rgba(20, 60, 42, 0.38);
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.3);
+}
+
+.tle-lobby-avatar {
+  font-size: 1.9rem;
+}
+
+.tle-lobby-pname {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #f8fafc;
+}
+
+.tle-ready-badge {
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid #facc15;
+  color: #fef08a;
+}
+
+.tle-ready-badge.tle-ready-yes {
+  background: rgba(22, 163, 74, 0.25);
+  border-color: #4ade80;
+  color: #bbf7d0;
+}
+
+.tle-btn-full {
+  width: 100%;
+  font-size: 0.78rem;
+}
+
+.tle-whatsapp-hint {
+  font-size: 0.82rem;
+  color: #fde68a;
+  margin: 8px 0;
+}
+
+/* Synchronized 5 - 4 - 3 - 2 - 1 - GO! Countdown */
+.tle-countdown-box {
+  text-align: center;
+  padding: 30px 40px;
+  background: rgba(16, 12, 32, 0.95);
+  border: 2.5px solid #c084fc;
+  border-radius: 22px;
+  box-shadow: 0 0 60px rgba(168, 85, 247, 0.7);
+}
+
+.tle-countdown-sub {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #e9d5ff;
+}
+
+.tle-countdown-number {
+  font-size: 5.2rem;
+  font-weight: 900;
+  color: #fef08a;
+  text-shadow: 0 0 32px #facc15;
+  margin: 10px 0;
+}
+
+.tle-countdown-players {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+/* Aesthetic 3D Doorway Portal Modal */
+.tle-portal-card {
+  max-width: 460px;
+}
+
+.tle-aesthetic-door-frame {
+  position: relative;
+  width: 120px;
+  height: 170px;
+  margin: 0 auto 14px;
+  padding: 6px;
+  background: #1e152a;
+  border: 3px solid #fbbf24;
+  border-radius: 10px 10px 0 0;
+  perspective: 600px;
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
+}
+
+.tle-aesthetic-portal-glow {
+  position: absolute;
+  inset: 6px;
+  border-radius: 6px 6px 0 0;
+  background: radial-gradient(circle at 50% 45%, #fef08a 0%, #a855f7 55%, #1e1b4b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-portal-Corridor-icon {
+  font-size: 2.4rem;
+}
+
+.tle-aesthetic-door-leaf {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #3b2110 0%, #241308 100%);
+  border: 2px solid #d97706;
+  border-radius: 6px 6px 0 0;
+  transform-origin: left center;
+  transform: rotateY(-108deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 10px;
+  box-shadow: 10px 6px 24px rgba(0, 0, 0, 0.8);
+}
+
+.tle-leaf-panel {
+  height: 36%;
+  border: 1.5px solid #78350f;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.tle-leaf-knob {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fbbf24;
 }
 
 .tle-overlay {
