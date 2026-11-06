@@ -131,7 +131,7 @@ const updateSound = (() => {
   const save = () => { try { localStorage.setItem("tle-settings", JSON.stringify(opts)); } catch {} };
 
   document.body.insertAdjacentHTML("beforeend", `
-    <button id="settings-btn" type="button" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+    <button id="settings-btn" type="button" aria-expanded="false" aria-controls="settings-panel">⚙ Settings</button>
     <div id="settings-panel" role="group" aria-label="Settings" hidden>
       <h2>Settings</h2>
       <button id="set-mute" type="button"></button>
