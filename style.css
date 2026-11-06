@@ -195,8 +195,9 @@ h1, h2, #timer, #loop-count, #hud::before { font-family: "Special Elite", "Couri
   translate: calc((.5 - var(--nx, .5)) * 3cqw) calc((.5 - var(--ny, .45)) * 2cqw);
   transition: translate .3s ease-out;
   animation: breathe 5s ease-in-out infinite;  /* your breathing */
+  will-change: transform, translate;  /* own layer: looking around and breathing never repaint the art */
 }
-@keyframes breathe { 50% { transform: translateY(.35cqw) scale(1.006); } }
+@keyframes breathe { 50% { transform: translateY(.35cqw); } }  /* no scale: scaling re-draws every SVG filter each frame */
 .walls { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .figure { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; transform: scale(calc(.75 + var(--dread, 1) * .12)); }  /* closer every loop */
 body.hurry .figure { opacity: 1; }
@@ -225,10 +226,14 @@ body.hurry .figure { opacity: 1; }
 #room { --beam: 34cqw; }
 #room::after {
   content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
-  background-image:
-    var(--panic, linear-gradient(#0000, #0000)),
-    radial-gradient(circle var(--beam) at var(--lx, 50%) var(--ly, 45%), #0000 0 30%, #07060366 62%, #030201bd 100%);
+  background-image: var(--panic, linear-gradient(#0000, #0000));
   animation: dip 7s steps(1) infinite;
+}
+.beam {
+  position: absolute; z-index: 3; left: -100%; top: -100%; width: 200%; height: 200%; pointer-events: none;
+  background: radial-gradient(circle var(--beam) at 50% 50%, #0000 0 30%, #07060366 62%, #030201bd 100%);
+  transform: translate(25%, 22.5%);  /* starts aimed at 50% / 45% of the room */
+  will-change: transform;
 }
 @keyframes dip { 0%, 41%, 45%, 47%, 83%, 86%, 100% { background-color: #0a090400; } 42%, 46% { background-color: #0a0904b8; } 84% { background-color: #0a090480; } }
 #obj-lamp .tube { animation: stutter 7s steps(1) infinite; }

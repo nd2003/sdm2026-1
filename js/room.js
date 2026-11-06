@@ -160,13 +160,20 @@ function buildRoom() {
     scene.append(el);
   }
   // First-person look: the flashlight follows the pointer, or the focused object for keyboard players.
+  // The beam is its own layer moved with transform, so following the pointer never repaints the room.
+  room.insertAdjacentHTML("beforeend", '<div class="beam" aria-hidden="true"></div>');
+  const beam = room.querySelector(".beam");
+  let frame = 0, px = 0, py = 0;
   const aim = (x, y) => {
-    const r = room.getBoundingClientRect();
-    const nx = Math.min(1, Math.max(0, (x - r.left) / r.width)), ny = Math.min(1, Math.max(0, (y - r.top) / r.height));
-    room.style.setProperty("--nx", nx);
-    room.style.setProperty("--ny", ny);
-    room.style.setProperty("--lx", nx * 100 + "%");
-    room.style.setProperty("--ly", ny * 100 + "%");
+    px = x; py = y;
+    frame ||= requestAnimationFrame(() => {  // at most one update per screen frame
+      frame = 0;
+      const r = room.getBoundingClientRect();
+      const nx = Math.min(1, Math.max(0, (px - r.left) / r.width)), ny = Math.min(1, Math.max(0, (py - r.top) / r.height));
+      beam.style.transform = `translate(${nx * 50}%, ${ny * 50}%)`;  // beam is 2x the room, so 50% = full width
+      room.style.setProperty("--nx", nx);
+      room.style.setProperty("--ny", ny);
+    });
   };
   room.addEventListener("pointermove", (e) => aim(e.clientX, e.clientY));
   room.addEventListener("focusin", (e) => { const b = e.target.getBoundingClientRect(); aim(b.left + b.width / 2, b.top + b.height / 2); });
