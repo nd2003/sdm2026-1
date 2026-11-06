@@ -151,19 +151,21 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 - `game.stage`: `"office"` → `"corridors"`. The office door moves you to the corridors instead of escaping. A reset puts you back in the office (clues stay).
 - For now: **one placeholder corridor puzzle** (e.g. the lift, keypad = a code from the partner), then `escaped`. Abdullah's full corridor design (route, fuse box, lift, dread) comes later.
 
-**State added to `game`**: `code`, `role`, `seed`, `partner` (`{ name, loop, step, escaped }`), `stage`, `input`, `chat` (`[{ from, text }]`, kept across loops).
+**State added to `game`**: `loopSeconds`, `code`, `role`, `seed`, `partner` (`{ name, loop, step, escaped }`), `stage`, `input`, `chat` (`[{ from, text }]`, kept across loops).
 
 **Messages** (JSON, same transport as before):
 
 | Direction | Message | Meaning |
 |---|---|---|
-| client → server | `{type:"join", name, code}` | Join (or create) room `code` |
-| server → client | `{type:"start", partner, role, seed}` | Both players are in → `phase = "playing"`, `startLoop()` |
+| client → server | `{type:"join", name, code, seconds?}` | Join (or create) room `code`. The creator picks `seconds` |
+| server → client | `{type:"start", partner, role, seed, seconds}` | Both players are in → `phase = "playing"`, `startLoop()` |
 | both ways | `{type:"progress", loop, step, stage}` | Progress (shown on the partner panel) |
 | both ways | `{type:"chat", text}` | Chat line → `game.chat` |
 | client → server | `{type:"escaped", loop}` | I'm out → `partner.escaped` on the other side |
 | server → client | `{type:"won"}` | Both escaped → `phase = "over"`, win screen |
 | server → client | `{type:"partner-left"}` | → `phase = "over"`, "Your partner left" |
+
+**Loop length:** when you create a room you choose **60 / 90 / 120 s** (default 60). It's stored as `game.loopSeconds`, the creator sends it in `join` as `seconds`, and the server passes it on in `start`, so both players get the same value. `startLoop()` uses `game.loopSeconds` instead of the fixed 60.
 
 **Settings** (UI only, not `game`): a ⚙ panel with **Flickering light: on/off** (plus reduced motion). Save it in `localStorage` inside try/catch.
 
