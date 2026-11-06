@@ -115,10 +115,3 @@ function render() {
     if (over && !win._focused) { win._focused = true; setTimeout(() => win.querySelector("button")?.focus()); }  // keyboard users land on "Play again"
   }
 }
-
-// TEMP STUBS: delete once state.js / puzzles.js / main.js are merged
-if (typeof onObjectClick === "undefined") {
-  window.onObjectClick = (id) => { game.message = "Clicked " + id; render(); };
-}
-if (typeof connect === "undefined") window.connect = (name) => { game.playerName = name; game.phase = "playing"; game.opponent = { name: "Bot", loop: 1, step: 2 }; render(); };
-if (typeof startLoop === "undefined") { buildRoom(); render(); }
