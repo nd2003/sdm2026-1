@@ -40,10 +40,22 @@ export function renderLobby(
       <p role="status" aria-live="polite"></p>
       <div class="lobby-actions"></div>
     </section>`;
+  const section = container.querySelector<HTMLElement>(".multiplayer-lobby");
+  if (section) {
+    section.dataset.state =
+      partnerStatus === "connected" && view?.ready && view.partnerReady ? "ready" : partnerStatus;
+  }
   const localIndex = view?.localSlot === 2 ? 1 : 0;
   const cards = container.querySelectorAll<HTMLElement>(".player-card");
   cards.forEach((card, index) => {
     const local = index === localIndex;
+    card.dataset.state = local
+      ? view?.ready
+        ? "ready"
+        : "waiting"
+      : partnerStatus === "connected" && view?.partnerReady
+        ? "ready"
+        : partnerStatus;
     const name = card.querySelector<HTMLElement>(".player-name");
     const status = card.querySelector<HTMLElement>(".player-status");
     if (name)
