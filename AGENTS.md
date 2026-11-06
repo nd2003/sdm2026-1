@@ -6,9 +6,11 @@ The human will start the session by telling you their name. Match it to a brief,
 
 | Name (any of) | Brief |
 |---|---|
-| Abdullah, Abdallah, abdullahwaseem6 | `briefs/abdullah.md` |
-| Baasanjav, BaasanjavBatchuluun | `briefs/baasanjav.md` |
+| Abdullah, Abdallah, abdullahwaseem6 | `briefs/abdullah.md` (puzzles & mechanics) |
+| Baasanjav, BaasanjavBatchuluun | `briefs/baasanjav.md` (room design & UI) |
 | Zaid, zaid-akroush | `briefs/zaid.md` (QA and integration) |
+
+**Roles were swapped on 2026-11-06.** Do your brief's "Step 0: role switch" before anything else.
 
 Then:
 1. Run `git switch main && git pull` to get the latest code.
@@ -19,6 +21,33 @@ Then:
 If they didn't give a name, ask for it. If the name isn't in the table, ask who they are and don't edit anything. A teammate without a brief should ask zaid-akroush to add one.
 
 These rules apply to every agent working in this repo (Claude Code, Codex, Copilot, Cursor, and others). Read `README.md` first for how the game works.
+
+## Talking to Zaid (required)
+
+Zaid's agent does QA and integration. It talks to you only through **your GitHub issues** (#1–#4, #6, #7), because those comments survive between sessions and the course evaluation reads them.
+
+- **At the start of every session**, read the comments on your issues: `gh issue view <N> --comments`. Anything from zaid-akroush is review feedback. Handle it before starting new work.
+- **When you finish a chunk or get blocked**, push your branch, then post one comment on the issue:
+  ```
+  Status: ready | in progress | blocked
+  Branch: <branch> @ <short commit hash>
+  Done: <checklist items finished>
+  Tested: <what you ran; test.html results for your half>
+  Needs from Zaid / the other dev: <contract questions, or "nothing">
+  ```
+- Never change the contract on your own. If you need a new name, flag, message or field, ask in an issue comment and wait for Zaid to update `AGENTS.md`.
+
+## Final destination: the course repo
+
+The finished game goes into the professor's repo, https://github.com/nd2003/sdm2026-1, under **`games/team-3/`** (we are **team-3**: label `team-3`, titles `[team-3] ...`, branches `team-3/<issue>-<desc>`). Read its `AGENTS.md` and `server/ARCHITECTURE.md` once. Rules that matter **now**, so the port is easy:
+
+- **The course grades only what's visible in that repo:** issues, PRs, commits, and whether contributions are spread across members. Write clear commit messages here too, because your commits get merged (not copied) so your name stays on them.
+- **The port target is TypeScript + Vite on the client, with a Colyseus server that's authoritative.** Clients send inputs (for example "clicked painting") and the server runs the puzzle logic. So:
+  - Keep all puzzle logic inside `onObjectClick`, and have it change only `game`. No DOM access in `puzzles.js`/`state.js`, and no DOM state in `ui.js` that the game logic depends on.
+  - In game logic, never use `Math.random()` (the course requires a seeded random) or `Date.now()`. The timer is just a counter.
+  - Tuning numbers (60s, 4 clicks, the year) go at the top of the file as constants. They become `config/game.json` later.
+- `net.js` and the message table get replaced by Colyseus state sync during the port. Keep them small and don't over-build them.
+- Everything is in English: code, comments, commits and issues.
 
 ## Ponytail mode (required)
 
@@ -34,13 +63,15 @@ Claude Code gets the `ponytail` plugin from `.claude/settings.json`, so accept t
 
 ## Stay in your lane
 
-Four people (and their agents) work here at the same time, each in their own files. Only edit the files that belong to the issue you're working on:
+The devs (and their agents) work here at the same time, each in their own files. Only edit the files that belong to the issue you're working on:
 
 | Area | Files | Issue |
 |---|---|---|
 | Core loop | `js/state.js`, `js/main.js` | #1 |
 | Room & objects | `js/room.js`, `assets/` | #2 |
 | Puzzles | `js/puzzles.js` | #3 |
+| Networking (2-player) | `js/net.js` | #6 |
+| Lobby & opponent UI | `js/ui.js`, `style.css` | #7 |
 | UI | `js/ui.js`, `style.css` | #4 |
 
 If the task seems to need a change in someone else's file, don't make it. Stop and tell the human, or write what's needed as a comment on the matching issue.
@@ -68,7 +99,40 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 **Items**: `key`.
 
-**DOM ids**: `#timer`, `#loop-count`, `#room`, `#inventory`, `#journal` (already in `index.html`), plus `#message`. Each object element gets the id `obj-<id>`, for example `#obj-painting`.
+**DOM ids**: `#timer`, `#loop-count`, `#room`, `#inventory`, `#journal`, `#message`, `#lobby`, `#opponent` (all in `index.html`). Each object element gets the id `obj-<id>`, for example `#obj-painting`.
+
+## Two-player race (online)
+
+Two players on two devices. Each one runs their own copy of the room with their own 60s loops, and the **first to walk out the door wins**. The backend (yigitcemakbas, our team-3 server dev) only relays messages and picks the winner. After the port it becomes our Colyseus room in `games/team-3/room/`. All game logic stays in the browser.
+
+**New state in `game`** (none of it resets on a loop):
+- `phase`: `"lobby"` → `"playing"` → `"over"`
+- `playerName`: your name. `winner`: the winner's name, or `null`.
+- `opponent`: `{ name, loop, step }`, or `null` before the match starts
+
+**Progress steps** (what the opponent sees): 1 = found "BLUE - 4", 2 = got the key, 3 = cabinet open, 4 = door unlocked, 5 = escaped. A loop reset reports step 0.
+
+**`js/net.js`** (owned by the mechanics dev):
+
+| Name | Called by | Does |
+|---|---|---|
+| `connect(name)` | `ui.js` (the lobby's Join button) | Sets `playerName` and connects to `?server=ws://…` from the page URL. With no `?server`, it starts a local **fake opponent** right away so the game is playable offline. |
+| `send(type, data)` | `state.js`, `puzzles.js` | Sends `{type, ...data}` as JSON |
+| `onNetMessage(msg)` | the socket or the fake opponent | Handles the server messages below, then calls `render()` |
+
+**Messages** (JSON over WebSocket; this is the contract with the backend):
+
+| Direction | Message | Meaning |
+|---|---|---|
+| client → server | `{type:"join", name}` | Find me a match |
+| client → server | `{type:"progress", loop, step}` | My progress changed |
+| client → server | `{type:"escaped", loop, timeLeft}` | I walked out the door |
+| server → client | `{type:"start", opponent}` | Match found → `phase = "playing"`, `startLoop()` |
+| server → client | `{type:"progress", loop, step}` | The opponent's progress → `game.opponent` |
+| server → client | `{type:"winner", name}` | The race is over → `phase = "over"`, stop the timer |
+| server → client | `{type:"opponent-left"}` | The opponent quit → you win by default |
+
+`main.js` no longer calls `startLoop()` on load. It calls `buildRoom(); render();` and waits in the lobby.
 
 ## Tech rules
 
@@ -78,8 +142,12 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 ## Git
 
-- Work on a branch per issue (for example `git switch -c issue-3-puzzles`). Never push to `main`.
-- Open a pull request that says `Closes #N`, and keep it limited to that issue's files.
+**Only Zaid pushes to `main`.** GitHub rejects a push to `main` from anyone else.
+
+- Work only on the branch named in your brief. Commit often and push it: `git push -u origin <your-branch>`.
+- Never push, merge, rebase or force-push onto `main`, and never touch anyone else's branch.
+- Don't open pull requests or merge anything. Zaid pulls your branch, combines it with the other half, tests the result and pushes it to `main`.
+- To pick up changes that landed on `main`, run `git pull origin main` while on your branch. If it conflicts outside your own files, stop and tell your human.
+- When your "Done when" checklist is complete, push your branch and tell Zaid it's ready.
 - Before finishing, open `index.html` in a browser and check that the console has no errors.
 - Open `test.html` too. Every test for your half must pass. Tests for the other person's half may fail until their code is merged.
-- The QA workflow runs `test.html` on every push and PR. It stays red until both halves are on `main`.
