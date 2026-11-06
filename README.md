@@ -14,11 +14,11 @@ cd timeloop-escape
 claude        # or your agent of choice
 ```
 
-Then just tell the agent your name (for example "I'm Abdullah"). It looks up your brief in `briefs/` and starts on your part.
+Claude Code will ask to install the **ponytail** plugin, which keeps code minimal. Say yes. Then just tell the agent your name (for example "I'm Abdullah"). It looks up your brief in `briefs/` and starts on your part.
 
 ## Testing
 
-Open `test.html` in a browser. It plays the full escape sequence and the loop reset, then shows PASS or FAIL for each step. GitHub Actions runs the same page on every push and PR.
+Open `test.html` in a browser. It plays the full escape sequence and the loop reset, then shows PASS or FAIL for each step. Zaid also runs it on GitHub Actions after combining everyone's work.
 
 ## Escape sequence (first room)
 
@@ -53,5 +53,6 @@ Room calls `onObjectClick(id)`, and puzzles call the state functions (`addItem`,
 
 - Using an AI agent? It must follow `AGENTS.md`. Claude Code loads it automatically through `CLAUDE.md`, and most other agents read `AGENTS.md` directly.
 
-- Make a branch for each issue (`git switch -c timer`), then open a PR into `main`.
-- Don't push to `main` directly.
+- Each person works and pushes **only on their own branch** (it's named in their brief).
+- Only Zaid pushes to `main`, and GitHub blocks everyone else. Zaid pulls both branches, combines them, runs the tests and pushes the result to `main`.
+- No pull requests needed. Push your branch and tell Zaid when it's ready.

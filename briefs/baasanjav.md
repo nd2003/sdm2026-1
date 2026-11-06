@@ -55,4 +55,4 @@ Then test from the console with calls like `onObjectClick("note")` and `onObject
 - [ ] The full chain note → painting ×4 → key → cabinet → photo → computer → door wins
 - [ ] Clicking the cabinet before getting the key says it's locked
 - [ ] No console errors
-- [ ] A PR from `issue-1-3-mechanics` that says `Closes #1, closes #3`
+- [ ] Everything committed and pushed to `issue-1-3-mechanics` (no PR, never `main`), and Zaid told it's ready

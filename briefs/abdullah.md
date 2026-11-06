@@ -52,4 +52,4 @@ if (typeof startLoop === "undefined") { buildRoom(); render(); }
 - [ ] Clicking any object calls `onObjectClick` with the right id
 - [ ] Setting `game.flags.cabinetOpen = true; render()` in the console visibly opens the cabinet (same for the painting and door)
 - [ ] No console errors
-- [ ] A PR from `issue-2-4-room-ui` that says `Closes #2, closes #4`
+- [ ] Everything committed and pushed to `issue-2-4-room-ui` (no PR, never `main`), and Zaid told it's ready
