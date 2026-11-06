@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clare's Bedroom · Team 1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="loading-screen">
+      <div class="loading-content">
+        <div class="loading-title">Clare's Bedroom</div>
+        <div class="loading-sub">A Hidden Object Mystery</div>
+        <div class="loading-bar"><div id="loading-fill"></div></div>
+        <div class="loading-hint">Find all 15 hidden objects before time runs out</div>
+      </div>
+    </div>
+
+    <div id="game-wrapper" class="hidden">
+      <div id="scene-wrapper">
+        <div id="scene-container"></div>
+        <canvas id="effects-canvas"></canvas>
+        <div id="wrong-flash" class="hidden"></div>
+      </div>
+
+      <div id="ui-panel">
+        <div id="panel-title">Clare's Bedroom</div>
+
+        <div id="stats-row">
+          <div class="stat-box" id="timer-box">
+            <div class="stat-label">TIME</div>
+            <div class="stat-val" id="timer-val">5:00</div>
+          </div>
+          <div class="stat-box" id="score-box">
+            <div class="stat-label">SCORE</div>
+            <div class="stat-val" id="score-val">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">FOUND</div>
+            <div class="stat-val" id="found-val">0/15</div>
+          </div>
+        </div>
+
+        <div id="objects-section">
+          <div class="section-heading">Find These Objects</div>
+          <div id="objects-grid"></div>
+        </div>
+
+        <div id="controls-section">
+          <button id="hint-btn" class="ctrl-btn">
+            💡 Hint (<span id="hints-left">3</span>)
+          </button>
+          <div id="zoom-row">
+            <button id="zoom-in-btn" class="ctrl-btn zoom-btn">🔍＋</button>
+            <button id="zoom-out-btn" class="ctrl-btn zoom-btn">🔍－</button>
+            <button id="zoom-reset-btn" class="ctrl-btn zoom-btn">⊡</button>
+          </div>
+        </div>
+
+        <div id="panel-footer">Volume I-4 · Chapter 16 · Scene 16</div>
+      </div>
+    </div>
+
+    <div id="end-screen" class="hidden">
+      <div class="end-content">
+        <div id="end-title"></div>
+        <div id="end-subtitle"></div>
+        <div id="end-score-label">Final Score</div>
+        <div id="end-score"></div>
+        <div id="end-breakdown"></div>
+        <button id="play-again-btn" class="ctrl-btn">Play Again</button>
+      </div>
+    </div>
+
+    <script type="module" src="/client/main.ts"></script>
+  </body>
+</html>
