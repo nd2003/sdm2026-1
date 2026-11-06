@@ -94,6 +94,18 @@ const DIFFICULTY_SECONDS: Record<DifficultyLevel, number> = {
   hard: 40,
 };
 
+const ROOM_TITLES: Record<DifficultyLevel, string> = {
+  basic: "Room 1 · Basic",
+  medium: "Room 2 · Medium",
+  hard: "Room 3 · Hard",
+};
+
+const DEFAULT_PARTNER_LOOPS: Record<DifficultyLevel, number> = {
+  basic: 5,
+  medium: 6,
+  hard: 8,
+};
+
 const VALID_PASSCODES = new Set(["1998", "1984"]);
 
 export function renderGameScreen(
@@ -117,16 +129,16 @@ export function renderGameScreen(
   const defaultDuration = initialState?.loopDurationSeconds ?? DIFFICULTY_SECONDS[initialDiff];
 
   let state: InternalGameScreenState = {
-    roomId: initialState?.roomId ?? "ROOM-04",
+    roomId: initialState?.roomId ?? ROOM_TITLES[initialDiff],
     difficulty: initialDiff,
     timeLeftSeconds: initialState?.timeLeftSeconds ?? defaultDuration,
     loopDurationSeconds: defaultDuration,
     loopCount: initialState?.loopCount ?? 1,
     bestLoopScore: initialState?.bestLoopScore ?? null,
-    partnerLoopScore: initialState?.partnerLoopScore ?? null,
+    partnerLoopScore: initialState?.partnerLoopScore ?? DEFAULT_PARTNER_LOOPS[initialDiff],
     connectedPlayers: initialState?.connectedPlayers ?? 2,
     maxPlayers: initialState?.maxPlayers ?? 2,
-    score: initialState?.score ?? 1,
+    score: initialState?.score ?? 0,
     statusText: initialState?.statusText ?? "Ready",
     selectedObjectId: initialState?.selectedObjectId ?? null,
     activeItem: initialState?.activeItem ?? null,
@@ -149,11 +161,11 @@ export function renderGameScreen(
     inventory: initialState?.inventory ? [...initialState.inventory] : [],
     feedbackMessage:
       initialState?.feedbackMessage ??
-      "Select a difficulty (Basic / Medium / Hard) and press ▶ Start to begin Loop #1!",
+      "Press ▶ Start to begin Loop #1! Escape in fewer loops than Player 2 to win the room.",
   };
 
   container.innerHTML = `
-    <div class="tle-root" id="tle-root">
+    <div class="tle-root" id="tle-root" data-room-diff="${state.difficulty}">
       <!-- Top Header Bar -->
       <header class="tle-header">
         <div class="tle-header-left">
@@ -164,18 +176,18 @@ export function renderGameScreen(
             <span>💡</span>
           </button>
 
-          <!-- Difficulty Level Selector: Basic / Medium / Hard -->
-          <div class="tle-diff-group" role="group" aria-label="Difficulty Level">
-            <button type="button" class="tle-diff-btn" data-diff="basic">Basic</button>
-            <button type="button" class="tle-diff-btn" data-diff="medium">Medium</button>
-            <button type="button" class="tle-diff-btn" data-diff="hard">Hard</button>
+          <!-- 3 Rooms Selector: Room 1 (Basic), Room 2 (Medium), Room 3 (Hard) -->
+          <div class="tle-diff-group" role="group" aria-label="Select Escape Room">
+            <button type="button" class="tle-diff-btn" data-diff="basic">Room 1: Basic</button>
+            <button type="button" class="tle-diff-btn" data-diff="medium">Room 2: Medium</button>
+            <button type="button" class="tle-diff-btn" data-diff="hard">Room 3: Hard</button>
           </div>
 
-          <!-- Loop Counter = Player Score -->
+          <!-- Player 1 Loop Counter vs Player 2 -->
           <div class="tle-score-cluster">
-            <span class="tle-loop-pill" id="hud-loop">LOOP #${state.loopCount}</span>
-            <span class="tle-best-pill" id="hud-score-val" title="Fewer loops to escape = better score!">
-              🏆 Score: --
+            <span class="tle-loop-pill" id="hud-loop">P1 LOOP #${state.loopCount}</span>
+            <span class="tle-best-pill" id="hud-score-val" title="Fewer loops to escape = you win!">
+              VS P2: ${state.partnerLoopScore ?? "--"} Loops
             </span>
           </div>
         </div>
@@ -225,7 +237,7 @@ export function renderGameScreen(
             type="button"
             class="tle-ctrl-btn tle-ctrl-restart"
             id="btn-reset-loop"
-            title="Restart the Loop (increments Loop Score counter)"
+            title="Next Loop (+1 Loop)"
           >
             ↺ Restart
           </button>
@@ -239,246 +251,243 @@ export function renderGameScreen(
       <!-- Main Illustrated Escape Room Stage -->
       <main class="tle-stage-wrapper">
         <div class="tle-room-stage" id="game-viewport">
-          <!-- Loop Reset Flash Banner -->
-          <div class="tle-toast tle-toast-reset hidden" id="loop-reset-banner">
-            ⏰ TIME'S UP — Inventory items vanished, but your CLUES remain! Press ↺ Restart for next loop.
-          </div>
-
-          <!-- Feedback Subtitle Toast -->
-          <div class="tle-feedback-toast" id="action-feedback-text">
-            ${state.feedbackMessage}
-          </div>
-
-          <!-- Room Architecture: Left Wall, Back Wall, Floor, Window & Rain -->
-          <div class="tle-wall-back">
-            <!-- Hidden UV Wall Clue (visible when UV Bulb is installed in Lamp) -->
-            <div class="tle-uv-wall-secret" id="uv-wall-secret">
-              UV INK REVEALED: "PHOTO YEAR = 1998"
+          <!-- Blurrable Room Content Container -->
+          <div class="tle-room-blur-target" id="room-blur-target">
+            <!-- Feedback Subtitle Toast -->
+            <div class="tle-feedback-toast" id="action-feedback-text">
+              ${state.feedbackMessage}
             </div>
-          </div>
 
-          <div class="tle-wall-left">
-            <!-- Rainy Night Window with Venetian Blinds (Clickable for Power Fuse in Medium/Hard) -->
-            <button
-              type="button"
-              class="tle-window-frame"
-              id="obj-window"
-              data-object-id="window"
-              title="Inspect Window Blinds"
-            >
-              <span class="tle-window-sky">
-                <span class="tle-rain-layer"></span>
-              </span>
-              <span class="tle-window-blinds"></span>
-              <span class="tle-fuse-spark hidden" id="window-fuse-badge">🔋</span>
-            </button>
-            <div class="tle-ivy-left" aria-hidden="true">🌿</div>
-          </div>
-          <div class="tle-floor"></div>
+            <!-- Room Architecture: Left Wall, Back Wall, Floor, Window & Rain -->
+            <div class="tle-wall-back">
+              <div class="tle-room-banner" id="hud-room">${state.roomId}</div>
+              <div class="tle-uv-wall-secret" id="uv-wall-secret">
+                UV INK REVEALED: "PHOTO YEAR = 1998"
+              </div>
+            </div>
 
-          <!-- Warm or UV Lamp Light Cone Overlay -->
-          <div class="tle-lamp-cone" id="lamp-cone"></div>
-
-          <!-- 1. BLUE MOUNTAIN PAINTING + HIDDEN WALL SAFE (Left-Center Wall) -->
-          <div class="tle-painting-zone">
-            <div class="tle-wall-safe" id="wall-safe">
+            <div class="tle-wall-left">
               <button
                 type="button"
-                class="tle-safe-key-btn hidden"
-                id="obj-key"
-                data-object-id="key"
-                title="Collect Golden Key"
+                class="tle-window-frame"
+                id="obj-window"
+                data-object-id="window"
+                title="Inspect Window Blinds"
               >
-                <svg viewBox="0 0 64 64" class="tle-svg-key">
-                  <circle cx="20" cy="20" r="10" fill="none" stroke="#fbbf24" stroke-width="5" />
-                  <line x1="27" y1="27" x2="52" y2="52" stroke="#fbbf24" stroke-width="5" />
-                  <line x1="42" y1="42" x2="36" y2="48" stroke="#f59e0b" stroke-width="4" />
-                  <line x1="49" y1="49" x2="43" y2="55" stroke="#f59e0b" stroke-width="4" />
+                <span class="tle-window-sky">
+                  <span class="tle-rain-layer"></span>
+                </span>
+                <span class="tle-window-blinds"></span>
+                <span class="tle-fuse-spark hidden" id="window-fuse-badge">🔋</span>
+              </button>
+              <div class="tle-ivy-left" aria-hidden="true">🌿</div>
+            </div>
+            <div class="tle-floor"></div>
+
+            <!-- Warm or UV Lamp Light Cone Overlay -->
+            <div class="tle-lamp-cone" id="lamp-cone"></div>
+
+            <!-- 1. BLUE MOUNTAIN PAINTING + HIDDEN WALL SAFE (Left-Center Wall) -->
+            <div class="tle-painting-zone">
+              <div class="tle-wall-safe" id="wall-safe">
+                <button
+                  type="button"
+                  class="tle-safe-key-btn hidden"
+                  id="obj-key"
+                  data-object-id="key"
+                  title="Collect Golden Key"
+                >
+                  <svg viewBox="0 0 64 64" class="tle-svg-key">
+                    <circle cx="20" cy="20" r="10" fill="none" stroke="#fbbf24" stroke-width="5" />
+                    <line x1="27" y1="27" x2="52" y2="52" stroke="#fbbf24" stroke-width="5" />
+                    <line x1="42" y1="42" x2="36" y2="48" stroke="#f59e0b" stroke-width="4" />
+                    <line x1="49" y1="49" x2="43" y2="55" stroke="#f59e0b" stroke-width="4" />
+                  </svg>
+                  <span class="tle-key-sparkle">✨ Take Key</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="tle-painting-btn"
+                id="obj-painting"
+                data-object-id="painting"
+                title="Blue Mountain Painting"
+              >
+                <svg viewBox="0 0 160 200" class="tle-painting-svg" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#1e3a8a" />
+                      <stop offset="55%" stop-color="#3b82f6" />
+                      <stop offset="100%" stop-color="#1d4ed8" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="160" height="200" fill="url(#skyGrad)" />
+                  <polygon points="0,130 45,65 95,130" fill="#1e40af" />
+                  <polygon points="55,135 115,55 160,135" fill="#1d4ed8" />
+                  <polygon points="0,165 65,95 160,155 160,200 0,200" fill="#172554" />
+                  <path
+                    d="M 75 135 Q 90 165 55 200 L 95 200 Q 115 165 88 135 Z"
+                    fill="#60a5fa"
+                    opacity="0.65"
+                  />
                 </svg>
-                <span class="tle-key-sparkle">✨ Take Key</span>
+                <span class="tle-cursor-hint" aria-hidden="true">👆</span>
               </button>
             </div>
 
-            <button
-              type="button"
-              class="tle-painting-btn"
-              id="obj-painting"
-              data-object-id="painting"
-              title="Blue Mountain Painting"
-            >
-              <svg viewBox="0 0 160 200" class="tle-painting-svg" aria-hidden="true">
-                <defs>
-                  <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#1e3a8a" />
-                    <stop offset="55%" stop-color="#3b82f6" />
-                    <stop offset="100%" stop-color="#1d4ed8" />
-                  </linearGradient>
-                </defs>
-                <rect width="160" height="200" fill="url(#skyGrad)" />
-                <polygon points="0,130 45,65 95,130" fill="#1e40af" />
-                <polygon points="55,135 115,55 160,135" fill="#1d4ed8" />
-                <polygon points="0,165 65,95 160,155 160,200 0,200" fill="#172554" />
-                <path
-                  d="M 75 135 Q 90 165 55 200 L 95 200 Q 115 165 88 135 Z"
-                  fill="#60a5fa"
-                  opacity="0.65"
-                />
-              </svg>
-              <span class="tle-cursor-hint" aria-hidden="true">👆</span>
-            </button>
-          </div>
-
-          <!-- 2. WOODEN DOUBLE-DOOR WARDROBE / CABINET (Center Wall) -->
-          <div class="tle-cabinet-zone">
-            <div class="tle-cabinet-ivy" aria-hidden="true">🌿🌱🌿</div>
-            <button
-              type="button"
-              class="tle-cabinet-btn"
-              id="obj-cabinet"
-              data-object-id="cabinet"
-              title="Locked Wooden Cabinet"
-            >
-              <div class="tle-cabinet-top-trim"></div>
-              <div class="tle-cabinet-doors" id="cabinet-doors">
-                <div class="tle-cabinet-door tle-door-left">
-                  <div class="tle-door-panel"></div>
-                  <div class="tle-door-panel"></div>
-                </div>
-                <div class="tle-cabinet-door tle-door-right">
-                  <div class="tle-door-panel"></div>
-                  <div class="tle-door-panel"></div>
-                </div>
-              </div>
-              <div class="tle-cabinet-interior" id="cabinet-interior">
-                <span class="tle-interior-scroll" id="cabinet-interior-label">📜 Clue Inside</span>
-              </div>
-              <span class="tle-glow-badge" id="state-cabinet">🔒</span>
-            </button>
-          </div>
-
-          <!-- 3. CORK BULLETIN BOARD WITH PHOTOGRAPH (Right-Center Wall) -->
-          <button
-            type="button"
-            class="tle-corkboard-btn"
-            id="obj-photo"
-            data-object-id="photo"
-            title="Inspect Corkboard & Photograph"
-          >
-            <div class="tle-polaroid">
-              <div class="tle-pin"></div>
-              <div class="tle-polaroid-art">
-                <svg viewBox="0 0 100 65" class="tle-building-svg" aria-hidden="true">
-                  <rect width="100" height="65" fill="#cbd5e1" />
-                  <polygon points="15,26 50,8 85,26" fill="#475569" />
-                  <rect x="20" y="26" width="60" height="32" fill="#64748b" />
-                  <rect x="28" y="32" width="8" height="26" fill="#334155" />
-                  <rect x="46" y="32" width="8" height="26" fill="#334155" />
-                  <rect x="64" y="32" width="8" height="26" fill="#334155" />
-                </svg>
-              </div>
-              <div class="tle-polaroid-caption" id="polaroid-caption">••••</div>
-            </div>
-            <div class="tle-sticky tle-sticky-1"></div>
-            <div class="tle-sticky tle-sticky-2"></div>
-            <div class="tle-sticky tle-sticky-3"></div>
-          </button>
-
-          <!-- 4. COMPUTER DESK & LOCKED MONITOR (Below Corkboard) -->
-          <div class="tle-computer-desk-zone">
-            <button
-              type="button"
-              class="tle-monitor-btn"
-              id="obj-computer"
-              data-object-id="computer"
-              title="Computer Terminal"
-            >
-              <div class="tle-monitor-screen" id="monitor-screen">
-                <span class="tle-monitor-lock" id="state-computer">🔒</span>
-                <div class="tle-monitor-passbox" id="monitor-passbox">* * * *</div>
-              </div>
-              <div class="tle-monitor-stand"></div>
-            </button>
-            <div class="tle-pencil-cup" aria-hidden="true">✏️</div>
-            <div class="tle-right-desk">
-              <div class="tle-desk-leg tle-leg-l"></div>
-              <div class="tle-desk-leg tle-leg-r"></div>
-            </div>
-          </div>
-
-          <!-- 5. PANELED EXIT DOOR (Far Right Wall) -->
-          <div class="tle-door-zone">
-            <button
-              type="button"
-              class="tle-exit-door-btn"
-              id="obj-door"
-              data-object-id="door"
-              title="Exit Door"
-            >
-              <div class="tle-exit-panel"></div>
-              <div class="tle-exit-panel tle-exit-panel-mid"></div>
-              <div class="tle-exit-panel"></div>
-              <span class="tle-door-handle"></span>
-              <span class="tle-door-badge" id="state-door">⇥</span>
-            </button>
-          </div>
-
-          <!-- 6. FOREGROUND LEFT STUDY DESK, LAMP & OPEN BOOK -->
-          <div class="tle-left-desk-zone">
-            <div class="tle-left-desk-surface">
+            <!-- 2. WOODEN DOUBLE-DOOR WARDROBE / CABINET (Center Wall) -->
+            <div class="tle-cabinet-zone">
+              <div class="tle-cabinet-ivy" aria-hidden="true">🌿🌱🌿</div>
               <button
                 type="button"
-                class="tle-lamp-btn"
-                id="obj-lamp"
-                data-object-id="lamp"
-                title="Desk Lamp (Fit UV Bulb in Medium/Hard)"
+                class="tle-cabinet-btn"
+                id="obj-cabinet"
+                data-object-id="cabinet"
+                title="Locked Wooden Cabinet"
               >
-                <span class="tle-lamp-shade"></span>
-                <span class="tle-lamp-bulb" id="lamp-bulb"></span>
-                <span class="tle-lamp-arm"></span>
-                <span class="tle-lamp-base"></span>
+                <div class="tle-cabinet-top-trim"></div>
+                <div class="tle-cabinet-doors" id="cabinet-doors">
+                  <div class="tle-cabinet-door tle-door-left">
+                    <div class="tle-door-panel"></div>
+                    <div class="tle-door-panel"></div>
+                  </div>
+                  <div class="tle-cabinet-door tle-door-right">
+                    <div class="tle-door-panel"></div>
+                    <div class="tle-door-panel"></div>
+                  </div>
+                </div>
+                <div class="tle-cabinet-interior" id="cabinet-interior">
+                  <span class="tle-interior-scroll">📜 Clue Inside</span>
+                </div>
+                <span class="tle-glow-badge" id="state-cabinet">🔒</span>
               </button>
+            </div>
 
-              <div class="tle-book-stack" aria-hidden="true">
-                <div class="tle-stacked-book tle-book-top"></div>
-                <div class="tle-stacked-book tle-book-bot"></div>
+            <!-- 3. CORK BULLETIN BOARD WITH PHOTOGRAPH (Right-Center Wall) -->
+            <button
+              type="button"
+              class="tle-corkboard-btn"
+              id="obj-photo"
+              data-object-id="photo"
+              title="Inspect Corkboard & Photograph"
+            >
+              <div class="tle-polaroid">
+                <div class="tle-pin"></div>
+                <div class="tle-polaroid-art">
+                  <svg viewBox="0 0 100 65" class="tle-building-svg" aria-hidden="true">
+                    <rect width="100" height="65" fill="#cbd5e1" />
+                    <polygon points="15,26 50,8 85,26" fill="#475569" />
+                    <rect x="20" y="26" width="60" height="32" fill="#64748b" />
+                    <rect x="28" y="32" width="8" height="26" fill="#334155" />
+                    <rect x="46" y="32" width="8" height="26" fill="#334155" />
+                    <rect x="64" y="32" width="8" height="26" fill="#334155" />
+                  </svg>
+                </div>
+                <div class="tle-polaroid-caption" id="polaroid-caption">••••</div>
               </div>
+              <div class="tle-sticky tle-sticky-1"></div>
+              <div class="tle-sticky tle-sticky-2"></div>
+              <div class="tle-sticky tle-sticky-3"></div>
+            </button>
 
+            <!-- 4. COMPUTER DESK & LOCKED MONITOR (Below Corkboard) -->
+            <div class="tle-computer-desk-zone">
               <button
                 type="button"
-                class="tle-open-book-btn"
-                id="obj-book"
-                data-object-id="book"
-                title="Inspect Open Journal"
+                class="tle-monitor-btn"
+                id="obj-computer"
+                data-object-id="computer"
+                title="Computer Terminal"
               >
-                <div class="tle-book-pages">
-                  <div class="tle-page-left"></div>
-                  <div class="tle-page-right"></div>
+                <div class="tle-monitor-screen" id="monitor-screen">
+                  <span class="tle-monitor-lock" id="state-computer">🔒</span>
+                  <div class="tle-monitor-passbox" id="monitor-passbox">* * * *</div>
                 </div>
-                <span class="tle-magnifier-badge">🔍</span>
+                <div class="tle-monitor-stand"></div>
+              </button>
+              <div class="tle-pencil-cup" aria-hidden="true">✏️</div>
+              <div class="tle-right-desk">
+                <div class="tle-desk-leg tle-leg-l"></div>
+                <div class="tle-desk-leg tle-leg-r"></div>
+              </div>
+            </div>
+
+            <!-- 5. PANELED EXIT DOOR (Far Right Wall) -->
+            <div class="tle-door-zone">
+              <button
+                type="button"
+                class="tle-exit-door-btn"
+                id="obj-door"
+                data-object-id="door"
+                title="Exit Door"
+              >
+                <div class="tle-exit-panel"></div>
+                <div class="tle-exit-panel tle-exit-panel-mid"></div>
+                <div class="tle-exit-panel"></div>
+                <span class="tle-door-handle"></span>
+                <span class="tle-door-badge" id="state-door">⇥</span>
               </button>
             </div>
+
+            <!-- 6. FOREGROUND LEFT STUDY DESK, LAMP & OPEN BOOK -->
+            <div class="tle-left-desk-zone">
+              <div class="tle-left-desk-surface">
+                <button
+                  type="button"
+                  class="tle-lamp-btn"
+                  id="obj-lamp"
+                  data-object-id="lamp"
+                  title="Desk Lamp (Fit UV Bulb in Medium/Hard)"
+                >
+                  <span class="tle-lamp-shade"></span>
+                  <span class="tle-lamp-bulb" id="lamp-bulb"></span>
+                  <span class="tle-lamp-arm"></span>
+                  <span class="tle-lamp-base"></span>
+                </button>
+
+                <div class="tle-book-stack" aria-hidden="true">
+                  <div class="tle-stacked-book tle-book-top"></div>
+                  <div class="tle-stacked-book tle-book-bot"></div>
+                </div>
+
+                <button
+                  type="button"
+                  class="tle-open-book-btn"
+                  id="obj-book"
+                  data-object-id="book"
+                  title="Inspect Open Journal"
+                >
+                  <div class="tle-book-pages">
+                    <div class="tle-page-left"></div>
+                    <div class="tle-page-right"></div>
+                  </div>
+                  <span class="tle-magnifier-badge">🔍</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Bottom Floating Glass Inventory (4 Creative Slots) & Clues Bar -->
+            <aside class="tle-bottom-dock" id="inventory-clues-dock">
+              <div class="tle-inventory-panel">
+                <div class="tle-dock-label-col">
+                  <span class="tle-dock-label">INVENTORY:</span>
+                  <span class="tle-dock-sub" id="inv-active-label">Click slot to equip</span>
+                </div>
+                <div class="tle-inv-slots" id="inventory-list"></div>
+              </div>
+
+              <div class="tle-dock-divider"></div>
+
+              <div class="tle-clues-panel">
+                <div class="tle-dock-label-col">
+                  <span class="tle-dock-label">CLUES:</span>
+                  <span class="tle-dock-sub">Kept across loops</span>
+                </div>
+                <ul class="tle-clues-list" id="clues-list"></ul>
+              </div>
+            </aside>
           </div>
-
-          <!-- Bottom Floating Glass Inventory (4 Creative Slots) & Clues Bar -->
-          <aside class="tle-bottom-dock" id="inventory-clues-dock">
-            <div class="tle-inventory-panel">
-              <div class="tle-dock-label-col">
-                <span class="tle-dock-label">INVENTORY:</span>
-                <span class="tle-dock-sub" id="inv-active-label">Click slot to equip</span>
-              </div>
-              <div class="tle-inv-slots" id="inventory-list"></div>
-            </div>
-
-            <div class="tle-dock-divider"></div>
-
-            <div class="tle-clues-panel">
-              <div class="tle-dock-label-col">
-                <span class="tle-dock-label">CLUES:</span>
-                <span class="tle-dock-sub">Kept across loops</span>
-              </div>
-              <ul class="tle-clues-list" id="clues-list"></ul>
-            </div>
-          </aside>
 
           <!-- Close-Up Inspector / Computer Passcode Overlay -->
           <div class="tle-overlay hidden" id="inspector-modal">
@@ -527,39 +536,72 @@ export function renderGameScreen(
               </div>
             </div>
           </div>
-        </div>
-      </main>
 
-      <!-- Pause / Multiplayer Loop Scoreboard Overlay -->
-      <div class="tle-overlay hidden" id="pause-modal">
-        <div class="tle-modal-card">
-          <h3 id="modal-title">Time Loop Scoreboard</h3>
-          <p id="modal-desc">
-            Your score is the number of loops it takes you to escape (lower is better!).
-          </p>
-          <div class="tle-scoreboard-box" id="scoreboard-box"></div>
-          <div class="tle-modal-actions">
-            <button type="button" class="tle-secondary-btn" id="btn-modal-reset">
-              ↺ Next Loop (+1)
-            </button>
-            <button type="button" class="tle-primary-btn" id="btn-resume">Continue</button>
+          <!-- CENTER POPUP WHEN A LOOP ENDS (Blurs entire room behind it!) -->
+          <div class="tle-overlay tle-blur-backdrop hidden" id="loop-end-modal">
+            <div class="tle-modal-card tle-center-popup">
+              <div class="tle-popup-icon">⏳</div>
+              <h2 id="loop-end-title">Time Loop #1 Ended!</h2>
+              <p class="tle-popup-desc" id="loop-end-desc">
+                Your 60 seconds ran out! All physical items in the room have disappeared,
+                but your discovered <strong>CLUES</strong> stay with you.
+              </p>
+              <div class="tle-modal-actions">
+                <button type="button" class="tle-primary-btn tle-btn-lg" id="btn-popup-restart">
+                  ↺ Restart (Start Loop #2)
+                </button>
+                <button type="button" class="tle-secondary-btn tle-btn-lg" id="btn-popup-exit">
+                  🚪 Exit Room
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CENTER POPUP FOR ROOM WINNER / PAUSE SCOREBOARD (Blurs room behind it!) -->
+          <div class="tle-overlay tle-blur-backdrop hidden" id="pause-modal">
+            <div class="tle-modal-card tle-center-popup">
+              <h2 id="modal-title">Room Scoreboard</h2>
+              <p class="tle-popup-desc" id="modal-desc">
+                Fewer loops to escape wins the room!
+              </p>
+              <div class="tle-scoreboard-box" id="scoreboard-box"></div>
+              <div class="tle-modal-actions">
+                <button type="button" class="tle-primary-btn" id="btn-try-again">
+                  🔄 Try Room Again (Reset to 0)
+                </button>
+                <button type="button" class="tle-primary-btn hidden" id="btn-next-room">
+                  ➡ Next Room
+                </button>
+                <button type="button" class="tle-secondary-btn" id="btn-resume">
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   `;
 
   const rootEl = container.querySelector<HTMLElement>("#tle-root");
+  const blurTarget = container.querySelector<HTMLElement>("#room-blur-target");
+  const loopEndModal = container.querySelector<HTMLElement>("#loop-end-modal");
+  const loopEndTitle = container.querySelector<HTMLElement>("#loop-end-title");
+  const loopEndDesc = container.querySelector<HTMLElement>("#loop-end-desc");
+  const popupRestartBtn = container.querySelector<HTMLButtonElement>("#btn-popup-restart");
+  const popupExitBtn = container.querySelector<HTMLButtonElement>("#btn-popup-exit");
+
   const pauseModal = container.querySelector<HTMLElement>("#pause-modal");
   const modalTitle = container.querySelector<HTMLElement>("#modal-title");
   const modalDesc = container.querySelector<HTMLElement>("#modal-desc");
   const scoreboardBox = container.querySelector<HTMLElement>("#scoreboard-box");
+  const nextRoomBtn = container.querySelector<HTMLButtonElement>("#btn-next-room");
+
   const inspectorModal = container.querySelector<HTMLElement>("#inspector-modal");
   const inspectorTitle = container.querySelector<HTMLElement>("#inspector-title");
   const inspectorBody = container.querySelector<HTMLElement>("#inspector-body");
   const terminalGroup = container.querySelector<HTMLElement>("#terminal-code-group");
   const codeInput = container.querySelector<HTMLInputElement>("#terminal-code-input");
-  const resetBanner = container.querySelector<HTMLElement>("#loop-reset-banner");
 
   function addClue(clue: string): void {
     if (!state.clues.includes(clue)) {
@@ -584,16 +626,19 @@ export function renderGameScreen(
     }
   }
 
-  function switchDifficulty(diff: DifficultyLevel): void {
+  /** Resets the entire room back to Loop 0/1 (for Try Again, Exit, or switching rooms). */
+  function resetRoomToZero(diff: DifficultyLevel, autoStart = false): void {
     const duration = DIFFICULTY_SECONDS[diff];
     state = {
       ...state,
+      roomId: ROOM_TITLES[diff],
       difficulty: diff,
       timeLeftSeconds: duration,
       loopDurationSeconds: duration,
-      loopCount: 1,
-      score: 1,
-      timerRunning: false,
+      loopCount: autoStart ? 1 : 0,
+      score: 0,
+      partnerLoopScore: DEFAULT_PARTNER_LOOPS[diff],
+      timerRunning: autoStart,
       loopExpired: false,
       escaped: false,
       activeItem: null,
@@ -611,24 +656,29 @@ export function renderGameScreen(
       doorUnlocked: false,
       clues: [],
       inventory: [],
-      feedbackMessage:
-        `Switched to ${diff.toUpperCase()} mode (${duration}s per loop). ` +
-        `Press ▶ Start to begin Loop #1!`,
+      feedbackMessage: autoStart
+        ? `▶ ${ROOM_TITLES[diff]} — Loop #1 started!`
+        : `${ROOM_TITLES[diff]} ready (Loop Counter reset to 0). Press ▶ Start to begin Loop #1!`,
     };
-    resetBanner?.classList.add("hidden");
+    loopEndModal?.classList.add("hidden");
+    pauseModal?.classList.add("hidden");
     inspectorModal?.classList.add("hidden");
     callbacks.onDifficultyChange?.(diff);
     renderState();
   }
 
   function handleObjectClick(objectId: RoomObjectId): void {
+    if (!state.timerRunning && !state.escaped && state.loopCount === 0) {
+      state.loopCount = 1;
+      state.timerRunning = true;
+    }
     state.selectedObjectId = objectId;
 
     switch (objectId) {
       case "window":
         if (state.difficulty === "basic") {
           state.feedbackMessage =
-            "Rain lashes against the window blinds outside. Nothing hidden here on Basic mode.";
+            "Rain lashes against the window blinds outside. (Try Room 2 or Room 3 for extra items!)";
         } else if (!state.fuseCollected) {
           state.fuseCollected = true;
           addInventoryItem("Power Fuse");
@@ -807,20 +857,21 @@ export function renderGameScreen(
           }
         }
         if (state.doorUnlocked) {
+          const finalLoops = Math.max(1, state.loopCount);
+          state.loopCount = finalLoops;
           state.escaped = true;
           state.timerRunning = false;
-          state.score = state.loopCount;
+          state.score = finalLoops;
           if (
             state.bestLoopScore === null ||
-            state.loopCount < state.bestLoopScore
+            finalLoops < state.bestLoopScore
           ) {
-            state.bestLoopScore = state.loopCount;
+            state.bestLoopScore = finalLoops;
           }
-          state.statusText = `Escaped in ${state.loopCount} Loop(s)!`;
+          state.statusText = `Escaped in ${finalLoops} Loop(s)!`;
           state.feedbackMessage =
-            `🎉 Escaped on ${state.difficulty.toUpperCase()} in ${state.loopCount} loop(s)! ` +
-            `(Your Score = ${state.loopCount})`;
-          callbacks.onEscape?.(state.loopCount, state.difficulty);
+            `🎉 You escaped ${ROOM_TITLES[state.difficulty]} in ${finalLoops} loop(s)!`;
+          callbacks.onEscape?.(finalLoops, state.difficulty);
           showScoreboardModal(true);
         } else {
           state.feedbackMessage =
@@ -860,40 +911,66 @@ export function renderGameScreen(
 
   function showScoreboardModal(escapedNow: boolean): void {
     if (!modalTitle || !modalDesc || !pauseModal) return;
+    const myLoops = Math.max(1, state.loopCount);
+    const friendLoops = state.partnerLoopScore ?? DEFAULT_PARTNER_LOOPS[state.difficulty];
+
     if (escapedNow) {
-      modalTitle.textContent = `🎉 Escaped in ${state.loopCount} Loop${state.loopCount === 1 ? "" : "s"}!`;
-      modalDesc.textContent =
-        `Difficulty: ${state.difficulty.toUpperCase()} · ` +
-        `In Time Loop Escape, your score is the total loops needed to escape (lower is better!).`;
+      const iWon = myLoops < friendLoops;
+      const isTie = myLoops === friendLoops;
+      modalTitle.textContent = iWon
+        ? `🏆 You Win ${ROOM_TITLES[state.difficulty]}!`
+        : isTie
+          ? `🤝 Tie in ${ROOM_TITLES[state.difficulty]}!`
+          : `🏁 Escaped ${ROOM_TITLES[state.difficulty]}!`;
+      modalDesc.textContent = iWon
+        ? `You escaped in ${myLoops} loop(s) while Player 2 took ${friendLoops} loops!`
+        : `You took ${myLoops} loop(s) (Player 2: ${friendLoops}). Try again to beat them!`;
     } else {
-      modalTitle.textContent = "Time Loop Scoreboard & Pause";
+      modalTitle.textContent = `${ROOM_TITLES[state.difficulty]} · Scoreboard`;
       modalDesc.textContent =
-        "Items reset every loop, but your discovered CLUES stay! Fewer loops = better score.";
+        "Whoever escapes the room in fewer loops wins! Try again resets your loop counter to 0.";
     }
+
     if (scoreboardBox) {
-      const myBest =
-        state.bestLoopScore !== null ? `${state.bestLoopScore} Loop(s)` : `${state.loopCount} (In Progress)`;
-      const p2Score =
-        state.partnerLoopScore !== null ? `${state.partnerLoopScore} Loop(s)` : "Waiting for P2...";
       scoreboardBox.innerHTML =
-        `<div class="tle-score-row"><span>👤 You (Player 1) — Current Loop:</span>` +
-        `<strong>Loop #${state.loopCount}</strong></div>` +
-        `<div class="tle-score-row"><span>🏆 Your Best Escape Score:</span>` +
-        `<strong>${myBest}</strong></div>` +
-        `<div class="tle-score-row"><span>🖥️ Teammate (Player 2):</span>` +
-        `<strong>${p2Score}</strong></div>`;
+        `<div class="tle-score-row"><span>👤 You (Player 1):</span>` +
+        `<strong>${escapedNow ? `${myLoops} Loops` : `Loop #${state.loopCount}`}</strong></div>` +
+        `<div class="tle-score-row"><span>🖥️ Friend (Player 2):</span>` +
+        `<strong>${friendLoops} Loops</strong></div>` +
+        `<div class="tle-score-row"><span>🏅 Room Status:</span>` +
+        `<strong>${
+          escapedNow
+            ? myLoops <= friendLoops
+              ? "🎉 YOU WIN!"
+              : "P2 Leads"
+            : "In Progress"
+        }</strong></div>`;
     }
+
+    if (nextRoomBtn) {
+      const hasNext = state.difficulty !== "hard";
+      nextRoomBtn.classList.toggle("hidden", !escapedNow || !hasNext);
+      if (state.difficulty === "basic") {
+        nextRoomBtn.textContent = "➡ Next: Room 2 (Medium)";
+      } else if (state.difficulty === "medium") {
+        nextRoomBtn.textContent = "➡ Next: Room 3 (Hard)";
+      }
+    }
+
     pauseModal.classList.remove("hidden");
+    renderState();
   }
 
+  /** Called when the 60s timer hits 00:00 — blurs the room and pops up Restart / Exit in the center. */
   function expireLoop(): void {
     const clueCount = state.clues.length;
+    const endedLoop = Math.max(1, state.loopCount);
     state = {
       ...state,
       timeLeftSeconds: 0,
       timerRunning: false,
       loopExpired: true,
-      statusText: "Loop Expired",
+      statusText: "Loop Ended",
       activeItem: null,
       uvLampInstalled: false,
       paintingClicks: 0,
@@ -908,15 +985,28 @@ export function renderGameScreen(
       doorUnlocked: false,
       inventory: [],
       feedbackMessage:
-        `⏰ Time's up! All inventory items vanished, but ${clueCount} clue(s) remain. ` +
-        `Press ↺ Restart for Loop #${state.loopCount + 1}!`,
+        `⏰ Time Loop #${endedLoop} ended! Choose Restart or Exit in the center popup.`,
     };
     if (codeInput) codeInput.value = "";
     inspectorModal?.classList.add("hidden");
-    resetBanner?.classList.remove("hidden");
+
+    if (loopEndTitle) {
+      loopEndTitle.textContent = `⏰ Time Loop #${endedLoop} Ended!`;
+    }
+    if (loopEndDesc) {
+      loopEndDesc.innerHTML =
+        `Your time ran out! All physical items vanished, ` +
+        `but your <strong>${clueCount} discovered clue(s)</strong> are saved.<br/>` +
+        `Ready for <strong>Loop #${endedLoop + 1}</strong>?`;
+    }
+    if (popupRestartBtn) {
+      popupRestartBtn.textContent = `↺ Restart (Start Loop #${endedLoop + 1})`;
+    }
+    loopEndModal?.classList.remove("hidden");
     renderState();
   }
 
+  /** Starts the next loop (Loop N -> Loop N+1), keeping clues and unblurring the room. */
   function resetLoop(): void {
     const nextLoop = state.loopCount + 1;
     const clueCount = state.clues.length;
@@ -943,12 +1033,13 @@ export function renderGameScreen(
       escaped: false,
       inventory: [],
       feedbackMessage:
-        `⏳ Loop #${nextLoop} started! Room & items reset, ` +
+        `⏳ Loop #${nextLoop} running! Items reset, ` +
         `but your ${clueCount} discovered clue(s) remain!`,
     };
     if (codeInput) codeInput.value = "";
     inspectorModal?.classList.add("hidden");
-    resetBanner?.classList.add("hidden");
+    loopEndModal?.classList.add("hidden");
+    pauseModal?.classList.add("hidden");
     callbacks.onLoopReset?.(state.loopCount);
     renderState();
   }
@@ -962,12 +1053,12 @@ export function renderGameScreen(
     });
   }
 
-  // Wire up difficulty buttons
+  // Wire up difficulty / room buttons
   const diffButtons = container.querySelectorAll<HTMLButtonElement>(".tle-diff-btn");
   for (const dBtn of diffButtons) {
     dBtn.addEventListener("click", () => {
       const diff = dBtn.dataset.diff as DifficultyLevel | undefined;
-      if (diff) switchDifficulty(diff);
+      if (diff) resetRoomToZero(diff, false);
     });
   }
 
@@ -1034,14 +1125,18 @@ export function renderGameScreen(
   });
 
   container.querySelector("#btn-start-restart")?.addEventListener("click", () => {
-    if (state.loopExpired || state.timeLeftSeconds <= 0 || state.escaped) {
+    if (state.loopExpired || state.timeLeftSeconds <= 0) {
       resetLoop();
+    } else if (state.escaped) {
+      resetRoomToZero(state.difficulty, true);
     } else if (!state.timerRunning) {
+      if (state.loopCount === 0) {
+        state.loopCount = 1;
+      }
       state.timerRunning = true;
       state.statusText = "Loop Active";
       state.feedbackMessage =
-        `▶ Loop #${state.loopCount} (${state.difficulty.toUpperCase()}) started! ` +
-        `Escape in as few loops as possible.`;
+        `▶ ${ROOM_TITLES[state.difficulty]} · Loop #${state.loopCount} started!`;
       renderState();
     }
   });
@@ -1051,7 +1146,7 @@ export function renderGameScreen(
       state.timerRunning = false;
       state.statusText = "Stopped";
       state.feedbackMessage =
-        "⏹ Timer stopped. Press ▶ Start to resume or ↺ Restart to start the next loop.";
+        "⏹ Timer stopped. Press ▶ Start to resume or ↺ Restart for the next loop.";
       renderState();
     }
   });
@@ -1060,9 +1155,22 @@ export function renderGameScreen(
     resetLoop();
   });
 
-  container.querySelector("#btn-modal-reset")?.addEventListener("click", () => {
-    pauseModal?.classList.add("hidden");
+  popupRestartBtn?.addEventListener("click", () => {
     resetLoop();
+  });
+
+  popupExitBtn?.addEventListener("click", () => {
+    resetRoomToZero(state.difficulty, false);
+  });
+
+  container.querySelector("#btn-try-again")?.addEventListener("click", () => {
+    resetRoomToZero(state.difficulty, true);
+  });
+
+  nextRoomBtn?.addEventListener("click", () => {
+    const nextDiff: DifficultyLevel =
+      state.difficulty === "basic" ? "medium" : "hard";
+    resetRoomToZero(nextDiff, true);
   });
 
   container.querySelector("#btn-pause-menu")?.addEventListener("click", () => {
@@ -1071,6 +1179,7 @@ export function renderGameScreen(
 
   container.querySelector("#btn-resume")?.addEventListener("click", () => {
     pauseModal?.classList.add("hidden");
+    renderState();
   });
 
   function formatTime(seconds: number): string {
@@ -1105,32 +1214,40 @@ export function renderGameScreen(
     const timerVal = container.querySelector<HTMLElement>("#hud-timer-val");
     const loopVal = container.querySelector<HTMLElement>("#hud-loop");
     const scoreVal = container.querySelector<HTMLElement>("#hud-score-val");
+    const roomVal = container.querySelector<HTMLElement>("#hud-room");
     const feedbackEl = container.querySelector<HTMLElement>("#action-feedback-text");
     const startRestartBtn = container.querySelector<HTMLButtonElement>("#btn-start-restart");
     const stopBtn = container.querySelector<HTMLButtonElement>("#btn-stop-loop");
     const activeLabel = container.querySelector<HTMLElement>("#inv-active-label");
     const fuseBadge = container.querySelector<HTMLElement>("#window-fuse-badge");
 
-    const isUrgent = state.timeLeftSeconds <= 15;
+    const isUrgent = state.timeLeftSeconds <= 15 && state.timerRunning;
+    const isPopupOpen =
+      !loopEndModal?.classList.contains("hidden") ||
+      !pauseModal?.classList.contains("hidden");
+
+    rootEl?.setAttribute("data-room-diff", state.difficulty);
     rootEl?.classList.toggle("tle-lamp-off", !state.lampOn);
     rootEl?.classList.toggle("tle-uv-room", state.lampOn && state.uvLampInstalled);
+    blurTarget?.classList.toggle("tle-room-blurred", Boolean(isPopupOpen));
     timerPill?.classList.toggle("tle-timer-urgent", isUrgent);
 
     for (const dBtn of diffButtons) {
       dBtn.classList.toggle("tle-diff-active", dBtn.dataset.diff === state.difficulty);
     }
 
+    if (roomVal) {
+      roomVal.textContent = ROOM_TITLES[state.difficulty];
+    }
     if (timerVal) {
       timerVal.textContent = formatTime(state.timeLeftSeconds);
     }
     if (loopVal) {
-      loopVal.textContent = `LOOP #${state.loopCount}`;
+      loopVal.textContent = `P1 LOOP #${state.loopCount}`;
     }
     if (scoreVal) {
-      scoreVal.textContent =
-        state.bestLoopScore !== null
-          ? `🏆 Best: ${state.bestLoopScore} Loop${state.bestLoopScore === 1 ? "" : "s"}`
-          : `🎯 Score: ${state.loopCount} Loop${state.loopCount === 1 ? "" : "s"}`;
+      const p2 = state.partnerLoopScore ?? DEFAULT_PARTNER_LOOPS[state.difficulty];
+      scoreVal.textContent = `P2: ${p2} Loops`;
     }
     if (feedbackEl) {
       feedbackEl.textContent = state.feedbackMessage;
@@ -1148,8 +1265,12 @@ export function renderGameScreen(
     }
 
     if (startRestartBtn) {
-      if (state.loopExpired || state.timeLeftSeconds <= 0 || state.escaped) {
+      if (state.loopExpired || state.timeLeftSeconds <= 0) {
         startRestartBtn.textContent = "↺ Restart";
+        startRestartBtn.classList.add("tle-ctrl-restart-mode");
+        startRestartBtn.disabled = false;
+      } else if (state.escaped) {
+        startRestartBtn.textContent = "🔄 Try Again";
         startRestartBtn.classList.add("tle-ctrl-restart-mode");
         startRestartBtn.disabled = false;
       } else if (state.timerRunning) {
@@ -1213,7 +1334,7 @@ export function renderGameScreen(
           : "⇥";
     }
 
-    // Render 4 Interactive Inventory Slots (Key, UV Bulb, Power Fuse, Exit Keycard)
+    // Render 4 Interactive Inventory Slots
     const invContainer = container.querySelector<HTMLElement>("#inventory-list");
     if (invContainer) {
       const slotsHtml: string[] = [];
@@ -1240,7 +1361,8 @@ export function renderGameScreen(
           const item = sBtn.dataset.invItem as InventoryItemId | undefined;
           if (!item) return;
           state.activeItem = item;
-          state.feedbackMessage = `Equipped [${item}] — click the matching object in the room to use it!`;
+          state.feedbackMessage =
+            `Equipped [${item}] — click the matching object in the room to use it!`;
           renderState();
         });
       }
