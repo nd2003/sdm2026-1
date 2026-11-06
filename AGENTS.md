@@ -37,7 +37,7 @@ Zaid's agent does QA and integration. It talks to you only through **your GitHub
 
 ## Final destination: the course repo
 
-The finished game goes into the professor's repo, https://github.com/nd2003/sdm2026-1, under `games/team-N/`. Read its `AGENTS.md` and `server/ARCHITECTURE.md` once. Rules that matter **now**, so the port is easy:
+The finished game goes into the professor's repo, https://github.com/nd2003/sdm2026-1, under **`games/team-3/`** (we are **team-3**: label `team-3`, titles `[team-3] ...`, branches `team-3/<issue>-<desc>`). Read its `AGENTS.md` and `server/ARCHITECTURE.md` once. Rules that matter **now**, so the port is easy:
 
 - **The course grades only what's visible in that repo:** issues, PRs, commits, and whether contributions are spread across members. Write clear commit messages here too, because your commits get merged (not copied) so your name stays on them.
 - **The port target is TypeScript + Vite on the client, with a Colyseus server that's authoritative.** Clients send inputs (for example "clicked painting") and the server runs the puzzle logic. So:
@@ -101,7 +101,7 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 ## Two-player race (online)
 
-Two players on two devices. Each one runs their own copy of the room with their own 60s loops, and the **first to walk out the door wins**. The backend (yigitcemakbas, separate) only relays messages and picks the winner. All game logic stays in the browser.
+Two players on two devices. Each one runs their own copy of the room with their own 60s loops, and the **first to walk out the door wins**. The backend (yigitcemakbas, our team-3 server dev) only relays messages and picks the winner. After the port it becomes our Colyseus room in `games/team-3/room/`. All game logic stays in the browser.
 
 **New state in `game`** (none of it resets on a loop):
 - `phase`: `"lobby"` → `"playing"` → `"over"`

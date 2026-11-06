@@ -21,9 +21,9 @@ You may make the small integration fixes needed to make the halves fit (remove T
 
 ## Final port to the course repo (nd2003/sdm2026-1)
 Do this only when the human says so. The plan:
-1. Ask which `team-N` we are. Check whether yigitcemakbas's backend is our `room/` code or the platform team's `server/`.
-2. Every person opens their own issues and PRs there, following that repo's `AGENTS.md`: issue first, the `team-N` label, `[team-N]` titles, branch `team-N/<issue>-<desc>`, the PR template filled in, `Refs #N` in commits, one approving review, and CI (`pnpm lint && pnpm typecheck && pnpm test && pnpm build`) green. The grade counts per-member contributions, so devs push their own ports, not Zaid.
-3. Copy `server/template/` to `games/team-N/`. Port `state.js` + `puzzles.js` into the Colyseus room (server-authoritative, `SeededRandom`, ticks, zod-validated inputs), the constants into `config/game.json`, and `room.js`/`ui.js` into `client/`. Then delete `net.js`.
+1. We are **team-3** (`games/team-3/`). yigitcemakbas is on our team and owns the server room (`games/team-3/room/`). Align his room with the message table in `AGENTS.md` before porting the client.
+2. Every person opens their own issues and PRs there, following that repo's `AGENTS.md`: issue first, the `team-3` label, `[team-3]` titles, branch `team-3/<issue>-<desc>`, the PR template filled in, `Refs #N` in commits, one approving review, and CI (`pnpm lint && pnpm typecheck && pnpm test && pnpm build`) green. The grade counts per-member contributions, so devs push their own ports, not Zaid.
+3. Copy `server/template/` to `games/team-3/`. Port `state.js` + `puzzles.js` into the Colyseus room (server-authoritative, `SeededRandom`, ticks, zod-validated inputs), the constants into `config/game.json`, and `room.js`/`ui.js` into `client/`. Then delete `net.js`.
 4. Port `test.html` checks into Vitest `*.test.ts`.
 
 ## Every session
