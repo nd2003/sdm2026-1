@@ -49,13 +49,16 @@ Zaid's agent does QA and integration. It talks to you only through **your GitHub
 
 ## Final destination: the course repo
 
-The finished game goes into the professor's repo, https://github.com/nd2003/sdm2026-1, under **`games/team-3/`** (we are **team-3**: label `team-3`, titles `[team-3] ...`, branches `team-3/<issue>-<desc>`). Read its `AGENTS.md` and `server/ARCHITECTURE.md` once. Rules that matter **now**, so the port is easy:
+The finished game goes into the professor's repo, https://github.com/nd2003/sdm2026-1, under **`games/team-3/`** (we are **team-3**: label `team-3`, titles `[team-3] ...`, branches `team-3/<issue>-<desc>`). Its rules live in its **`CLAUDE.md`** (its `AGENTS.md` only points there). Also read `GETTING_STARTED.md` and `server/CLAUDE.md` once. Rules that matter **now**, so the port is easy:
 
 - **The course grades only what's visible in that repo:** issues, PRs, commits, and whether contributions are spread across members. Write clear commit messages here too, because your commits get merged (not copied) so your name stays on them.
 - **The port target is TypeScript + Vite on the client, with a Colyseus server that's authoritative.** Clients send inputs (for example "clicked painting") and the server runs the puzzle logic. So:
   - Keep all puzzle logic inside `onObjectClick`, and have it change only `game`. No DOM access in `puzzles.js`/`state.js`, and no DOM state in `ui.js` that the game logic depends on.
   - In game logic, never use `Math.random()` (the course requires a seeded random) or `Date.now()`. The timer is just a counter.
   - Tuning numbers (60s, 4 clicks, the year) go at the top of the file as constants. They become `config/game.json` later.
+- **Branch flow there:** `team-3/<issue>-<desc>` → PR into **`feature/team-3`** (a teammate reviews) → `feature/team-3` → `main` once CI is green → `main` → `prod` (release). Never open a team PR straight into `main`.
+- **Stack there:** Node 22, pnpm 10.28, TypeScript, Vite, Colyseus 0.18. CI runs `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` on Ubuntu, Windows and macOS.
+- **URL params there** (`@sdm/core/client`): `?room=ABCD` (4-letter room code), `?name=`, `?debug`, `?scenario=`. Our `?server=` goes away in the port.
 - `net.js` and the message table get replaced by Colyseus state sync during the port. Keep them small and don't over-build them.
 - Everything is in English: code, comments, commits and issues.
 
