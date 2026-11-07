@@ -1,9 +1,8 @@
-
-import { gameState, addClue } from "./gameState";
 import { clues } from "./gameData";
+import { addClue, gameState } from "./gameState";
 
 export function discoverClue(clueId: string): void {
-  const clueExists = clues.some(clue => clue.id === clueId);
+  const clueExists = clues.some((clue) => clue.id === clueId);
 
   if (!clueExists) {
     console.log("This clue does not exist.");
@@ -23,7 +22,5 @@ export function hasDiscoveredClue(clueId: string): boolean {
 }
 
 export function getDiscoveredClues() {
-  return clues.filter(clue =>
-    gameState.discoveredClues.includes(clue.id)
-  );
+  return clues.filter((clue) => gameState.discoveredClues.includes(clue.id));
 }

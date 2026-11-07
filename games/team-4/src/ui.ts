@@ -1,6 +1,5 @@
-
-import { getInventory } from "./inventory";
 import { getDiscoveredClues } from "./clues";
+import { getInventory } from "./inventory";
 
 export function renderInventory(): string {
   const inventory = getInventory();
@@ -11,12 +10,16 @@ export function renderInventory(): string {
 
   return `
     <ul>
-      ${inventory.map(item => `
+      ${inventory
+        .map(
+          (item) => `
         <li>
           <strong>${item.name}</strong>
           <p>${item.description}</p>
         </li>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </ul>
   `;
 }
@@ -30,12 +33,16 @@ export function renderClues(): string {
 
   return `
     <ul>
-      ${discoveredClues.map(clue => `
+      ${discoveredClues
+        .map(
+          (clue) => `
         <li>
           <strong>${clue.title}</strong>
           <p>${clue.description}</p>
         </li>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </ul>
   `;
 }

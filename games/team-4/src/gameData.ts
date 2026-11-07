@@ -1,4 +1,3 @@
-
 export interface Clue {
   id: string;
   title: string;
@@ -22,13 +21,13 @@ export const clues: Clue[] = [
   {
     id: "clue-1",
     title: "Blue Painting",
-    description: "BLUE - 4"
+    description: "BLUE - 4",
   },
   {
     id: "clue-2",
     title: "Photograph",
-    description: "Look closely at the year on the photograph."
-  }
+    description: "Look closely at the year on the photograph.",
+  },
 ];
 
 // All available inventory items
@@ -36,13 +35,13 @@ export const items: InventoryItem[] = [
   {
     id: "key-1",
     name: "Cabinet Key",
-    description: "A small key found behind the painting."
+    description: "A small key found behind the painting.",
   },
   {
     id: "note-1",
     name: "Old Note",
-    description: "A mysterious note found inside the cabinet."
-  }
+    description: "A mysterious note found inside the cabinet.",
+  },
 ];
 
 // All interactive room objects
@@ -50,16 +49,16 @@ export const objects: InteractiveObject[] = [
   {
     id: "painting",
     name: "Blue Painting",
-    description: "A painting hanging on the wall."
+    description: "A painting hanging on the wall.",
   },
   {
     id: "cabinet",
     name: "Locked Cabinet",
-    description: "A cabinet that requires a key."
+    description: "A cabinet that requires a key.",
   },
   {
     id: "computer",
     name: "Computer",
-    description: "A computer waiting for a password."
-  }
+    description: "A computer waiting for a password.",
+  },
 ];

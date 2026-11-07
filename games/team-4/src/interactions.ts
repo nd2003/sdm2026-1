@@ -1,9 +1,8 @@
-
-import { gameState, markObjectInteracted } from "./gameState";
 import { objects } from "./gameData";
+import { gameState, markObjectInteracted } from "./gameState";
 
 export function getObject(objectId: string) {
-  return objects.find(object => object.id === objectId);
+  return objects.find((object) => object.id === objectId);
 }
 
 export function interactWithObject(objectId: string) {

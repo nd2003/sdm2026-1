@@ -1,10 +1,8 @@
-
-
-import { gameState } from "./gameState";
 import { items } from "./gameData";
+import { gameState } from "./gameState";
 
 export function collectItem(itemId: string): void {
-  const itemExists = items.some(item => item.id === itemId);
+  const itemExists = items.some((item) => item.id === itemId);
 
   if (!itemExists) {
     console.log("This item does not exist.");
@@ -20,9 +18,7 @@ export function collectItem(itemId: string): void {
 }
 
 export function removeItem(itemId: string): void {
-  gameState.inventory = gameState.inventory.filter(
-    id => id !== itemId
-  );
+  gameState.inventory = gameState.inventory.filter((id) => id !== itemId);
 }
 
 export function hasItem(itemId: string): boolean {
@@ -30,7 +26,5 @@ export function hasItem(itemId: string): boolean {
 }
 
 export function getInventory() {
-  return items.filter(item =>
-    gameState.inventory.includes(item.id)
-  );
+  return items.filter((item) => gameState.inventory.includes(item.id));
 }
