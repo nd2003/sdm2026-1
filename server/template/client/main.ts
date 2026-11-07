@@ -14,11 +14,13 @@ import {
   createFrameMeter,
   createLogBuffer,
   formatServerStats,
+  getGuestId,
   inspectState,
   NO_NET_CONDITIONS,
   normalizeRoomCode,
   readClientParams,
   readNetConditions,
+  serverUrlFromPage,
   trackRoomNetStats,
 } from "@sdm/core/client";
 import {
@@ -35,13 +37,20 @@ import { templateGame } from "../shared/game.ts";
 import type { SampleState } from "../shared/index.ts";
 import { createTemplateNetcode } from "./netcode.ts";
 
-/** In local dev the server runs on :2567; deployed builds are served by the server itself. */
+/**
+ * In local dev the server runs on :2567; deployed builds are served by the server itself, possibly under
+ * a path (`<address>/team-2/` behind the gateway), so the address comes from the page, not `location.origin`.
+ */
 export const SERVER_URL: string =
-  import.meta.env.VITE_SERVER_URL ?? (import.meta.env.DEV ? "http://localhost:2567" : location.origin);
+  import.meta.env.VITE_SERVER_URL ??
+  (import.meta.env.DEV ? "http://localhost:2567" : serverUrlFromPage(location.href));
 
 const ROOM_NAME = "game";
-const TOKEN_KEY = "sdm:reconnectionToken";
-const CODE_KEY = "sdm:roomCode";
+// Every game shares one address behind the gateway, so the keys carry the game's path: a token or room code from
+// /team-2/ must never be tried on /team-4/ in the same tab.
+const SCOPE = new URL(SERVER_URL).pathname;
+const TOKEN_KEY = `sdm:${SCOPE}:reconnectionToken`;
+const CODE_KEY = `sdm:${SCOPE}:roomCode`;
 
 /** F8 bug reports open a pre-filled issue here, labelled with this team. Teams set their own label. */
 const ISSUE_REPO = "nd2003/sdm2026-1";
@@ -52,6 +61,8 @@ const params = readClientParams(location.search);
 // ?lag=300&jitter=50&loss=5 simulates a bad connection; null when none is set.
 const netConditions = readNetConditions(location.search);
 const client = new Client(SERVER_URL);
+/** Same in every tab and after a reload: the room shows its fingerprint as `seats[id].guest`. */
+const guestId = getGuestId();
 // Recent console output goes into F8 bug reports.
 const logs = createLogBuffer();
 logs.captureConsole();
@@ -86,7 +97,7 @@ async function joinByCode(raw: string): Promise<Room<SampleState>> {
   });
   if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? `HTTP ${res.status}`);
   const { roomId } = JoinByCodeResponseSchema.parse(await res.json());
-  return client.joinById<SampleState>(roomId, { name: params.name ?? "player" });
+  return client.joinById<SampleState>(roomId, { name: params.name ?? "player", guestId });
 }
 
 function showLobby(health: BuildInfo, error?: string): void {
@@ -99,7 +110,7 @@ function showLobby(health: BuildInfo, error?: string): void {
   const fail = (err: unknown) => showLobby(health, err instanceof Error ? err.message : String(err));
   app.querySelector("#create")?.addEventListener("click", () => {
     client
-      .create<SampleState>(ROOM_NAME, { private: true, name: params.name ?? "player" })
+      .create<SampleState>(ROOM_NAME, { private: true, name: params.name ?? "player", guestId })
       .then((room) => play(room, health), fail);
   });
   app.querySelector("#join")?.addEventListener("click", () => {
@@ -230,6 +241,8 @@ function play(room: Room<SampleState>, health: BuildInfo): void {
         frameMs,
       },
       {
+        // The public fingerprint of guestId: two tabs of this browser show the same value.
+        guest: state.seats?.get(room.sessionId)?.guest || "-",
         ...(serverStats ? { server: formatServerStats(serverStats) } : {}),
         // State inspector: the room's live state, pickups summarised.
         ...inspectState(state.toJSON(), { summarise: ["pickups"], maxLines: 16 }),
