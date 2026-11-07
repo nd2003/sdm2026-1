@@ -197,7 +197,7 @@ export function scoreStudent(s) {
 }
 
 /**
- * Parses the instructors' roster (`.private/teams.json`, kept out of git because it has real names):
+ * Parses the instructors' roster (`course/teams.json`):
  * `{ "instructors": ["login", ...], "students": [{ "login", "name", "nickname", "team", "note" }, ...] }`.
  * Only `login` is required for a student; entries without a login are skipped.
  * @returns {{instructors: Set<string>, students: Map<string, {name: string|null, nickname: string|null, team: string|null, note: string|null}>}}

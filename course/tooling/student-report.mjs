@@ -5,8 +5,7 @@
 //   node course/tooling/student-report.mjs > .private/student-scores.md    Markdown report
 //   node course/tooling/student-report.mjs --json                          machine-readable output
 //   node course/tooling/student-report.mjs --repo owner/name               another repository than the current one
-//   node course/tooling/student-report.mjs --roster path/to/teams.json     the instructors' roster (default:
-//                                                                          .private/teams.json, when it exists)
+//   node course/tooling/student-report.mjs --roster path/to/teams.json     another roster than course/teams.json
 //
 // The output has individual scores and the repository is public: keep it in .private/ (ignored by git).
 // Exit codes: 0 report written, 2 usage error, 3 environment problem (gh missing or not logged in).
@@ -36,9 +35,9 @@ if (
 }
 const config = loadTypes(root);
 
-// The roster has real names, so it lives in .private/ (ignored by git). Without it, teams are guessed from labels.
+// The roster (course/teams.json) says who is in which team. Without it, teams are guessed from labels.
 const rosterPath =
-  typeof flags.roster === "string" ? resolve(flags.roster) : resolve(root, ".private/teams.json");
+  typeof flags.roster === "string" ? resolve(flags.roster) : resolve(root, "course/teams.json");
 let roster = null;
 if (typeof flags.roster === "string" || existsSync(rosterPath)) {
   try {

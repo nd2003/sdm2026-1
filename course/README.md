@@ -152,16 +152,7 @@ node course/tooling/student-report.mjs --json > .private/student-scores.json   #
 
 **The output contains individual scores and this repository is public: never commit it.** Keep it in `.private/`, which git ignores. Like the PR report, it needs the GitHub CLI, logged in.
 
-**Team roster.** By default the team is guessed from the labels on each student's PRs and issues. When `.private/teams.json` exists (or you pass `--roster <path>`), the report uses it instead: the team comes from the roster, its instructors are not scored, every student in it is listed even without activity, and the name, nickname and note are shown in the report. The roster has real names, so it stays in `.private/` and is never committed:
-
-```json
-{
-  "instructors": ["instructor-login"],
-  "students": [
-    { "login": "github-login", "name": "Full Name", "nickname": "Nick", "team": "team-1", "note": "Optional, e.g. work done outside this repository" }
-  ]
-}
-```
+**Team roster.** [`course/teams.json`](teams.json) is the official list of who is in which team, with each student's GitHub login, name and nickname, and the instructors. Everyone can read it; only the instructors change it. The student report uses it: the team comes from the roster (labels are only the fallback for accounts not in it), the instructors are not scored, every student is listed even without activity, and the name, nickname and an optional note are shown. `--roster <path>` reads another file.
 
 The score uses the criteria above that can be measured per person, from 0 to 10 points. *Result* (does the game run) is a team criterion and is not part of it.
 
