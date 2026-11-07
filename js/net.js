@@ -33,7 +33,7 @@ function seedFromCode(code) {  // FNV-1a: same code -> same seed -> same match o
 
 // name: player name. code: room code to create/join (omit for solo). seconds: 60/90/120, only when creating.
 function connect(name, code, seconds) {
-  if (game.playerName) return;  // already joined (double click)
+  if (link || game.phase !== "lobby") return;  // already joined or waiting (double click)
   game.playerName = name;
   game.code = code ? code.toUpperCase() : null;
   isHost = !!seconds;
@@ -52,7 +52,7 @@ function connect(name, code, seconds) {
     link = tabChannel(game.code);
     link.onmessage = (e) => onTabMessage(e.data, join);
     link.postMessage(join);
-    addEventListener("pagehide", () => link.postMessage({ type: "partner-left" }));
+    addEventListener("pagehide", () => link && link.postMessage({ type: "partner-left" }));
     if (!isHost) setTimeout(() => {  // nobody created this code (or it's a typo): say so instead of waiting forever
       if (game.phase === "lobby" && game.playerName) say(`Still waiting. Nobody has opened room ${game.code} yet. Check the code, or ask your partner to create it.`);
     }, CONFIG.joinWaitSeconds * 1000);
@@ -74,6 +74,7 @@ function onTabMessage(msg, myJoin) {
     return;
   }
   if ((msg.type === "start" || msg.type === "full") && msg.for !== tabId) return;  // meant for another tab
+  if (msg.type === "leave") msg = { type: "partner-left" };  // tab mode: no server to translate it
   onNetMessage(msg);
 }
 
@@ -92,6 +93,20 @@ function sendChat(text) {
   render();
 }
 
+// Quit: tell the partner (they get partner-left), go back to the lobby, keep the name for the next game.
+function quitGame() {
+  if (game.phase === "lobby" && !link) return;
+  send("leave", {});
+  if (link && link.close) link.close();
+  link = null;
+  isHost = false;
+  Object.assign(game, {
+    phase: "lobby", code: null, role: null, seed: 0, partner: null, chat: [], clues: [], items: [], flags: {},
+    message: "", messageKind: "", won: false, stage: 1, loop: 1, input: null, timeLeft: game.loopSeconds,
+  });  // playerName stays
+  render();
+}
+
 function checkBothOut() {
   if (game.flags.escaped && game.partner?.escaped) onNetMessage({ type: "won" });
 }
@@ -107,15 +122,22 @@ function onNetMessage(msg) {
       seedRandom(game.seed);
       game.phase = "playing";
       startLoop();
+      say(openingLine(1));
       break;
-    case "progress":
-      if (game.partner) Object.assign(game.partner, { loop: msg.loop, step: msg.step, stage: msg.stage || 1 });
+    case "progress": {
+      if (!game.partner) break;
+      const before = game.partner.stage, stage = msg.stage || 1;
+      Object.assign(game.partner, { loop: msg.loop, step: msg.step, stage });
+      if (stage > before && game.phase === "playing" && !game.flags.escaped)  // tell the player their partner moved on
+        say(`${game.partner.name} reached ${stage === 2 ? "the casket corridor" : "the lift shaft"}.`);
       break;
+    }
     case "chat":
       if (game.partner && msg.text) game.chat.push({ from: game.partner.name, text: String(msg.text).slice(0, CONFIG.chatMax) });
       break;
     case "escaped":
       if (game.partner) game.partner.escaped = true;
+      if (game.partner && !game.flags.escaped) say(`${game.partner.name} made it out. They're waiting for you. Ask them what they know.`);
       if (!(link instanceof WebSocket)) checkBothOut();
       break;
     case "won":
@@ -125,6 +147,8 @@ function onNetMessage(msg) {
     case "full":  // the room already has two players: back to the lobby form
       if (game.phase !== "lobby") return;
       say(`Room ${game.code} is already full. Pick another code, or create your own room.`);
+      if (link && link.close) link.close();
+      link = null;
       game.playerName = null;
       game.code = null;
       break;
@@ -143,7 +167,7 @@ const FAKE_LINES = [  // [its progress step, what it says], sent at CONFIG.fakeP
   [1, (a) => `There's a note for you in my room: "${a.color} - ${a.clicks}". It's in your handwriting. How?`],
   [3, (a) => (photoIsRemote() ? `Your computer password is ${a.year}. It's on the photo in my room.` : "The photo in my room has my year. Yours is on your photo.")],
   [5, (a) => `A card in my cabinet, for you: your code sleeps in the ${a.casket.toUpperCase()} casket. Don't open the other one.`],
-  [6, (a) => `My casket had a scrap for you: floor ${a.floor}. Something in the other casket is still moving.`],
+  [6, (a) => `My casket had a scrap for you: the vent code is ${a.vent}. Something in the other casket is still moving.`],
 ];
 function fakePartner() {
   const fake = CONFIG.fakePartner;
