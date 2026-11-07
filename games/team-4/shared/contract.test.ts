@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import config from "../config/game.json" with { type: "json" };
 import { Player, SampleConfigSchema, SampleInputSchema, SampleState } from "./index.ts";
 
-describe("template game contract", () => {
+describe("Team 4 game contract", () => {
   it("ships a config file that matches its schema", () => {
     expect(() => SampleConfigSchema.parse(config)).not.toThrow();
   });
