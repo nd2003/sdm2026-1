@@ -348,6 +348,88 @@ const updateSound = (() => {
     hit: () => { for (const [type, f, peak] of [["sine", 38, .8], ["sawtooth", 233.08, .12], ["sawtooth", 246.94, .12], ["sawtooth", 261.63, .12]]) blip(type, f, f, peak, 1.8); },
   };
   const heart = () => { blip("sine", 62, 38, .6, .26, 0, musicBus); blip("sine", 62, 38, .4, .26, .22, musicBus); };
+  // --- Voices and creatures in the dark: a woman crying, laughter, and animals, from random directions. ---
+  // Made from a buzzing source through vowel filters (formants) so it sounds like a throat, far away and echoing.
+  // Math.random here is audio only, never game logic.
+  let creatureTimer;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const VOWELS = { a: [800, 1150, 2900], o: [500, 900, 2600], u: [350, 800, 2700], e: [400, 2000, 2800] };
+  // A voice: pitch points [time, Hz] glide along a curve; vowel picks the formants; returns its loudness control
+  const voice = (pitch, vowel, peak, seconds, { pan = rnd(-.9, .9), vibrato = 6, depth = .025, breath = .15, delay = 0 } = {}) => {
+    const t = ctx.currentTime + delay, o = ctx.createOscillator(), vib = ctx.createOscillator(), vibAmt = ctx.createGain();
+    const out = ctx.createGain(), panner = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain(), far = ctx.createBiquadFilter();
+    o.type = "sawtooth"; vib.frequency.value = vibrato; vibAmt.gain.value = pitch[0][1] * depth;
+    vib.connect(vibAmt).connect(o.frequency);
+    pitch.forEach(([at, hz], i) => i ? o.frequency.exponentialRampToValueAtTime(hz, t + at) : o.frequency.setValueAtTime(hz, t + at));
+    far.type = "lowpass"; far.frequency.value = 3200;
+    if (panner.pan) panner.pan.value = pan;
+    out.gain.value = 0; out.connect(far).connect(panner).connect(musicBus); panner.connect(echo);
+    for (const [i, f] of VOWELS[vowel].entries()) {
+      const bp = ctx.createBiquadFilter(), g = ctx.createGain();
+      bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = 9; g.gain.value = [1, .55, .2][i];
+      o.connect(bp).connect(g).connect(out);
+    }
+    if (breath) {  // air in the voice
+      const n = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+      n.buffer = noise; n.loop = true; bp.type = "bandpass"; bp.frequency.value = 1800; g.gain.value = breath;
+      n.connect(bp).connect(g).connect(out); n.start(t); n.stop(t + seconds + .1);
+    }
+    o.start(t); vib.start(t); o.stop(t + seconds + .1); vib.stop(t + seconds + .1);
+    out.gain.setValueAtTime(0, t);
+    return { gain: out.gain, t, peak };
+  };
+  const envelope = ({ gain, t, peak }, steps) => steps.forEach(([at, v]) => gain.linearRampToValueAtTime(v * peak, t + at));
+  const CREATURES = {
+    cry() {  // sobbing: falling wails broken by catches of breath
+      const base = rnd(380, 470), pan = rnd(-.8, .8);
+      for (let k = 0; k < 3; k++) {
+        const len = rnd(1.1, 1.8), at = k * 2.1;
+        const v = voice([[0, base * 1.12], [len * .3, base * 1.2], [len, base * .78]], k % 2 ? "o" : "u", .09, len, { pan, delay: at, depth: .04, vibrato: 7 });
+        envelope(v, [[.05, .9], [len * .25, .4], [len * .3, 1], [len * .55, .3], [len * .6, .8], [len, 0]]);
+        hiss(.03, .35, 2200, at + len + .1);  // the sharp breath in between
+      }
+    },
+    laugh() {  // a run of "ha" that slows down and drops; sometimes pitched down and wrong
+      const wrong = Math.random() < .4, base = wrong ? rnd(150, 200) : rnd(330, 420), pan = rnd(-.9, .9), n = 6 + Math.floor(rnd(0, 4));
+      let at = 0;
+      for (let k = 0; k < n; k++) {
+        const hz = base * (1 - k * .03), len = .16 + k * .015;
+        const v = voice([[0, hz * 1.08], [len, hz * .92]], "a", .1 * (1 - k / (n + 2)), len, { pan, delay: at, depth: .01, breath: .3 });
+        envelope(v, [[.02, 1], [len * .6, .5], [len, 0]]);
+        at += len + .06 + k * .02;
+      }
+    },
+    howl() {  // a dog or wolf far off
+      const base = rnd(320, 420), len = rnd(3, 4.2);
+      const v = voice([[0, base * .7], [len * .25, base * 1.3], [len * .8, base * 1.15], [len, base * .7]], "u", .07, len, { depth: .015, vibrato: 5, breath: .05 });
+      envelope(v, [[.6, .8], [len * .6, 1], [len, 0]]);
+    },
+    caw() {  // crows: rough, nasal bursts
+      const pan = rnd(-1, 1), times = 2 + Math.floor(rnd(0, 3));
+      for (let k = 0; k < times; k++) {
+        const v = voice([[0, 720], [.28, 520]], "a", .08, .3, { pan, delay: k * .45, depth: .08, vibrato: 32, breath: .4 });
+        envelope(v, [[.02, 1], [.2, .6], [.3, 0]]);
+      }
+    },
+    growl() {  // something low and close
+      const len = rnd(1.6, 2.6), v = voice([[0, 62], [len, 52]], "o", .18, len, { depth: .2, vibrato: 18, breath: .5 });
+      envelope(v, [[.3, 1], [len * .7, .8], [len, 0]]);
+    },
+    squeak() {  // rats in the walls
+      for (let k = 0; k < 3 + Math.floor(rnd(0, 3)); k++) blip("sine", rnd(2800, 4200), rnd(2400, 3600), .03, .07, k * rnd(.08, .2), musicBus);
+    },
+  };
+  // Which ones haunt which level (repeats make them more likely)
+  const HAUNTS = { 1: ["cry", "cry", "laugh", "squeak", "howl"], 2: ["laugh", "laugh", "growl", "cry", "caw"], 3: ["cry", "growl", "squeak", "howl", "laugh"] };
+  window.__tleCreatures = CREATURES;  // ponytail: lets a test (or the console) play each one
+  const creatures = () => {
+    if (["lobby", "play", "hurry"].includes(mode)) {
+      const list = HAUNTS[stageNow || 1];
+      CREATURES[list[Math.floor(Math.random() * list.length)]]();
+    }
+    creatureTimer = setTimeout(creatures, rnd(6000, 14000) * (mode === "hurry" ? .5 : 1));
+  };
+
 
   const update = () => {
     const f = game.flags || {}, over = game.phase === "over", dead = document.body.classList.contains("dead"), out = f.escaped;
@@ -380,6 +462,7 @@ const updateSound = (() => {
     if (next === "hurry") { heart(); heartTimer = setInterval(heart, 950); }
     if (next === "dead") setTimeout(SFX.hit, 900);  // lands as the figure reaches you
     if (next === "dead" || next === "end") clearTimeout(melodyTimer);
+    if (next === "dead" || next === "end") clearTimeout(creatureTimer);
   };
 
   const start = () => {
@@ -405,6 +488,7 @@ const updateSound = (() => {
       mode = ""; stageNow = 0;
       update();
       melody();
+      creatureTimer = setTimeout(creatures, 3000);  // the first sound a few seconds after you arrive
       ctx.resume().catch(() => {});
     } catch { ctx = null; }  // no sound is better than a broken game
   };
