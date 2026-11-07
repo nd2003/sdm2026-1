@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Time Loop Escape</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hud">
+    <span id="timer">60</span>
+    <span id="loop-count">Loop 1</span>
+  </div>
+  <div id="lobby"></div>
+  <div id="opponent"></div>
+  <div id="room"></div>
+  <div id="message"></div>
+  <div id="inventory"></div>
+  <div id="journal"></div>
+
+  <!-- Order matters: state first, main last. Plain scripts so index.html opens without a server. -->
+  <script src="js/state.js"></script>
+  <script src="js/net.js"></script>
+  <script src="js/room.js"></script>
+  <script src="js/puzzles.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
