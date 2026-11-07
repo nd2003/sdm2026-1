@@ -127,6 +127,21 @@ function buildRoom() {
       <g class="candles"><circle cx="44" cy="44" r="58" fill="url(#candle)"/><g fill="#f4d98a"><path d="M26 48c-4-7 0-12 0-17 3 6 5 11 0 17zM50 38c-4-8 0-14 0-20 3 7 6 13 0 20zM68 54c-3-6 0-10 0-14 3 5 4 9 0 14z"/></g></g>
       <g fill="#c9c2a8" stroke="#3b3323"><rect x="20" y="48" width="12" height="28"/><rect x="44" y="38" width="13" height="40"/><rect x="62" y="54" width="11" height="22"/></g>
       <path d="M14 78c20 6 50 6 64 0-2-6-12-6-14-2-10 2-30 2-36 0-4-4-12-2-14 2z" fill="#a79f8a" stroke="#3b3323"/></svg>`, 2],
+["vampire", "Vampire in the corridor", `<svg viewBox="0 0 80 200" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <ellipse cx="40" cy="196" rx="30" ry="5" fill="#000" opacity=".6"/>
+      <path d="M40 40c-14 2-22 10-26 22L4 196h72L66 62c-4-12-12-20-26-22z" fill="#060506"/>
+      <path d="M14 62C10 44 14 26 22 18l8 22zM66 62c4-18 0-36-8-44l-8 22z" fill="#1a0507" stroke="#050304" stroke-width="1.2"/>
+      <path d="M22 18l8 22-10 2zM58 18l-8 22 10 2z" fill="#4a0c10"/>
+      <path d="M40 6c-9 0-14 8-14 20 0 10 3 20 7 25 2 3 5 4 7 4s5-1 7-4c4-5 7-15 7-25 0-12-5-20-14-20z" fill="url(#vflesh)"/>
+      <path d="M26 20c4-10 24-10 28 0-6-4-22-4-28 0z" fill="#050304"/><path d="M40 6c-2 4-3 8-3 12M40 6c2 4 3 8 3 12" stroke="#050304" stroke-width="2"/>
+      <path d="M31 25c2-2 6-2 7 1-2 2-5 2-7-1zM42 26c1-3 5-3 7-1-2 3-5 3-7 1z" fill="#050304"/>
+      <circle class="v-eye" cx="34.5" cy="25.6" r="1.6" fill="#ff3b2a"/><circle class="v-eye" cx="45.5" cy="25.6" r="1.6" fill="#ff3b2a"/>
+      <path d="M35 42c3 2 7 2 10 0l-1 3c-2 1-6 1-8 0z" fill="#1c0403"/><path d="M36.5 42.6l1 3.2 1-3M43.5 42.6l-1 3.2-1-3" fill="#e8e2cf"/>
+      <path d="M44 46c0 6 1 10 2 10s1-4 0-10z" fill="#6e0d08"/>
+      <g fill="none" stroke="#8d8874" stroke-width="1.6" stroke-linecap="round"><path d="M10 112c-2 8-6 14-8 22M10 112c0 8-2 16-2 24M10 112c2 8 2 16 4 22M10 112c4 6 6 12 8 18"/><path d="M70 112c2 8 6 14 8 22M70 112c0 8 2 16 2 24M70 112c-2 8-2 16-4 22M70 112c-4 6-6 12-8 18"/></g>
+      <path d="M12 104c-4 4-4 8-2 10M68 104c4 4 4 8 2 10" stroke="#8d8874" stroke-width="5" stroke-linecap="round"/>
+      <rect x="0" y="0" width="80" height="200" fill="url(#vshade)" pointer-events="none"/>
+    </svg>`, 2],
     ["keypad", "Keypad", S("0 0 60 84", `
       <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle class="led" cx="46" cy="15" r="2.5"/>
       <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`), 2],
@@ -137,6 +152,7 @@ function buildRoom() {
       <path d="M12 164l10-5M40 160l14 4" stroke="#6b3e20" stroke-width="2"/>`), 3],
     ["zombie", "Zombie in the lift", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <rect class="z-back" x="2" y="2" width="116" height="186" fill="#020202" opacity=".7"/>
+      <g class="zsway">
       <g class="zbody">
         <path d="M6 190c0-40 4-70 22-86 10-8 20-12 32-12s22 4 32 12c18 16 22 46 22 86z" fill="#151711"/>
         <path d="M30 104c8 10 18 16 30 16s22-6 30-16l-4 86H34z" fill="#2c2a22"/>
@@ -173,18 +189,25 @@ function buildRoom() {
         <g fill="none" stroke="#2b3024" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M127 146l9-6 7 3 4 6"/><path d="M129 152l11 0 6 6 1 6"/><path d="M127 158l7 8 0 8"/><path d="M120 161l2 10-3 7"/><path d="M113 155l-7 6-1 7"/></g>
         <g fill="#0b0906"><circle cx="147" cy="149" r="1.2"/><circle cx="147" cy="164" r="1.2"/><circle cx="134" cy="174" r="1.2"/><circle cx="119" cy="178" r="1.2"/><circle cx="105" cy="168" r="1.2"/></g>
       </g>
+      </g>
       <rect x="0" y="0" width="120" height="190" fill="url(#zdark)" pointer-events="none"/>
+      <rect class="z-under" x="0" y="0" width="120" height="190" fill="url(#zunder)" pointer-events="none"/>
     </svg>`, 3],
     ["gate", "Lift gate", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><g class="rattle">
       <g class="folds">
         <g stroke="#7a6530" stroke-width="3" fill="none"><path d="M3 2H117V188H3z"/>${[3, 17, 31, 45, 59, 73, 87, 101, 117].map((x) => `<path d="M${x} 2v186"/>`).join("")}</g>
         <g stroke="#57461f" stroke-width="2.2">${[3, 31, 59, 87].map((x) => `<path d="M${x} 20l28 40M${x + 28} 20l-28 40M${x} 76l28 40M${x + 28} 76l-28 40M${x} 132l28 40M${x + 28} 132l-28 40"/>`).join("")}</g>
         <rect x="104" y="86" width="13" height="18" fill="#c7a650" stroke="#231a08"/>
-        <g class="grip" fill="none" stroke="#3a4031" stroke-width="2.3" stroke-linecap="round"><path d="M41 70c3-2 6-1 7 2M41 76c3-2 6-1 7 2M41 82c3-2 6-1 7 2M41 88c3-2 6-1 7 2"/><path d="M77 66c-3-2-6-1-7 2M77 72c-3-2-6-1-7 2M77 78c-3-2-6-1-7 2M77 84c-3-2-6-1-7 2"/></g>
-        <g fill="#2d2416"><path d="M48 70l1.5 1M48 76l1.5 1M48 82l1.5 1M48 88l1.5 1M70 66l-1.5 1M70 72l-1.5 1M70 78l-1.5 1M70 84l-1.5 1" stroke="#1a140b" stroke-width="1.6"/></g>
+      </g>
+      <g class="zreach-out" pointer-events="none">
+        <path d="M44 92c-14 10-28 28-38 52-6 14-12 24-20 32" fill="none" stroke="#151711" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M44 92c-14 10-28 28-38 52-6 14-12 24-20 32" fill="none" stroke="#4b5240" stroke-width="3.4" stroke-linecap="round" opacity=".75"/>
+        <path d="M18 120l-3 4M2 152l-3 4" stroke="#5a120d" stroke-width="2"/>
+        <path d="M-18 172c-6 0-10 6-8 12 2 5 8 6 12 3 4-3 5-9 2-13z" fill="#2b3024"/>
+        <g class="zclaw" fill="none" stroke="#2b3024" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M-24 180l-12 4-6 8"/><path d="M-22 186l-12 10-2 10"/><path d="M-16 188l-6 12 2 10"/><path d="M-10 186l2 12 6 6"/><path d="M-26 174l-10-4-8 2"/></g>
+        <g fill="#0b0906"><circle cx="-42" cy="192" r="1.3"/><circle cx="-36" cy="206" r="1.3"/><circle cx="-20" cy="210" r="1.3"/><circle cx="-4" cy="204" r="1.3"/><circle cx="-44" cy="172" r="1.3"/></g>
       </g>
     </g></svg>`, 3],
-
     ["lift", "Lift (out of order)", S("0 0 120 44", `
       <path d="M30 0l-8 12M90 0l8 12" stroke="#2c2813" stroke-width="2"/>
       <g transform="rotate(-4 60 26)"><rect x="8" y="10" width="104" height="30" fill="#a89c7c" stroke="#120e08" stroke-width="2"/><rect x="12" y="14" width="96" height="22" fill="none" stroke="#8c1a15" stroke-width="1.5"/>
@@ -297,6 +320,9 @@ function buildRoom() {
     <radialGradient id="puddle"><stop offset="0" stop-color="#9fb3b8" stop-opacity=".35"/><stop offset=".7" stop-color="#3a4448" stop-opacity=".5"/><stop offset="1" stop-color="#14181a" stop-opacity="0"/></radialGradient>
     <radialGradient id="fog"><stop offset="0" stop-color="#b8c4c8" stop-opacity=".14"/><stop offset="1" stop-color="#b8c4c8" stop-opacity="0"/></radialGradient>
     <clipPath id="farEnd"><rect x="730" y="420" width="140" height="100"/></clipPath>
+    <radialGradient id="vflesh" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#d4cfc0"/><stop offset=".6" stop-color="#8a8576"/><stop offset="1" stop-color="#1c1a16"/></radialGradient>
+    <linearGradient id="vshade" x1="1" x2="0"><stop offset="0" stop-color="#000" stop-opacity=".75"/><stop offset=".55" stop-color="#000" stop-opacity=".15"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient>
+    <linearGradient id="zunder" x2="0" y2="1"><stop offset=".45" stop-color="#9a1a10" stop-opacity="0"/><stop offset="1" stop-color="#c0281a" stop-opacity=".45"/></linearGradient>
     <radialGradient id="roachShell" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#8a4f1e"/><stop offset=".55" stop-color="#5a2f10"/><stop offset="1" stop-color="#230f04"/></radialGradient>
     <linearGradient id="wax"><stop offset="0" stop-color="#b5ab8a"/><stop offset=".45" stop-color="#e6dcbc"/><stop offset="1" stop-color="#8f8668"/></linearGradient>
     <radialGradient id="blob"><stop offset=".35" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
@@ -345,7 +371,16 @@ function buildRoom() {
     <text transform="translate(1142 496) skewY(-11)" font-family="Special Elite, monospace" font-size="44" fill="#5a120d" opacity=".9">YOU WERE HERE</text>
     <path transform="translate(-300 -20) skewY(14)" d="M612 500c-6 50 2 110-6 176M636 490c-4 60 4 120-3 200M660 494c-5 56 3 104-4 170M682 506c-3 42 2 86-3 132" fill="none" stroke="#4a0e0a" stroke-width="9" stroke-linecap="round" opacity=".7"/>
     <g><rect x="965" y="320" width="110" height="380" fill="#090704" stroke="#2c2813" stroke-width="8"/><rect x="985" y="370" width="70" height="285" fill="#3d3819"/><rect x="1001" y="410" width="38" height="200" fill="#6f6735"/><path d="M965 700L985 655H1055L1075 700z" fill="#1c190c"/>
-      <g class="figure"><circle cx="1020" cy="520" r="13" fill="#040302"/><path d="M1007 538q13-8 26 0l5 42-4 62-6 46h-16l-6-46-4-62z" fill="#040302"/><path d="M1007 540l-11 70 6 62M1033 540l11 70-6 62" fill="none" stroke="#040302" stroke-width="6" stroke-linecap="round"/></g></g>
+      <g class="figure"><g class="dz-body">
+        <path d="M1003 700c-2-40 0-90 6-120 4-16 12-24 22-24s18 8 22 24c6 30 8 80 6 120z" fill="#0b0c09"/>
+        <path d="M1014 580l8 30-8 40M1048 584l-6 34 8 32" stroke="#1e211a" stroke-width="2" fill="none"/>
+        <g class="dz-head"><path d="M1018 520c0-14 6-22 14-22s14 8 14 22c0 12-4 22-8 28-2 3-4 4-6 4s-4-1-6-4c-4-6-8-16-8-28z" fill="#3f4636"/>
+          <ellipse cx="1026" cy="522" rx="3.6" ry="2.6" fill="#c9cbbd"/><ellipse cx="1038" cy="522" rx="3.6" ry="2.6" fill="#c9cbbd"/>
+          <path d="M1025 536c4 2 10 2 14 0l-2 14c-3 2-7 2-10 0z" fill="#0c0201"/><path d="M1020 504c-2 8-4 14-3 20M1044 504c2 8 4 14 3 20" stroke="#0a0907" stroke-width="1.4" fill="none"/></g>
+        <g class="dz-hand"><path d="M1050 578c10 6 16 10 22 10" stroke="#2b3024" stroke-width="7" stroke-linecap="round" fill="none"/>
+          <g stroke="#3f4636" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M1072 584l6-4M1073 588l7 0M1072 592l6 4M1070 595l3 6M1068 578l4-6"/></g></g>
+        <path d="M1010 590c-8 14-10 30-8 44" stroke="#2b3024" stroke-width="7" stroke-linecap="round" fill="none"/>
+      </g></g></g>
     <path d="M210 860H860L990 1040H100z" fill="url(#desktop)" stroke="#090806" stroke-width="4"/><path d="M210 860H860" stroke="#6b5234" stroke-width="3" opacity=".6"/>
     <path d="M340 900l60 40M640 880l-40 70M760 950l50 40M300 960h90" stroke="#0d0905" stroke-width="3"/>
     <g transform="translate(520 882) rotate(-4)"><path d="M0 0H92L104 58H-6z" fill="#7d7559" stroke="#120e08" stroke-width="2"/><path d="M4 -5H94L104 50H-2z" fill="#a89c7c" stroke="#120e08" stroke-width="2"/><path d="M10 6h72M9 16h78M8 26h60M7 36h74" stroke="#3b3323" stroke-width="2"/></g>
@@ -434,17 +469,19 @@ function buildRoom() {
   </svg><div class="shaft-dark level-view" data-stage="3" aria-hidden="true"></div></div>
   <div class="redlight"></div>
   <svg class="vampire" viewBox="0 0 300 400" aria-hidden="true">
-    <defs><radialGradient id="flesh" cx=".5" cy=".36" r=".62"><stop offset="0" stop-color="#8b8676"/><stop offset=".55" stop-color="#4c493d"/><stop offset="1" stop-color="#0b0a07"/></radialGradient></defs>
-    <path d="M150 188c-40 4-60 26-84 40-34 20-48 70-54 172h276c-6-102-20-152-54-172-24-14-44-36-84-40z" fill="#040302"/>
-    <g filter="url(#grime)"><path d="M150 8c-30 0-50 22-54 58-3 30 4 58 12 84 7 24 12 48 22 62 6 8 14 12 20 12s14-4 20-12c10-14 15-38 22-62 8-26 15-54 12-84-4-36-24-58-54-58z" fill="url(#flesh)"/></g>
-    <path d="M104 84c10-12 30-12 38 2-2 18-28 26-38-2zM196 84c-10-12-30-12-38 2 2 18 28 26 38 2z" fill="#020101"/>
-    <circle cx="125" cy="90" r="1.8" fill="#c9c2a8"/><circle cx="175" cy="90" r="1.8" fill="#c9c2a8"/>
-    <path d="M146 108l-5 26 9 3 9-3-5-26z" fill="#1c1a13" opacity=".7"/>
-    <path d="M122 152c16 8 40 8 56 0-1 26-10 56-28 62-18-6-27-36-28-62z" fill="#020101"/>
-    <path d="M128 154l4 24 5-21zM172 154l-4 24-5-21z" fill="#b5ae98"/>
-    <path d="M172 196c1 22 2 44 4 44s3-22 2-44z" fill="#6e0d08"/>
-    <g transform="rotate(-6 200 290)"><rect x="176" y="272" width="56" height="34" fill="#a89c7c" stroke="#050303" stroke-width="2"/><rect x="181" y="278" width="14" height="22" fill="#1c1a13"/><path d="M182 281l12 16M194 281l-12 16" stroke="#a89c7c" stroke-width="1.5"/><text x="199" y="285" font-family="monospace" font-size="6" font-weight="bold" fill="#17140d">MERIDIAN</text><text x="199" y="294" font-family="monospace" font-size="6" font-weight="bold" fill="#17140d">TRUST</text></g>
-    <g fill="none" stroke="#5c5849" stroke-width="5" stroke-linecap="round"><path d="M30 400c6-40 2-70 12-96M42 304l-16-60M42 304l-2-70M42 304l14-66M42 304l28-52"/><path d="M270 400c-6-40-2-70-12-96M258 304l16-60M258 304l2-70M258 304l-14-66M258 304l-28-52"/></g>
+    <path d="M150 96c-50 6-80 34-94 74L20 400h260l-36-230c-14-40-44-68-94-74z" fill="#050405"/>
+    <path d="M56 170C40 110 56 50 86 26l28 80zM244 170c16-60 0-120-30-144l-28 80z" fill="#1a0507" stroke="#050304" stroke-width="3"/>
+    <path d="M86 26l28 80-36 6zM214 26l-28 80 36 6z" fill="#4a0c10"/>
+    <path d="M150 20c-34 0-52 28-52 72 0 34 10 70 26 88 8 10 18 14 26 14s18-4 26-14c16-18 26-54 26-88 0-44-18-72-52-72z" fill="url(#vflesh)"/>
+    <path d="M98 70c14-36 90-36 104 0-24-14-80-14-104 0z" fill="#050304"/>
+    <path d="M114 92c8-8 24-8 28 4-8 8-22 8-28-4zM158 96c4-12 20-12 28-4-6 12-20 12-28 4z" fill="#050304"/>
+    <circle cx="128" cy="94" r="5" fill="#ff3b2a"/><circle cx="172" cy="94" r="5" fill="#ff3b2a"/><circle cx="128" cy="94" r="14" fill="#ff3b2a" opacity=".18"/><circle cx="172" cy="94" r="14" fill="#ff3b2a" opacity=".18"/>
+    <path d="M146 112l-6 22 10 3 10-3-6-22z" fill="#1c1a13" opacity=".7"/>
+    <path d="M120 150c18 10 42 10 60 0-2 22-12 40-30 44-18-4-28-22-30-44z" fill="#120201"/>
+    <path d="M128 152l6 30 6-27zM172 152l-6 30-6-27z" fill="#e8e2cf"/><path d="M142 156l2 8 2-8M154 156l2 8 2-8" fill="#c9c2a8"/>
+    <path d="M168 190c1 26 3 46 5 46s4-20 2-46z" fill="#6e0d08"/>
+    <g fill="none" stroke="#8d8874" stroke-width="6" stroke-linecap="round"><path d="M40 290l-26-70M40 290l-8-80M40 290l12-78M40 290l30-66M40 290l44-40"/><path d="M260 290l26-70M260 290l8-80M260 290l-12-78M260 290l-30-66M260 290l-44-40"/></g>
+    <g fill="#d8d2bd"><circle cx="14" cy="220" r="3"/><circle cx="32" cy="210" r="3"/><circle cx="52" cy="212" r="3"/><circle cx="70" cy="224" r="3"/><circle cx="286" cy="220" r="3"/><circle cx="268" cy="210" r="3"/><circle cx="248" cy="212" r="3"/><circle cx="230" cy="224" r="3"/></g>
   </svg>
   <svg class="arm" viewBox="0 0 300 360" aria-hidden="true">
     <path d="M300 360V200L184 174l-38 58 44 128z" fill="#14120a" stroke="#000" stroke-width="3"/>

@@ -694,3 +694,40 @@ body.no-flicker :is(.zbody, .zhead, .zjaw, .zarms, .rattle, .emergency) { animat
 @keyframes farShadow { 0%, 78% { transform: translateX(-80px); } 90%, 100% { transform: translateX(260px); } }
 body.no-flicker :is(.puddle, .far-shadow) { animation: none; }
 @media (prefers-reduced-motion: reduce) { :is(.chandelier, .chain, .pupils, .drop, .puddle, .fog-a, .fog-b, .far-shadow) { animation: none !important; transition: none !important; } .drop { opacity: 0; } }
+
+/* Level 2: the vampire lurks; a bite plays the scare where it came from */
+#obj-vampire { left: 59%; bottom: 29%; --w: 6.5cqw; }
+#obj-vampire .v-eye { animation: veye 5s steps(1) infinite; }
+@keyframes veye { 0%, 46%, 50%, 100% { opacity: 1; } 47%, 49% { opacity: 0; } }
+#room[data-scare="vampire"] .vampire { left: 59%; }
+#room.vamp #obj-vampire { opacity: 0; transition: opacity .1s; }
+#blood { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+#blood .splat { position: absolute; height: auto; opacity: 0; }
+#blood.show .splat { animation: splat 2.6s 1.55s ease-out both; }
+#blood.show .trickle { transform-box: fill-box; transform-origin: 50% 0; animation: trickle 1.4s ease-in both; }
+@keyframes splat { 0% { opacity: 0; transform: scale(.4); } 6% { opacity: .95; transform: scale(1.06); } 12% { transform: scale(1); } 60% { opacity: .85; } 100% { opacity: 0; } }
+@keyframes trickle { from { transform: scaleY(0); } to { transform: scaleY(2.6); } }
+@media (prefers-reduced-motion: reduce) { #blood.show .splat { animation: splatStill 1.6s 1s ease-out both; } #blood.show .trickle { animation: none; } @keyframes splatStill { 0% { opacity: .35; } 100% { opacity: 0; } } }
+
+/* Level 3: the zombie never stops moving, and one arm keeps reaching out at you */
+#obj-zombie { --w: 30cqw; left: 44.5%; bottom: 16%; }
+.zsway { transform-box: fill-box; transform-origin: 50% 100%; animation: zsway calc(var(--zs) * 1.3) ease-in-out infinite alternate; }
+@keyframes zsway { from { transform: rotate(-2deg) translateX(-2%); } to { transform: rotate(2.5deg) translateX(2%) scale(1.02); } }
+.zreach-out { transform-box: fill-box; transform-origin: 100% 0; animation: zout calc(var(--zs) * 1.4) cubic-bezier(.5, 0, .3, 1) infinite; }
+@keyframes zout { 0%, 8% { transform: scale(.35) rotate(18deg); opacity: .3; } 40% { transform: scale(1.08) rotate(-4deg); opacity: 1; } 55% { transform: scale(1.12) rotate(2deg); } 70% { transform: scale(1.05) rotate(-3deg); } 100% { transform: scale(.35) rotate(18deg); opacity: .3; } }
+.zclaw { transform-box: fill-box; transform-origin: 80% 10%; animation: zclaw .5s ease-in-out infinite alternate; }
+@keyframes zclaw { to { transform: rotate(14deg) scale(.92); } }
+.z-under { transition: opacity 1s; }
+#room.lift-power .z-under { opacity: .3; }
+body.no-flicker :is(.zsway, .zclaw) { animation: none; }
+body.no-flicker .zreach-out, .zreach-out.still { animation: none; transform: scale(.75) rotate(4deg); }
+@media (prefers-reduced-motion: reduce) { :is(.zsway, .zclaw) { animation: none !important; } .zreach-out { animation: none !important; transform: scale(.75) rotate(4deg); } }
+
+/* Level 1: in the last 10 seconds a zombie claws at the far doorway, harder every loop. It never gets in. */
+.dz-body, .dz-head, .dz-hand { transform-box: fill-box; }
+.dz-body { transform-origin: 50% 100%; animation: dzpound calc(1.4s - var(--dread, 1) * .12s) steps(2) infinite; }
+.dz-head { transform-origin: 50% 100%; animation: zneck 2.2s steps(1) infinite; }
+.dz-hand { transform-origin: 0 50%; animation: dzclaw .35s ease-in-out infinite alternate; }
+@keyframes dzpound { 0% { transform: translateX(0); } 50% { transform: translateX(2.5%) rotate(1.5deg); } }
+@keyframes dzclaw { to { transform: rotate(-12deg) translateX(-3%); } }
+@media (prefers-reduced-motion: reduce) { :is(.dz-body, .dz-head, .dz-hand) { animation: none !important; } }
