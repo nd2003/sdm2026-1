@@ -94,6 +94,8 @@ The devs (and their agents) work here at the same time, each in their own files.
 | Lobby & opponent UI | `js/ui.js`, `style.css` | #7 |
 | UI | `js/ui.js`, `style.css` | #4 |
 
+**Temporary handover (2026-11-07):** Abdullah is out of agent time, so **Baasanjav takes all of Abdullah's work** (issue #18 plus #19) until Zaid says otherwise. Baasanjav may edit every game file (`js/*.js`, `style.css`, `index.html`, `assets/`) on his own branch `issue-2-4-room-ui`. Never on `issue-1-3-mechanics`, and never push to Abdullah's course PR #138. Abdullah's branch stays as it is, and its commits keep his name.
+
 If the task seems to need a change in someone else's file, don't make it. Stop and tell the human, or write what's needed as a comment on the matching issue.
 
 ## Shared contract (do not break)

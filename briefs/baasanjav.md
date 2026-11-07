@@ -26,9 +26,12 @@ You're helping build **Time Loop Escape**, a browser game. The player has 60 sec
 
 ## Current work
 
-**Phase 2 (2026-11-07): port to the course repo.** The game in this repo is done and frozen. `main` @ 6562cea is the final version, with both halves plus Zaid's QA fixes. **Your only current task is issue #19** in this repo. It has the steps and the "Done when" list. Older issues (#2, #4, #7, #11–#14, #17) are closed out by this, so don't keep working on them here. Don't push any more game changes to `issue-2-4-room-ui`.
-
-The port work happens in nd2003/sdm2026-1 under `games/team-3/`. Clone it next to this repo if you haven't already, and read its `CLAUDE.md`, `server/CLAUDE.md` and `GETTING_STARTED.md` first. You own the **client side**: `client/` (Vite + TypeScript), the room view, HUD, lobby, chat and styles. Abdullah owns the server room and the shared state shape that you render from.
+**Phase 3 (2026-11-07, current): you carry the team.** Abdullah is out of agent time, so you take his issue **#18** as well as your **#19** (see "Temporary handover" in `AGENTS.md`). The plain JS game is **not frozen any more**: Zaid plays it, so build every change here first, then port it.
+- Work on `issue-2-4-room-ui` only. Start with `git pull origin main`. You may edit every game file (`js/*.js`, `style.css`, `index.html`, `assets/`).
+- Do the open instructions on **#19 and #18**, oldest first. **Priority:** (1) the level 3 objects and the vent ending, (2) the vampire bite logic + `vampireBites` + `zombie` (from #18) and the vampire/zombie art and sounds, (3) the stage 2 corridor fill and the decluttered layout, (4) everything else. Abdullah's lobby, 10 min loop and picker are already on `main`.
+- Commit small, with plain messages about what you changed. **Push after each priority block** (`git push origin issue-2-4-room-ui`), then post a `Status:` comment on #18 **and** #19 with the hash and `test.html` results. When everything is done, push and post `Status: ready`. Zaid integrates to `main`.
+- `test.html` must stay ALL PASS except checks for things you haven't built yet. Open `index.html` and check the console has no errors.
+- Course-repo port work (the server room, `client/screens.ts`) waits until the game here is done. Don't touch PR #138.
 
 The sections below describe the older, finished work.
 
