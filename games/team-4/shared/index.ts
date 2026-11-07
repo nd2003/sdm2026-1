@@ -1,12 +1,12 @@
 /**
- * Contract for the template game: room state, input and config.
+ * Contract for the Team 4 game: room state, input and config.
  * The server room (room/) and the client (client/) both import this.
  * Change it only through a PR reviewed by both the server and client owners.
  */
 import { type SchemaType, schema, t } from "@colyseus/schema";
 import { z } from "zod";
 
-export const GAME_ID = "template";
+export const GAME_ID = "team-4";
 
 /** Synced player. Positions are in arena units, not pixels. */
 export const Player = schema(
