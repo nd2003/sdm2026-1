@@ -11,6 +11,7 @@ import {
 } from "../shared/escape.ts";
 import { cabinetOpened, playCabinet } from "./cabinet.ts";
 import { canvasSlashed, playCanvasSlash } from "./canvas.ts";
+import { clockTick, playTick } from "./clock.ts";
 import { playDrawer } from "./drawer.ts";
 import { playFootsteps, unlockAudio, walkers } from "./footsteps.ts";
 import { ghostPresent, setGhostPresence } from "./ghost.ts";
@@ -222,6 +223,8 @@ function render(state: EscapeSnapshot) {
   if (knifeTaken(snapshot, state)) playKnife();
   if (canvasSlashed(snapshot, state)) playCanvasSlash();
   if (photoRevealed(snapshot, state)) playPhoto();
+  const tick = clockTick(snapshot, state);
+  if (tick) playTick(tick);
   setGhostPresence(ghostPresent(state));
   snapshot = state;
   const encounter = state.ghostSeconds !== null;
