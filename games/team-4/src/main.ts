@@ -1,13 +1,12 @@
+import "./style.css";
 
-import './style.css';
+import { discoverClue } from "./clues";
+import { getDialogue } from "./dialogues";
+import { interactWithObject } from "./interactions";
+import { collectItem, hasItem } from "./inventory";
+import { renderClues, renderInventory } from "./ui";
 
-import { collectItem, getInventory } from './inventory';
-import { discoverClue} from './clues';
-import { interactWithObject } from './interactions';
-import { getDialogue } from './dialogues';
-import { renderInventory, renderClues } from './ui';
-
-const app = document.querySelector<HTMLDivElement>('#app')!;
+const app = document.querySelector<HTMLDivElement>("#app")!;
 
 app.innerHTML = `
   <main class="game">
@@ -41,40 +40,40 @@ app.innerHTML = `
 `;
 
 function updatePanels() {
-  document.querySelector('#inventory')!.innerHTML = renderInventory();
-  document.querySelector('#clues')!.innerHTML = renderClues();
+  document.querySelector("#inventory")!.innerHTML = renderInventory();
+  document.querySelector("#clues")!.innerHTML = renderClues();
 }
 
 function handleObjectClick(objectId: string) {
   interactWithObject(objectId);
 
-  document.querySelector('#dialogue')!.textContent =
-    getDialogue(objectId);
+  document.querySelector("#dialogue")!.textContent = getDialogue(objectId);
 
-  if (objectId === 'painting') {
-    discoverClue('clue-1');
+  if (objectId === "painting") {
+    discoverClue("clue-1");
+    // The cabinet key is hidden behind the painting (see its description in gameData.ts).
+    collectItem("key-1");
   }
 
-  if (objectId === 'cabinet') {
-    if (getInventory().some(item => item.id === 'key-1')) {
-      collectItem('note-1');
-      discoverClue('clue-2');
-    }
+  if (objectId === "cabinet" && hasItem("key-1")) {
+    collectItem("note-1");
+    discoverClue("clue-2");
+    document.querySelector("#dialogue")!.textContent = getDialogue("cabinet-unlocked");
   }
 
   updatePanels();
 }
 
-document.querySelector('#painting')!.addEventListener('click', () => {
-  handleObjectClick('painting');
+document.querySelector("#painting")!.addEventListener("click", () => {
+  handleObjectClick("painting");
 });
 
-document.querySelector('#cabinet')!.addEventListener('click', () => {
-  handleObjectClick('cabinet');
+document.querySelector("#cabinet")!.addEventListener("click", () => {
+  handleObjectClick("cabinet");
 });
 
-document.querySelector('#computer')!.addEventListener('click', () => {
-  handleObjectClick('computer');
+document.querySelector("#computer")!.addEventListener("click", () => {
+  handleObjectClick("computer");
 });
 
 updatePanels();
