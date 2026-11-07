@@ -12,6 +12,7 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
         multiplayer: fileURLToPath(new URL("./multiplayer/index.html", import.meta.url)),
+        live: fileURLToPath(new URL("./multiplayer/live.html", import.meta.url)),
       },
     },
   },

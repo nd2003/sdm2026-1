@@ -1,0 +1,7 @@
+{
+  "version": "1",
+  "tickRate": 20,
+  "patchRate": 10,
+  "maxPlayers": 2,
+  "reconnectSeconds": 20
+}
