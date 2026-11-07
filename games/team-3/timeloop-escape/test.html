@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>QA tests</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- the game CSS is loaded so visibility checks are real; these overrides keep the results readable -->
+  <style>body{display:block!important;height:auto!important;overflow:auto!important;font-family:monospace;background:#111;color:#eee} .ok{color:#6c6} .bad{color:#f66} #result,#log{position:relative;z-index:20;background:#111} iframe{width:600px;height:400px;border:1px solid #444}</style>
+</head>
+<body>
+  <!-- Same markup as index.html: keep in sync -->
+  <div id="hud"><span id="timer"></span><span id="loop-count"></span></div>
+  <div id="lobby"></div>
+  <div id="opponent"></div>
+  <div id="room"></div>
+  <div id="message"></div>
+  <div id="inventory"></div>
+  <div id="journal"></div>
+
+  <h1 id="result">running…</h1>
+  <ol id="log"></ol>
+  <div id="frames"></div>
+
+  <script>
+  // Co-op v2 has no browser popups: any call to these fails the run (checked at the end).
+  window.__popups = [];
+  for (const k of ["prompt", "alert", "confirm"]) window[k] = () => { window.__popups.push(k); return null; };
+  window.__errors = [];
+  window.addEventListener("error", (e) => window.__errors.push(e.message));
+  </script>
+  <script src="js/state.js"></script>
+  <script src="js/net.js"></script>
+  <script src="js/room.js"></script>
+  <script src="js/puzzles.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+  // QA test for AGENTS.md "Co-op v2" and "3 levels". Open in a browser (file:// is fine); it takes ~12s.
+  // ponytail: one linear script; the two-player part uses two iframes of index.html (they pair through net.js's tab channel).
+  const results = [];
+  const log = (ok, name, err) => {
+    const li = document.createElement("li");
+    li.className = ok ? "ok" : "bad";
+    li.textContent = (ok ? "PASS " : "FAIL ") + name + (err ? " — " + err : "");
+    document.getElementById("log").append(li);
+    results.push(ok);
+    return ok;
+  };
+  const check = (name, fn) => { try { const r = fn(); return log(r !== false, name, r === false ? "assertion false" : ""); } catch (e) { return log(false, name, e.message); } };
+  const checkAsync = async (name, fn) => { try { const r = await fn(); return log(r !== false, name, r === false ? "assertion false" : ""); } catch (e) { return log(false, name, e.message); } };
+  const need = (cond, what) => { if (!cond) throw new Error(what); return true; };
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const click = (id) => onObjectClick(id);
+  const partnerChat = (text) => onNetMessage({ type: "chat", text });
+  const visible = (id) => { const el = document.getElementById(id); return !!el && !el.hidden && getComputedStyle(el).display !== "none"; };
+
+  window.addEventListener("load", async () => {  // registered after main.js: the page is in the lobby
+    const sent = [];
+    let a;  // my answers: puzzleAnswers(game.role)
+    const realMakeRoomCode = makeRoomCode;
+
+    check("contract functions exist", () => ["connect", "send", "sendChat", "makeRoomCode", "onNetMessage", "onInput", "puzzleAnswers", "rand",
+      "buildRoom", "placeObjects", "onObjectClick", "startLoop", "resetLoop", "addItem", "hasItem", "addClue", "setFlag", "say", "render"]
+      .every((f) => need(typeof window[f] === "function", f + " missing")));
+    check("starts in the lobby, timer not running, 60s default", () => game.phase === "lobby" && game.timeLeft === 60 && game.loopSeconds === 60 && game.stage === 1);
+    check("title screen says Time Loop Escape", () => /time loop escape/i.test(document.querySelector("#lobby h1").textContent));
+    check("lobby has name, 60/90/120 loop length, create, join, solo", () => {
+      const secs = [...document.querySelectorAll("#loop-seconds option")].map((o) => o.value).join();
+      return need(document.getElementById("player-name"), "#player-name") && need(secs === "60,90,120", "loop options " + secs)
+        && need(document.querySelector('#lobby button[value=create]') && document.querySelector('#lobby button[value=join]') && document.querySelector('#lobby button[value=solo]'), "buttons");
+    });
+    check("makeRoomCode() gives 4 letters A-Z", () => [1, 2, 3, 4, 5].every(() => need(/^[A-Z]{4}$/.test(realMakeRoomCode()), "bad code")));
+    check("room has all objects for levels 1-3", () => ["note", "painting", "cabinet", "photo", "computer", "door", "casket-left", "casket-right", "keypad", "lift", "fusebox", "gate", "phone", "coat", "vending", "scratches", "shoes", "bricked-door", "candles", "indicator", "emergency-phone", "graffiti"]
+      .every((id) => need(document.getElementById("obj-" + id), "#obj-" + id + " missing")));
+
+    // Seeds: same seed -> same answers, different seeds -> different answers, A and B differ
+    check("puzzleAnswers stable for the same seed", () => { const s = game.seed; game.seed = 12345; const x = JSON.stringify(puzzleAnswers("A")), y = JSON.stringify(puzzleAnswers("A")); game.seed = s; return x === y; });
+    check("puzzleAnswers differ across seeds", () => {
+      const s = game.seed, seen = new Set();
+      for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) { game.seed = seed; seen.add(JSON.stringify(puzzleAnswers("A"))); }
+      game.seed = s; return seen.size > 1;
+    });
+    check("roles A and B get different answers", () => { const s = game.seed; game.seed = 777; const r = JSON.stringify(puzzleAnswers("A")) !== JSON.stringify(puzzleAnswers("B")); game.seed = s; return r; });
+    check("answers in range (clicks 3-6, year, 3-digit keypad, floor, casket side)", () => {
+      const s = game.seed; let ok = true;
+      for (let seed = 1; seed < 40; seed++) { game.seed = seed; for (const r of ["A", "B"]) { const x = puzzleAnswers(r);
+        ok = ok && x.clicks >= 3 && x.clicks <= 6 && /^\d{4}$/.test(x.year) && /^\d{3}$/.test(x.keypad) && /^\d+$/.test(x.floor) && ["left", "right"].includes(x.casket); } }
+      game.seed = s; return ok;
+    });
+
+    // Solo
+    check("solo connect() starts a match with a fake partner", () => {
+      window.makeRoomCode = () => "QXTR";  // fixed seed, so this run is repeatable
+      connect("Tester");
+      const send0 = window.send; window.send = (type, data) => { sent.push(type); return send0(type, data); };  // spy, keeps checkBothOut
+      a = puzzleAnswers(game.role);
+      return game.phase === "playing" && game.playerName === "Tester" && game.role === "A" && !!game.partner && game.partner.escaped === false
+        && game.seed === seedFromCode("QXTR") && game.stage === 1 && game.loop === 1 && game.timeLeft === 60;
+    });
+    check("game view shown, lobby hidden", () => visible("room") && !visible("lobby") && visible("chat"));
+    check("painting label doesn't name the wrong colour", () => {
+      const label = document.getElementById("obj-painting").textContent + " " + document.getElementById("obj-painting").getAttribute("aria-label");
+      const named = (label.match(/blue|red|green|white|black/gi) || []).map((c) => c.toUpperCase());
+      return need(named.every((c) => c === a.color), `label says ${named.join("/")} but the painting is ${a.color}`);
+    });
+
+    // No skipping: nothing reacts before its clue is known
+    check("painting does nothing before the partner says its clue", () => { for (let i = 0; i < 8; i++) click("painting"); return !hasItem("key") && !game.flags.paintingMoved && !game.flags.paintingClicks; });
+    check("cabinet locked without key", () => { click("cabinet"); return !game.flags.cabinetOpen && game.message !== ""; });
+    check("photo and computer do nothing before the cabinet clue", () => { click("photo"); click("computer"); return game.input === null && !game.clues.some((c) => /dated/.test(c)); });
+    check("door locked before the computer", () => { click("door"); return game.stage === 1 && !game.flags.doorUnlocked; });
+    check("level 2/3 objects do nothing on level 1", () => { const t = game.timeLeft; click("casket-left"); click("casket-right"); click("keypad"); click("lift"); return game.stage === 1 && game.input === null && !game.flags.casketOpen && game.timeLeft === t; });
+    check("decoy click doesn't throw", () => { click("not-a-real-object"); });
+
+    // Level 1
+    check("note gives a clue for the partner, not duplicated", () => { click("note"); click("note"); const c = game.clues.filter((c) => c.startsWith("For") && c.includes(" - ")); return c.length === 1 && sent.includes("progress"); });
+    check("partner chat lands in game.chat", () => { partnerChat(`There's a note for you: "${a.color} - ${a.clicks}"`); return game.chat.at(-1).from === game.partner.name; });
+    check(`painting: ${a.clicks - 1} clicks give nothing`, () => { for (let i = 1; i < a.clicks; i++) click("painting"); return !hasItem("key") && !game.flags.paintingMoved; });
+    check(`painting: click ${a.clicks} reveals the key`, () => { click("painting"); return hasItem("key") && game.flags.paintingMoved === true; });
+    check("cabinet opens with the key, gives the photo clue", () => { click("cabinet"); return game.flags.cabinetOpen === true && game.clues.includes("Find the year on the photograph"); });
+    check("photo writes a year into the journal", () => { click("photo"); return game.clues.some((c) => /dated \d{4}/.test(c)); });
+    check("computer opens the in-game input (no popup)", () => { click("computer"); return game.input && game.input.for === "computer" && visible("game-input") && window.__popups.length === 0; });
+    check("cancel closes the input", () => { onInput(null); return game.input === null && !visible("game-input"); });
+    check("wrong password rejected and locks the input", () => { click("computer"); onInput("0000"); return !game.flags.doorUnlocked && game.input === null; });
+    check("locked: computer won't open the input for 5s", () => { game.timeLeft -= 4; click("computer"); return game.input === null; });
+    check("unlocked after 5s", () => { game.timeLeft -= 1; click("computer"); return game.input && game.input.for === "computer"; });
+    check("right password (from your own or your partner's photo) unlocks the door", () => {
+      if (photoIsRemote()) partnerChat(`My photo is for you: ${a.year}`);
+      onInput(a.year); return game.flags.doorUnlocked === true;
+    });
+    check("door: level 2, +60s", () => { const t = game.timeLeft; click("door"); return game.stage === 2 && game.timeLeft === t + 60 && visible("obj-casket-left") && !visible("obj-door"); });
+    check("door does nothing outside level 1 (no second +60s)", () => { const t = game.timeLeft; click("door"); return game.stage === 2 && game.timeLeft === t; });
+    await checkAsync("timer ticks at 1/s on level 2", async () => { const t = game.timeLeft; await sleep(3100); const d = t - game.timeLeft; return need(d >= 2 && d <= 4, `${d} ticks in 3.1s`); });
+
+    // Level 2
+    check("keypad needs the casket clue first", () => { click("keypad"); return game.input === null; });
+    check("wrong casket costs 20s and stays shut", () => { const t = game.timeLeft; click("casket-" + (a.casket === "left" ? "right" : "left")); return game.timeLeft === t - 20 && !game.flags.casketOpen; });
+    check("right casket gives the keypad code", () => { click("casket-" + a.casket); return game.flags.casketOpen === true && game.clues.includes("The keypad code is " + a.keypad); });
+    check("keypad is dead until the fuse box is thrown", () => { click("keypad"); return game.input === null; });
+    check("fuse box turns the power on", () => { click("fusebox"); return game.flags.powerOn === true; });
+    check("wrong keypad code locks", () => { click("keypad"); onInput("000"); click("keypad"); return game.stage === 2 && game.input === null; });
+    check("right keypad code: level 3, +60s", () => { game.timeLeft -= 5; click("keypad"); const t = game.timeLeft; onInput(a.keypad); return game.stage === 3 && game.timeLeft === t + 60 && visible("obj-lift"); });
+
+    // Reset back to level 1
+    check("reset: level 1, relocked, clues and chat kept, loop+1", () => {
+      const clues = [...game.clues], chat = game.chat.length;
+      resetLoop();
+      return game.stage === 1 && game.loop === 2 && game.items.length === 0 && Object.keys(game.flags).length === 0 && game.input === null
+        && game.message === "" && game.timeLeft === game.loopSeconds && clues.every((c) => game.clues.includes(c)) && game.chat.length >= chat && visible("obj-door");
+    });
+    await checkAsync("timer ticks at 1/s after a reset (no double timer)", async () => { const t = game.timeLeft; await sleep(3100); const d = t - game.timeLeft; return need(d >= 2 && d <= 4, `${d} ticks in 3.1s`); });
+    check("loop 2: back to level 3 with the kept clues", () => {
+      game.timeLeft = 60;
+      click("computer"); onInput(a.year); click("door"); click("casket-" + a.casket); click("fusebox"); click("keypad"); onInput(a.keypad);
+      return game.stage === 3;
+    });
+
+    // Level 3 and the co-op win
+    check("lift needs the floor from the partner", () => { click("lift"); return game.input === null; });
+    check("lift won't move until the gate is shut", () => { partnerChat(`My casket had a scrap for you: floor ${a.floor}`); click("lift"); return game.input === null; });
+    check("gate closes", () => { click("gate"); return game.flags.gateClosed === true; });
+    check("wrong floor locks", () => { click("lift"); onInput("99"); click("lift"); return game.input === null && !game.flags.escaped; });
+    check("right floor: I'm out, but no win alone", () => {
+      game.timeLeft -= 5; click("lift"); onInput(a.floor);
+      return game.flags.escaped === true && sent.includes("escaped") && game.won === false && game.phase === "playing";
+    });
+    await checkAsync("my timer stops once I'm out", async () => { const t = game.timeLeft; await sleep(1300); return game.timeLeft === t; });
+    check("chat still works while waiting", () => { sendChat("  I'm out, you can do it  "); return game.chat.at(-1).from === "Tester" && game.chat.at(-1).text === "I'm out, you can do it"; });
+    check("empty chat is ignored, long chat is cut to 200", () => { const n = game.chat.length; sendChat("   "); sendChat("x".repeat(500)); return game.chat.length === n + 1 && game.chat.at(-1).text.length === 200; });
+    check("partner escaped + me escaped -> won", () => { onNetMessage({ type: "escaped", loop: 1 }); return game.partner.escaped && game.won === true && game.phase === "over"; });
+    check("win screen says you both got out", () => visible("win") && /both/i.test(document.getElementById("win").textContent));
+    check("partner-left after the win changes nothing", () => { onNetMessage({ type: "partner-left" }); return game.won === true; });
+    check("render() at the end doesn't throw", () => { render(); });
+
+    // Settings
+    check("flickering light toggle works and is remembered", () => {
+      const btn = document.getElementById("set-flicker"), was = document.body.classList.contains("no-flicker");
+      btn.click(); const now = document.body.classList.contains("no-flicker"), saved = JSON.parse(localStorage.getItem("tle-settings")).noFlicker;
+      btn.click();
+      return now === !was && saved === now && document.body.classList.contains("no-flicker") === was;
+    });
+
+    // Two players: two copies of index.html pair up through net.js's tab channel
+    const frame = (q) => new Promise((ok) => { const f = document.createElement("iframe"); f.src = "index.html" + q; f.onload = () => ok(f.contentWindow); document.getElementById("frames").append(f); });
+    const code = realMakeRoomCode();
+    let A, B;
+    await checkAsync("two tabs: create (90s) + join with the same code pair up as A/B", async () => {
+      A = await frame(""); B = await frame(`?room=${code}&name=Bo`);
+      const $a = (id) => A.document.getElementById(id), $b = (id) => B.document.getElementById(id);
+      $a("player-name").value = "Ada"; $a("loop-seconds").value = "90";
+      A.eval(`makeRoomCode = () => ${JSON.stringify(code)}`);
+      $a("lobby").querySelector("button[value=create]").click();
+      need($b("player-name").value === "Bo" && $b("room-code").value === code, "?room=&name= not filled in");
+      $b("lobby").querySelector("button[value=join]").click();
+      for (let i = 0; i < 30 && B.eval("game.phase") !== "playing"; i++) await sleep(100);
+      return need(A.eval("game.phase") === "playing" && B.eval("game.phase") === "playing", "not paired")
+        && need(A.eval("game.role") === "A" && B.eval("game.role") === "B", "roles")
+        && need(A.eval("game.seed") === B.eval("game.seed"), "seed differs")
+        && need(A.eval("game.loopSeconds") === 90 && B.eval("game.loopSeconds") === 90, "loop seconds not shared");
+    });
+    await checkAsync("two tabs: chat goes both ways", async () => {
+      A.sendChat("hello Bo"); B.sendChat("hello Ada"); await sleep(400);
+      const lines = (W) => W.eval("JSON.stringify(game.chat.map((m) => m.from + \": \" + m.text).sort())");
+      return need(lines(A) === lines(B) && A.eval("game.chat.length") === 2, lines(A) + " vs " + lines(B));
+    });
+    await checkAsync("two tabs: win only when both escaped", async () => {
+      A.eval(`setFlag("escaped", true); send("escaped", { loop: 1 })`); await sleep(400);
+      const half = B.eval("game.partner.escaped") && !A.eval("game.won") && !B.eval("game.won");
+      B.eval(`setFlag("escaped", true); send("escaped", { loop: 1 })`); await sleep(400);
+      return need(half, "someone won alone") && need(A.eval("game.won") && B.eval("game.won") && A.eval("game.phase") === "over", "no win");
+    });
+    await checkAsync("two tabs: partner leaving ends the game", async () => {
+      const code2 = realMakeRoomCode();
+      const C = await frame(""), D = await frame("");
+      C.connect("Cy", code2, 60); D.connect("Di", code2);
+      for (let i = 0; i < 30 && D.eval("game.phase") !== "playing"; i++) await sleep(100);
+      need(C.eval("game.phase") === "playing", "not paired");
+      document.querySelectorAll("iframe")[3].src = "about:blank";  // Di closes the tab
+      await sleep(600);
+      return need(C.eval("game.phase") === "over" && C.eval("game.won") === false, "not over") && /left/i.test(C.document.getElementById("win").textContent);
+    });
+    await checkAsync("two tabs: partner with the same name still counts as the partner", async () => {
+      const code3 = realMakeRoomCode();
+      const E = await frame(""), F = await frame("");
+      E.connect("Sam", code3, 60); F.connect("Sam", code3);
+      for (let i = 0; i < 30 && F.eval("game.phase") !== "playing"; i++) await sleep(100);
+      F.sendChat("hello"); await sleep(400);
+      return need(E.eval(`partnerSaid("hello")`), "partner's chat is treated as your own, so painting/lift can never open");
+    });
+
+    check("no prompt/alert/confirm was called", () => need(window.__popups.length === 0, window.__popups.join()));
+    check("no uncaught errors", () => need(window.__errors.length === 0, window.__errors.join(" | ")));
+
+    const pass = results.every(Boolean);
+    const el = document.getElementById("result");
+    el.textContent = pass ? "ALL PASS" : "FAILED";
+    el.className = pass ? "ok" : "bad";
+    document.title = pass ? "QA: ALL PASS" : "QA: FAILED";
+  });
+  </script>
+</body>
+</html>
