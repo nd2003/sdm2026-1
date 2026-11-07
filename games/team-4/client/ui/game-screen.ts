@@ -1028,12 +1028,6 @@ export function renderGameScreen(
                 <span class="tle-tag-bubble" id="tag-r1-map">📌 Notes</span>
               </button>
             </div>
-                </button>
-              </div>
-              <span class="tle-obj-tag" id="tag-r1-door" style="left: 82%; top: 83%">
-                🚪 BUNKER EXIT
-              </span>
-            </div>
 
             <!-- =========================================================
                  CORRIDOR (IMAGE 4): VAULTED INDUSTRIAL PASSAGEWAY
