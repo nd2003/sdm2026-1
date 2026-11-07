@@ -22,9 +22,12 @@ permissions:
   contents: read
 
 jobs:
+  # Not on sync PRs (main -> feature/team-N, head_ref main): their head is main itself, so their results would land on
+  # main's commit next to the push run, and Railway's Wait for CI skips a deploy if one fails (issue #328).
   setup:
     # Node/pnpm pins, LF line endings, no file names that differ only by case.
     name: "🧰 setup"
+    if: ${{ github.head_ref != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -35,6 +38,7 @@ jobs:
   config:
     # Each game's config/game.json against its config schema.
     name: "📝 config"
+    if: ${{ github.head_ref != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -44,6 +48,7 @@ jobs:
 
   lint:
     name: "🧹 lint"
+    if: ${{ github.head_ref != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -53,6 +58,7 @@ jobs:
 
   typecheck:
     name: "🔎 typecheck"
+    if: ${{ github.head_ref != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -62,6 +68,7 @@ jobs:
 
   test:
     name: "🧪 test"
+    if: ${{ github.head_ref != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -71,6 +78,7 @@ jobs:
 
   build:
     name: "📦 build"
+    if: ${{ github.head_ref != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
