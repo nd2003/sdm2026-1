@@ -1,5 +1,5 @@
 name: QA
-on: workflow_dispatch   # manual only: Zaid runs it after integrating (gh workflow run QA)
+on: workflow_dispatch # manual only: Zaid runs it after integrating (gh workflow run QA)
 jobs:
   smoke:
     runs-on: ubuntu-latest
