@@ -170,7 +170,7 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 | server → client | `{type:"partner-left"}` | → `phase = "over"`, "Your partner left" |
 
 **Loop length:** when you create a room you choose **60 / 90 / 120 s** (default 60). It's stored as `game.loopSeconds`, the creator sends it in `join` as `seconds`, and the server passes it on in `start`, so both players get the same value. `startLoop()` uses `game.loopSeconds` instead of the fixed 60.
-- **Admin 10-minute loop (testing only, 2026-11-07):** when the name is exactly `admin` (any case), the picker shows a fourth option, **10 min** (`seconds: 600`). Nobody else sees it, and the server/`connect()` only accepts 600 from an admin creator; any other `seconds` value is clamped to 60. Same `isAdmin()` check and `// ponytail:` mark as the admin skip. In the course port it moves behind `?debug`.
+- **Admin 10-minute loop (testing only, 2026-11-07):** when the name is exactly `admin` (any case), the picker shows a fourth option, **10 min** (`seconds: 600`). Nobody else sees it, and the server/`connect()` only accepts 600 from an admin creator; a value outside 60/90/120 (or 600 from a non-admin) falls back to 60. Same `isAdmin()` check and `// ponytail:` mark as the admin skip. In the course port it moves behind `?debug`.
 - **Picker underline:** the loop-length picker has a yellow underline (the accent token) under the selected option. It slides to the option you pick and spans its full width.
 
 **Names the UI can rely on** (from Abdullah's code, confirmed by Zaid):
