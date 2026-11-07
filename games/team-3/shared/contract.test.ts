@@ -22,9 +22,9 @@ describe("Time Loop Escape contract", () => {
     expect(TimeLoopInputSchema.safeParse({ kind: "teleport" }).success).toBe(false);
   });
 
-  it("lets the creator pick 60, 90 or 120 second loops and nothing else", () => {
+  it("passes the creator's loop length on for the room to check", () => {
     expect(TimeLoopJoinOptionsSchema.parse({ name: "Ada", seconds: 90 }).seconds).toBe(90);
-    expect(TimeLoopJoinOptionsSchema.safeParse({ name: "Ada", seconds: 45 }).success).toBe(false);
+    expect(TimeLoopJoinOptionsSchema.safeParse({ name: "Ada", seconds: -5 }).success).toBe(false);
   });
 
   it("builds state with players keyed by session id", () => {

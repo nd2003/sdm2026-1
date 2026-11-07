@@ -32,6 +32,15 @@ import {
 /** Checked at load: a bad config file stops the server at startup with the zod message. */
 const config = TimeLoopConfigSchema.parse(rawConfig);
 
+/**
+ * The creator's loop length: 60/90/120 for everyone; 600 only for the name admin
+ * (ponytail: testing cheat, becomes a ?debug option). Anything else falls back to 60.
+ */
+export function loopLength(seconds: number, name: string): number {
+  if ([60, 90, 120].includes(seconds)) return seconds;
+  return seconds === 600 && name.trim().toLowerCase() === "admin" ? 600 : 60;
+}
+
 /** Ends the match for the player who stays: their partner quit, left or never came back. */
 function partnerGone(ctx: Ctx, playerId: string): void {
   if (ctx.state.phase !== "playing") return;
@@ -60,7 +69,8 @@ export const timeLoopGame: GameDefinition<TimeLoopState, TimeLoopInput, TimeLoop
     const player = new Player();
     player.name = String(options.name);
     player.role = ctx.state.players.size === 0 ? "A" : "B";
-    if (player.role === "A" && typeof options.seconds === "number") ctx.state.loopSeconds = options.seconds;
+    if (player.role === "A" && typeof options.seconds === "number")
+      ctx.state.loopSeconds = loopLength(options.seconds, player.name);
     ctx.state.players.set(playerId, player);
     if (ctx.state.players.size < 2) return; // waiting for the partner
     ctx.state.phase = "playing";

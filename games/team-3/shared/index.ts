@@ -78,7 +78,8 @@ export type TimeLoopInput = z.infer<typeof TimeLoopInputSchema>;
 /** What a client passes when it creates or joins a room. The creator picks the loop length. */
 export const TimeLoopJoinOptionsSchema = z.object({
   name: z.string().trim().min(1).max(20).default("player"),
-  seconds: z.union([z.literal(60), z.literal(90), z.literal(120)]).optional(),
+  /** 60/90/120; 600 only for an admin creator. The room's join() falls back to 60 for anything else. */
+  seconds: z.number().int().positive().optional(),
 });
 
 /** Room settings plus tuning values, loaded from config/game.json. Designers edit the JSON, not code. */
