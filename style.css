@@ -820,3 +820,11 @@ body.no-flicker :is(.scene.jolt-big, .scene.jolt-small, #flashfx.show, .obj.beck
 body.hurry #room { --beam: 24cqw; }
 
 #obj-vampire { --w: 12cqw; }  /* the coffin around it is wider than the old figure */
+
+/* Level 2: a big bat hangs upside down from the chandelier (Abdullah); it swings with it */
+.cbat-wings { transform-box: fill-box; transform-origin: 50% 10%; animation: cbatwings 5s ease-in-out infinite; }
+@keyframes cbatwings { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.86); } }
+.cbat-eye { animation: cbateye 2.4s ease-in-out infinite; }
+@keyframes cbateye { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+body.no-flicker :is(.cbat-wings, .cbat-eye) { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.cbat-wings, .cbat-eye) { animation: none !important; } }
