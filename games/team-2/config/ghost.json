@@ -1,6 +1,6 @@
 ﻿{
   "earliestGhostSeconds": 20,
-  "latestGhostSeconds": 100,
+  "latestGhostSeconds": 70,
   "encounterSeconds": 12,
   "resistanceSeconds": 5
 }
