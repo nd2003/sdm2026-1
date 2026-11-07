@@ -55,6 +55,7 @@
   const visible = (id) => { const el = document.getElementById(id); return !!el && !el.hidden && getComputedStyle(el).display !== "none"; };
 
   window.addEventListener("load", async () => {  // registered after main.js: the page is in the lobby
+    toMainMenu = () => {};  // the win screen auto-returns to the menu after 10s; that would reload this test page mid-run
     const sent = [];
     let a;  // my answers: puzzleAnswers(game.role)
     const realMakeRoomCode = makeRoomCode;
@@ -65,12 +66,19 @@
     check("starts in the lobby, timer not running, 60s default", () => game.phase === "lobby" && game.timeLeft === 60 && game.loopSeconds === 60 && game.stage === 1);
     check("title screen says Time Loop Escape", () => /time loop escape/i.test(document.querySelector("#lobby h1").textContent));
     check("lobby has name, 60/90/120 loop length, create, join, solo", () => {
-      const secs = [...document.querySelectorAll("#loop-seconds option")].map((o) => o.value).join();
+      const secs = [...document.querySelectorAll("#lobby input[name=loop]")].filter((i) => !i.closest("[hidden]")).map((o) => o.value).join();
       return need(document.getElementById("player-name"), "#player-name") && need(secs === "60,90,120", "loop options " + secs)
         && need(document.querySelector('#lobby button[value=create]') && document.querySelector('#lobby button[value=join]') && document.querySelector('#lobby button[value=solo]'), "buttons");
     });
     check("makeRoomCode() gives 4 letters A-Z", () => [1, 2, 3, 4, 5].every(() => need(/^[A-Z]{4}$/.test(realMakeRoomCode()), "bad code")));
-    check("room has all objects for levels 1-3", () => ["note", "painting", "cabinet", "photo", "computer", "door", "casket-left", "casket-right", "keypad", "lift", "fusebox", "gate", "phone", "coat", "vending", "scratches", "shoes", "bricked-door", "candles", "indicator", "emergency-phone", "graffiti"]
+    check("10 min loop only for admin", () => {
+      const ten = document.querySelector("#lobby input[name=loop][value='600']"), n = document.getElementById("player-name"), was = n.value;
+      n.value = "Sam"; n.dispatchEvent(new Event("input", { bubbles: true })); const hidden = !!ten.closest("[hidden]");
+      n.value = "admin"; n.dispatchEvent(new Event("input", { bubbles: true })); const shown = !ten.closest("[hidden]");
+      n.value = was; n.dispatchEvent(new Event("input", { bubbles: true }));
+      return need(hidden, "non-admin sees 10 min") && need(shown, "admin doesn't see 10 min");
+    });
+    check("room has all objects for levels 1-3", () => ["note", "painting", "cabinet", "photo", "computer", "door", "casket-left", "casket-right", "keypad", "lift", "fusebox", "gate", "hatch", "lift-breaker", "lift-panel", "vent", "phone", "coat", "vending", "scratches", "shoes", "bricked-door", "candles", "indicator", "emergency-phone", "graffiti"]
       .every((id) => need(document.getElementById("obj-" + id), "#obj-" + id + " missing")));
 
     // Seeds: same seed -> same answers, different seeds -> different answers, A and B differ
@@ -81,10 +89,10 @@
       game.seed = s; return seen.size > 1;
     });
     check("roles A and B get different answers", () => { const s = game.seed; game.seed = 777; const r = JSON.stringify(puzzleAnswers("A")) !== JSON.stringify(puzzleAnswers("B")); game.seed = s; return r; });
-    check("answers in range (clicks 3-6, year, 3-digit keypad, floor, casket side)", () => {
+    check("answers in range (clicks 3-6, year, 3-digit keypad, 4-digit vent, casket side)", () => {
       const s = game.seed; let ok = true;
       for (let seed = 1; seed < 40; seed++) { game.seed = seed; for (const r of ["A", "B"]) { const x = puzzleAnswers(r);
-        ok = ok && x.clicks >= 3 && x.clicks <= 6 && /^\d{4}$/.test(x.year) && /^\d{3}$/.test(x.keypad) && /^\d+$/.test(x.floor) && ["left", "right"].includes(x.casket); } }
+        ok = ok && x.clicks >= 3 && x.clicks <= 6 && /^\d{4}$/.test(x.year) && /^\d{3}$/.test(x.keypad) && /^\d{4}$/.test(x.vent) && ["left", "right"].includes(x.casket); } }
       game.seed = s; return ok;
     });
 
@@ -145,8 +153,8 @@
     check("reset: level 1, relocked, clues and chat kept, loop+1", () => {
       const clues = [...game.clues], chat = game.chat.length;
       resetLoop();
-      return game.stage === 1 && game.loop === 2 && game.items.length === 0 && Object.keys(game.flags).length === 0 && game.input === null
-        && game.message === "" && game.timeLeft === game.loopSeconds && clues.every((c) => game.clues.includes(c)) && game.chat.length >= chat && visible("obj-door");
+      return game.stage === 1 && game.loop === 2 && game.items.length === 0 && Object.keys(game.flags).join() === "justReset" && game.input === null
+        && /loop reset/i.test(game.message) && game.messageKind === "reset" && game.timeLeft === game.loopSeconds && clues.every((c) => game.clues.includes(c)) && game.chat.length >= chat && visible("obj-door");
     });
     await checkAsync("timer ticks at 1/s after a reset (no double timer)", async () => { const t = game.timeLeft; await sleep(3100); const d = t - game.timeLeft; return need(d >= 2 && d <= 4, `${d} ticks in 3.1s`); });
     check("loop 2: back to level 3 with the kept clues", () => {
@@ -156,12 +164,14 @@
     });
 
     // Level 3 and the co-op win
-    check("lift needs the floor from the partner", () => { click("lift"); return game.input === null; });
-    check("lift won't move until the gate is shut", () => { partnerChat(`My casket had a scrap for you: floor ${a.floor}`); click("lift"); return game.input === null; });
-    check("gate closes", () => { click("gate"); return game.flags.gateClosed === true; });
-    check("wrong floor locks", () => { click("lift"); onInput("99"); click("lift"); return game.input === null && !game.flags.escaped; });
-    check("right floor: I'm out, but no win alone", () => {
-      game.timeLeft -= 5; click("lift"); onInput(a.floor);
+    check("the lift never escapes (prop)", () => { click("lift"); click("lift-panel"); click("gate"); return game.input === null && !game.flags.escaped; });
+    check("vent: fan spins until the lift has power", () => { partnerChat(`My casket had a scrap for you: vent ${a.vent}`); click("vent"); return game.input === null; });
+    check("breaker does nothing without the fuse", () => { click("lift-breaker"); return !game.flags.liftPower; });
+    check("hatch gives the fuse", () => { click("hatch"); return hasItem("fuse"); });
+    check("fuse in the breaker: lift power on", () => { click("lift-breaker"); return game.flags.liftPower === true; });
+    check("wrong vent code locks", () => { click("vent"); onInput("0"); click("vent"); return game.input === null && !game.flags.escaped; });
+    check("right vent code: I'm out, but no win alone", () => {
+      game.timeLeft -= 5; click("vent"); onInput(a.vent);
       return game.flags.escaped === true && sent.includes("escaped") && game.won === false && game.phase === "playing";
     });
     await checkAsync("my timer stops once I'm out", async () => { const t = game.timeLeft; await sleep(1300); return game.timeLeft === t; });
@@ -187,7 +197,7 @@
     await checkAsync("two tabs: create (90s) + join with the same code pair up as A/B", async () => {
       A = await frame(""); B = await frame(`?room=${code}&name=Bo`);
       const $a = (id) => A.document.getElementById(id), $b = (id) => B.document.getElementById(id);
-      $a("player-name").value = "Ada"; $a("loop-seconds").value = "90";
+      $a("player-name").value = "Ada"; A.document.querySelector("#lobby input[name=loop][value='90']").checked = true;
       A.eval(`makeRoomCode = () => ${JSON.stringify(code)}`);
       $a("lobby").querySelector("button[value=create]").click();
       need($b("player-name").value === "Bo" && $b("room-code").value === code, "?room=&name= not filled in");

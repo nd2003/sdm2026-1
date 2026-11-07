@@ -7,7 +7,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run test.html in headless Chrome
         run: |
+          python3 -m http.server 8000 &   # file:// iframes are cross-origin in Chrome, so the two-tab checks need http
+          sleep 1
           google-chrome --headless=new --disable-gpu --no-sandbox --virtual-time-budget=30000 \
-            --dump-dom "file://$PWD/test.html" > out.html
+            --dump-dom "http://localhost:8000/test.html" > out.html
           grep -oE '(PASS|FAIL) [^<]*' out.html || true
           grep -q '>ALL PASS<' out.html
