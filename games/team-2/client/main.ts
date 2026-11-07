@@ -16,6 +16,7 @@ import { playFootsteps, unlockAudio, walkers } from "./footsteps.ts";
 import { ghostPresent, setGhostPresence } from "./ghost.ts";
 import { keyUnlockSeconds, playKeyUnlock } from "./key.ts";
 import { knifeTaken, playKnife } from "./knife.ts";
+import { photoRevealed, playPhoto } from "./photo.ts";
 import "./style.css";
 
 const endpoint =
@@ -220,6 +221,7 @@ function render(state: EscapeSnapshot) {
   }
   if (knifeTaken(snapshot, state)) playKnife();
   if (canvasSlashed(snapshot, state)) playCanvasSlash();
+  if (photoRevealed(snapshot, state)) playPhoto();
   setGhostPresence(ghostPresent(state));
   snapshot = state;
   const encounter = state.ghostSeconds !== null;
