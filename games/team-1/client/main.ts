@@ -1,9 +1,9 @@
 import { Client, type Room } from "@colyseus/sdk";
 import { normalizeRoomCode, readClientParams, serverUrlFromPage } from "@sdm/core/client";
 import { JoinByCodeResponseSchema, Routes, ServerMessage } from "@sdm/core/shared";
-import { timeLoopGame } from "../shared/game.ts";
+import { levelDuration, timeLoopGame } from "../shared/game.ts";
 import type { TimeLoopInput, TimeLoopState } from "../shared/index.ts";
-import { isClueId } from "../shared/rules.ts";
+import { isClueId, LEVEL_COUNT } from "../shared/rules.ts";
 import "./style.css";
 import { currentInviteLink, loadNetworkAddress } from "./invite.ts";
 import { TAPS } from "./targets.ts";
@@ -217,7 +217,14 @@ function bindEnter(id: string, handler: () => void): void {
 
 document.addEventListener("DOMContentLoaded", () => {
   ui.startRain();
-  ui.renderLoopTimes(timeLoopGame.config.loopTimes, timeLoopGame.config.defaultLoopTime);
+  const { config } = timeLoopGame;
+  ui.renderLoopTimes(
+    config.loopTimes.map((seconds) => {
+      const rooms = Array.from({ length: LEVEL_COUNT }, (_, i) => levelDuration(config, seconds, i + 1));
+      return { seconds, label: `${seconds} seconds: ${rooms.join(" / ")}` };
+    }),
+    config.defaultLoopTime,
+  );
   void loadNetworkAddress();
 
   bind("btn-start", startIntro);

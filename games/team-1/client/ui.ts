@@ -113,30 +113,27 @@ export function setLobbyCode(code: string): void {
   el<HTMLInputElement>("lobby-code").value = code;
 }
 
-/** Builds the loop time choice from the config, with `selected` checked. */
-export function renderLoopTimes(times: readonly number[], selected: number): void {
-  const box = el("lobby-time");
-  box.replaceChildren(
-    ...times.map((seconds) => {
-      const label = document.createElement("label");
-      label.className = "time-option";
-      const input = document.createElement("input");
-      input.type = "radio";
-      input.name = "lobby-time";
-      input.value = String(seconds);
-      input.checked = seconds === selected;
-      const text = document.createElement("span");
-      text.className = "time-option-label";
-      text.textContent = `${seconds}s`;
-      label.append(input, text);
-      return label;
+export interface LoopTimeChoice {
+  seconds: number;
+  label: string;
+}
+
+/** Fills the loop time dropdown, with the choice for `selected` chosen. */
+export function renderLoopTimes(choices: readonly LoopTimeChoice[], selected: number): void {
+  el("lobby-time").replaceChildren(
+    ...choices.map((choice) => {
+      const option = document.createElement("option");
+      option.value = String(choice.seconds);
+      option.textContent = choice.label;
+      option.selected = choice.seconds === selected;
+      return option;
     }),
   );
 }
 
 export function getLoopTime(): number | undefined {
-  const checked = document.querySelector<HTMLInputElement>('input[name="lobby-time"]:checked');
-  return checked ? Number(checked.value) : undefined;
+  const seconds = Number(el<HTMLSelectElement>("lobby-time").value);
+  return seconds > 0 ? seconds : undefined;
 }
 
 export function setLobbyError(text: string): void {
