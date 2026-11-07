@@ -16,7 +16,7 @@ function puzzleAnswers(role) {
     year: String(between(CONFIG.years)),                 // computer password, on a photo
     casket: pick(2) ? "right" : "left",                  // level 2: the casket with your code in it
     keypad: String(between([low, low * 10 - 1])),        // level 2 exit code, inside that casket
-    floor: String(between(CONFIG.floors)),               // level 3: lift floor, inside your PARTNER's casket
+    vent: String(between([10 ** (CONFIG.ventDigits - 1), 10 ** CONFIG.ventDigits - 1])),  // level 3 exit: the vent's screw-lock code, in your PARTNER's casket
   };
 }
 function photoIsRemote() { return mulberry32(game.seed + 3)() < 0.5; }  // does your photo show your partner's year?
@@ -61,13 +61,15 @@ function progress(step) {
 // Hints: stuck for CONFIG.hintAfter seconds -> a vague whisper; twice that long -> a plain one. Once each per step.
 // Called by the loop timer every second (state.js).
 function hintTick() {
-  if (!CONFIG.hintAfter || isAdmin() || game.phase !== "playing" || game.flags.escaped || game.input) return;
+  const after = game.loop <= CONFIG.earlyLoops ? CONFIG.hintAfterEarly : CONFIG.hintAfter;  // first-timers get help sooner
+  if (!after || isAdmin() || game.phase !== "playing" || game.flags.escaped || game.input) return;
   const f = game.flags, stuck = (f.lastProgressAt ?? game.loopSeconds) - game.timeLeft;
-  if (stuck < CONFIG.hintAfter) return;
-  const [step, vague, plain] = nextHint(), tier = stuck >= 2 * CONFIG.hintAfter ? 2 : 1;
+  if (stuck < after) return;
+  const [step, vague, plain] = nextHint(), tier = stuck >= 2 * after ? 2 : 1;
   if (f.hinted === step + tier) return;
   f.hinted = step + tier;
   game.message = "A whisper, in your own voice: " + (tier === 1 ? vague : plain);
+  game.messageKind = "hint";
 }
 function nextHint() {  // [step, vague hint, plain hint] for where you are right now
   const f = game.flags, me = mine(), p = partnerName();
@@ -91,34 +93,43 @@ function nextHint() {  // [step, vague hint, plain hint] for where you are right
     if (!f.powerOn) return ["fusebox", "The keypad is dead. Something here still has power.", "Throw the switch on the fuse box."];
     return ["keypad", "You have the code.", "Type the code from the casket into the keypad."];
   }
-  if (!f.gateClosed) return ["gate", "The lift won't move like this.", "Drag the cage gate shut."];
-  if (!partnerSaid(me.floor)) return ["floor", "Which floor? Not one in your room.", `${p} found your floor in their casket. Ask them.`];
-  return ["lift", "You know where to go.", "Take the lift to your floor."];
+  if (!f.liftPower && !hasItem("fuse")) return ["hatch", "Nothing down here has power. Look up.", "Search the hatch in the roof of the shaft."];
+  if (!f.liftPower) return ["lift-breaker", "That fuse belongs somewhere.", "Put the fuse in the lift breaker."];
+  if (!partnerSaid(me.vent)) return ["ask-vent", "The vent's lock has a code. Not one in your room.", `The code is in your partner's room. Ask ${p} for the vent code.`];
+  return ["vent", "The fan has stopped. You know the code.", "Open the vent with the code."];
+}
+
+// One line when a level starts that points at what to do first, without giving answers away.
+function openingLine(stage) {
+  return ["", "Your partner can see things you can't. Talk to them.",
+    "The keypad here has no power. Find where the power comes from.",
+    "Nothing in this shaft has power yet, and the lift is no way out. Look up."][stage];
 }
 
 function enterStage(stage, text) {
   game.stage = stage;
   game.timeLeft += CONFIG.levelBonus;
   delete game.flags.lockedUntil;  // the lock is measured against timeLeft, which just jumped
-  say(text + ` (+${CONFIG.levelBonus}s)`);
+  say(text + ` (+${CONFIG.levelBonus}s) ` + openingLine(stage));
   progress(stage === 2 ? 5 : 7);
 }
 
 function onObjectClick(id) {
   if (game.phase !== "playing" || game.flags.escaped) return;
+  delete game.flags.justReset;  // the reset overlay goes away on the next click
   if (OFFICE.includes(id) && game.stage !== 1) return say(id === "door" ? "The door is behind you now." : "That's back in the office. You can't go back.");
   const f = game.flags, me = mine(), them = theirs(), p = partnerName(), later = game.loop >= 2, much = game.loop >= 3;
   switch (id) {
     // ---------- Level 1: the office ----------
     case "note":
       addClue(`For ${p}: "${them.color} - ${them.clicks}"`);
-      say(atLoop([`A note addressed to ${p}: "${them.color} - ${them.clicks}". It's in your handwriting. You don't remember writing it. Tell ${p}.`,
-                  `The same note for ${p}, in your handwriting: "${them.color} - ${them.clicks}". The ink is still wet. It always is.`]));
+      say(atLoop([`A note addressed to ${p}: "${them.color} - ${them.clicks}". It's in your handwriting. You don't remember writing it. This isn't for you. Read it to your partner.`,
+                  `The same note for ${p}, in your handwriting: "${them.color} - ${them.clicks}". The ink is still wet. This isn't for you. Read it to your partner.`]));
       if (!hasItem("key") && !f.cabinetOpen) progress(1);
       break;
     case "painting": {
       if (f.paintingMoved) { say("Only the hole behind it remains. It breathes."); break; }
-      if (!isAdmin() && !partnerSaid(me.color, String(me.clicks))) { say(`A ${me.color.toLowerCase()} painting. Something about it matters, but you don't know what yet. Ask ${p} what they found.`); break; }
+      if (!isAdmin() && !partnerSaid(me.color, String(me.clicks))) { say(`A ${me.color.toLowerCase()} painting. The code for it is in your partner's room. Ask them.`); break; }
       const clicks = (f.paintingClicks || 0) + 1;
       setFlag("paintingClicks", clicks);
       if (clicks === me.clicks || isAdmin()) {
@@ -138,7 +149,7 @@ function onObjectClick(id) {
       setFlag("cabinetOpen", true);
       addClue("Find the year on the photograph");
       addClue(`For ${p}: the code sleeps in the ${them.casket.toUpperCase()} casket`);
-      say(`The key turns. Two cards inside. One: "Find the year on the photograph". The other, for ${p}: "${them.casket.toUpperCase()} casket".`
+      say(`The key turns. Two cards inside. One: "Find the year on the photograph". The other, for ${p}: "${them.casket.toUpperCase()} casket". That one isn't for you. Read it to your partner.`
         + (later ? (game.role === "A"
           ? " Under them, your own Meridian Trust badge. Night auditor. The photo on it has been scratched off."
           : ` Under them, a missing-person flyer. MISSING: ${p}. Last seen at Meridian Trust, 13 October.`) : ""));
@@ -151,7 +162,7 @@ function onObjectClick(id) {
       const remote = photoIsRemote(), year = remote ? them.year : me.year;
       addClue(remote ? `For ${p}: the photo is dated ${year}` : `The photograph is dated ${year}`);
       say(`A photo of the night shift: "${NIGHT}, ${year}". Two people. One face is scratched out. The other is yours.`
-        + (remote ? ` On the back, in your handwriting: "${year} is ${p}'s password, not yours. Tell them. Yours is in their room."`
+        + (remote ? ` On the back, in your handwriting: "${year} is ${p}'s password, not yours." This isn't for you. Read it to your partner. Yours is in their room.`
                   : ` On the back: "Your password: the year."`));
       if (later) remember(`Every photo shows the same night, ${NIGHT}, in a different year. I'm in all of them.`);
       break;
@@ -210,8 +221,9 @@ function onObjectClick(id) {
       }
       setFlag("casketOpen", true);
       addClue(`The keypad code is ${me.keypad}`);
-      addClue(`For ${p}: the lift goes to floor ${them.floor}`);
-      say(`Empty, except for a torn diary page with your code: "${me.keypad}". On the back: "They went first. I stayed. I'm so hungry." A second scrap, for ${p}: "FLOOR ${them.floor}".`);
+      addClue(`For ${p}: the vent's screw-lock code is ${them.vent}`);
+      say(`Empty, except for a torn diary page with your code: "${me.keypad}". On the back: "They went first. I stayed. I'm so hungry." `
+        + `A second scrap, for ${p}: "VENT ${them.vent}". This isn't for you. Read it to your partner.`);
       if (later) remember('A diary page from someone who stayed behind: "I\'m so hungry."');
       progress(6);
       break;
@@ -225,13 +237,37 @@ function onObjectClick(id) {
       render();
       break;
 
-    // ---------- Level 3: the lift ----------
+    // ---------- Level 3: the lift shaft. The way out is the vent beside the lift, not the lift. ----------
     case "lift":
       if (game.stage !== 3) { say("A lift door, painted shut."); break; }
-      if (!f.gateClosed && !isAdmin()) { say("The lift won't move while its cage gate hangs open."); break; }
-      if (!partnerSaid(me.floor) && !isAdmin()) { say(`The lift has every button from G to 20. Scratched into the wall: THE DOOR OPENS FOR ONE. Ask ${p} which floor.`); break; }
-      if (inputLocked()) { say("The buttons are dark. Wait."); break; }
-      game.input = { for: "lift", label: "Floor" };
+      say(atLoop(['A sign hangs on the cage: "OUT OF ORDER". It has been out of order since 1902.',
+                  "You press every button. None of them light up. The lift was never going to take you out."]));
+      break;
+    case "lift-panel":
+      if (game.stage !== 3) break;
+      say("Buttons from G to 20, all dead. Someone has scratched next to them: THE DOOR OPENS FOR ONE.");
+      break;
+    case "hatch":
+      if (game.stage !== 3) break;
+      if (f.liftPower || hasItem("fuse")) { say("Nothing else up there. Just the sound of something breathing on the roof."); break; }
+      addItem("fuse");
+      say("You force the roof hatch. Wrapped in an old payslip, a fuse, still warm.");
+      progress(8);
+      break;
+    case "lift-breaker":
+      if (game.stage !== 3) break;
+      if (f.liftPower) { say("The breaker hums. The vent fan beside the lift has stopped."); break; }
+      if (!hasItem("fuse") && !isAdmin()) { say("A breaker box with one empty fuse slot. Nothing down here has power."); break; }
+      setFlag("liftPower", true);
+      say("The fuse clicks in. The shaft lights stutter on, and the big fan in the vent beside the lift winds down and stops.");
+      progress(9);
+      break;
+    case "vent":
+      if (game.stage !== 3) break;
+      if (!f.liftPower && !isAdmin()) { say("A vent beside the lift. Behind the grille, the fan blades are still spinning, fast enough to take a hand off."); break; }
+      if (!partnerSaid(me.vent) && !isAdmin()) { say("The grille is held by a screw lock with a code. The code is in your partner's room. Ask them."); break; }
+      if (inputLocked()) { say("The screw lock has jammed. Wait."); break; }
+      game.input = { for: "vent", label: "Vent code" };
       render();
       break;
 
@@ -289,11 +325,11 @@ function onObjectClick(id) {
       if (later) remember("In the candle smoke I saw two people holding a door open together.");
       break;
     // Level 3
-    case "gate":
+    case "gate":  // story prop now: the lift doesn't go anywhere
       if (game.stage !== 3) break;
       if (f.gateClosed) { say("The gate is shut. Through the bars, the shaft goes down further than the building is tall."); break; }
       setFlag("gateClosed", true);
-      say("You drag the cage gate shut. It screams the whole way. The lift buttons glow.");
+      say("You drag the cage gate shut. It screams the whole way. Nothing happens. Nothing was ever going to.");
       break;
     case "indicator":
       if (game.stage !== 3) break;
@@ -340,10 +376,10 @@ function onInput(text) {
     progress(4);
   } else if (what === "keypad") {
     if (!right(me.keypad)) return wrong("The keypad buzzes. In one of the caskets, something turns over.");
-    enterStage(3, "The wall slides open onto a lift shaft. An old cage lift waits with its gate hanging open. "
-      + "Above it, the floor needle twitches. Somewhere above you, the night desk phone is ringing.");
-  } else if (what === "lift") {
-    if (!right(me.floor)) return wrong("The lift drops a few metres and stops. Laughter from the shaft.");
+    enterStage(3, "The wall slides open onto a lift shaft. An old cage lift waits, a vent with a spinning fan beside it, "
+      + "a hatch in the roof above. Somewhere above you, the night desk phone is ringing.");
+  } else if (what === "vent") {
+    if (!right(me.vent)) return wrong("The screw lock grinds and holds. Something in the duct laughs.");
     escapeNow();
   }
 }
@@ -351,7 +387,7 @@ function onInput(text) {
 function escapeNow() {
   setFlag("escaped", true);  // stops my timer: I wait for my partner
   say(game.partner && game.partner.escaped
-    ? "The lift opens onto the street. Dawn. You walk out together. Upstairs, for the first time, two names are signed out. The clock stops."
-    : `The lift opens onto the street. Dawn. You're out, but upstairs ${partnerName()}'s name still has no sign-out. Talk them through it.`);
+    ? "You crawl through the vent and drop into the street. Dawn. You walk out together. Upstairs, for the first time, two names are signed out. The clock stops."
+    : `You crawl through the vent and drop into the street. Dawn. You're out, but upstairs ${partnerName()}'s name still has no sign-out. Talk them through it.`);
   send("escaped", { loop: game.loop });
 }

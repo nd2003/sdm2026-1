@@ -118,7 +118,7 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 **Flags** (`game.flags`, all reset every loop): `paintingClicks` (number), `paintingMoved`, `cabinetOpen`, `doorUnlocked`, `casketOpen`, `powerOn`, `gateClosed`, `escaped` (booleans), `lockedUntil` (a `timeLeft` value: the input is locked while `timeLeft > lockedUntil`). `render()` uses these to show visual states, for example adding the class `open` to `#obj-cabinet`.
 
-**Items**: `key`.
+**Items**: `key`, `fuse` (level 3).
 
 **DOM ids**: `#timer`, `#loop-count`, `#room`, `#inventory`, `#journal`, `#message`, `#lobby`, `#opponent` (all in `index.html`). Each object element gets the id `obj-<id>`, for example `#obj-painting`.
 
@@ -166,6 +166,7 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 | both ways | `{type:"chat", text}` | Chat line → `game.chat` |
 | client → server | `{type:"escaped", loop}` | I'm out → `partner.escaped` on the other side |
 | server → client | `{type:"won"}` | Both escaped → `phase = "over"`, win screen |
+| client → server | `{type:"leave"}` | I quit → partner gets `partner-left` |
 | server → client | `{type:"partner-left"}` | → `phase = "over"`, "Your partner left" |
 
 **Loop length:** when you create a room you choose **60 / 90 / 120 s** (default 60). It's stored as `game.loopSeconds`, the creator sends it in `join` as `seconds`, and the server passes it on in `start`, so both players get the same value. `startLoop()` uses `game.loopSeconds` instead of the fixed 60.
@@ -173,12 +174,15 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 **Names the UI can rely on** (from Abdullah's code, confirmed by Zaid):
 - Functions: `connect(name, code?, seconds?)`, `makeRoomCode()` (4 letters, for the Create button), `sendChat(text)`, `onInput(text|null)`, `puzzleAnswers(role)` (e.g. `.color` to tint the painting), `rand()`.
 - `game.flags.escaped`: **you** are out and waiting (your timer stops). `game.partner.escaped`: your partner is out.
-- Level object ids: level 2 = `casket-left`, `casket-right`, `keypad`. Level 3 = `lift`. Show each one only when `game.stage` matches.
+- Level object ids: level 2 = `casket-left`, `casket-right`, `keypad`. Level 3 = `lift` (prop), `vent` (exit). Show each one only when `game.stage` matches.
 - Story props (#15), buttons `#obj-<id>`, each shown only on its level:
   - Level 1: `phone`, `coat`, `vending`, `scratches`.
   - Level 2: `fusebox` (new step: the keypad is dead until you throw it; flag `powerOn`), `shoes`, `bricked-door`, `candles`.
   - Level 3: `gate` (new step: the lift won't move until it's shut; flag `gateClosed`), `indicator`, `emergency-phone`, `graffiti`.
   - `powerOn` and `gateClosed` reset every loop.
+- **Level 3 ends through a vent, not the lift (changed 2026-11-07):** new ids `hatch` (search the roof hatch → `addItem("fuse")`), `lift-breaker` (with the fuse → flag `liftPower`: the shaft lights come on and the vent fan beside the lift stops), `vent` (next to the lift; only with `liftPower`, asks via `game.input` for the screw-lock code from the partner's room → escape). The lift itself never escapes: `lift`, `lift-panel` and `gate` are story props (dead buttons, "OUT OF ORDER"), and `gateClosed` is no longer required. `liftPower` resets every loop.
+- **Loop reset is explained:** after a reset, `resetLoop()` sets `game.message` to a plain line ("Time ran out. The loop reset: your items are gone, your journal stays.") and `game.flags.justReset = true` (cleared on the next click). The UI shows a short overlay while `justReset` is set: what was lost (items) and what was kept (clues count).
+- **Quit:** `quitGame()` in `net.js` sends `{type:"leave"}`, sets `phase = "lobby"` and keeps the name. The partner gets `partner-left` (already in the table). The UI has a **Quit** button in the HUD and in ⚙ settings, with a confirm *inside the game* (no `confirm()`).
 - Progress steps (co-op): 1 note, 2 key, 3 cabinet, 4 computer, 5 level 2, 6 casket, 7 level 3. The race list below is out of date.
 - Two tabs from disk (`file://`): `BroadcastChannel` can't connect them, so `net.js` falls back to `localStorage` storage events (same messages).
 

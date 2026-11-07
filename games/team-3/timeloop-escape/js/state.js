@@ -7,12 +7,14 @@ const CONFIG = {
   wrongCodeLock: 5,       // seconds an input stays locked after a wrong code
   vampireDrain: 20,       // seconds the wrong casket takes
   hintAfter: 25,          // seconds stuck on the same step before a whisper hints at it (0 = no hints)
+  hintAfterEarly: 15,     // the same, but for first-timers: loops 1..earlyLoops
+  earlyLoops: 2,
   demoSkip: false,        // ?debug in the URL turns it on (main.js): a red "Skip level" button for any player, plus Shift+N
   night: "13 October",    // the night that repeats every year
   painting: { colors: ["BLUE", "RED", "GREEN", "WHITE", "BLACK"], minClicks: 3, maxClicks: 6 },
   years: [1950, 1999],    // computer passwords are picked from this range
   keypadDigits: 3,        // level 2 exit code length
-  floors: [2, 19],        // level 3 lift floors
+  ventDigits: 4,          // level 3: the vent's screw-lock code length (the code is in the partner's room)
   chatMax: 200,           // characters per chat line
   joinWaitSeconds: 15,    // tab mode: tell a joiner nobody opened the room yet
   fakePartner: {          // solo practice partner: when it sends each clue, and when it escapes
@@ -29,6 +31,7 @@ const game = {
   flags: {},     // resets every loop: e.g. { paintingClicks: 2, cabinetOpen: true }. flags.escaped = I'm out (my timer stops)
   clues: [],     // KEPT across loops: e.g. ["BLUE - 4"]
   message: "",   // resets every loop: last thing an object "said"
+  messageKind: "", // "" normal, "hint" a whisper hint, "reset" the loop-reset line: lets the UI style them
   won: false,    // true once BOTH players escaped
   stage: 1,      // level 1 office -> 2 corridors -> 3 lift shaft; back to 1 every loop
   input: null,   // { for: "<object id>", label } while the UI shows the in-game input; onInput() answers it
@@ -62,7 +65,7 @@ function startLoop() {
   game.timeLeft = game.loopSeconds;
   const timer = setInterval(() => {
     // no global handle: a finished loop's timer stops itself. The timer is just a counter (no Date.now).
-    if (game.phase === "over" || game.flags.escaped || game.loop !== loop) return clearInterval(timer);
+    if (game.phase !== "playing" || game.flags.escaped || game.loop !== loop) return clearInterval(timer);  // over, quit, out, or reset
     if (isAdmin() && game.timeLeft <= 1) return render();  // ponytail: testing cheat (puzzles.js), admin's clock never runs out
     game.timeLeft--;
     if (game.timeLeft <= 0) return resetLoop();
@@ -75,7 +78,9 @@ function startLoop() {
 function resetLoop() {
   game.items = [];
   game.flags = {};
-  game.message = "";
+  game.message = "Time ran out. The loop reset: your items are gone, your journal stays.";
+  game.messageKind = "reset";
+  game.flags.justReset = true;  // cleared on the next click; the UI shows what was lost and kept meanwhile
   game.input = null;
   game.stage = 1;  // back to level 1, everything relocked
   game.loop++;     // never touch game.clues or game.chat here
@@ -104,5 +109,6 @@ function setFlag(name, value) {
 
 function say(text) {
   game.message = text;
+  game.messageKind = "";
   render();
 }
