@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   checkInstructor,
@@ -10,7 +11,7 @@ import {
 } from "./lib/check-instructor.mjs";
 
 const root = new URL("../../../", import.meta.url);
-const rootPath = decodeURIComponent(root.pathname).replace(/\/$/, "");
+const rootPath = fileURLToPath(root);
 const instructors = ["ferenc-munde", "matyas-munde", "samate-cclab"];
 
 const pr = (over: Record<string, unknown> = {}) => ({

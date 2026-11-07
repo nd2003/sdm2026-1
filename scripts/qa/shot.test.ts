@@ -61,7 +61,7 @@ describe("qa:shot", () => {
       screenshotPath("sample", join(cwd, ".qa", "screenshots"), new Date("2026-01-02T03:04:05.000Z")),
     );
     expect(JSON.parse(await readFile(join(cwd, ".qa", "qa-runs.json"), "utf8"))).toMatchObject([
-      { scenario: "sample", screenshot: ".qa/screenshots/sample-2026-01-02T03-04-05-000Z.png" },
+      { scenario: "sample", screenshot: join(".qa", "screenshots", "sample-2026-01-02T03-04-05-000Z.png") },
     ]);
   });
 
