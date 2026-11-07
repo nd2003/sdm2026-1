@@ -1,7 +1,9 @@
 /**
- * Server rooms for this game. Each entry builds a Room class from the host's shared deps, e.g.
- * `{ game: (deps) => createGameRoom(myGame, deps) }` (see server/template/room/index.ts).
+ * Server rooms for Time Loop Escape. The host registers them by name; clients create or join "game".
  */
-import type { RoomFactory } from "@sdm/host";
+import { createGameRoom, type RoomFactory } from "@sdm/host";
+import { timeLoopGame } from "../shared/game.ts";
 
-export const rooms: Record<string, RoomFactory> = {};
+export const rooms: Record<string, RoomFactory> = {
+  game: (deps) => createGameRoom(timeLoopGame, deps),
+};
