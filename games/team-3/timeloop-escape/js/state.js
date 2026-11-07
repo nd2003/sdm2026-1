@@ -1,19 +1,19 @@
 // Owner: Core loop (see README)
 // The ONLY shared state. Everyone reads it; change it only through the functions below.
-const LOOP_SECONDS = 60; // tuning: becomes config/game.json in the course port
+const LOOP_SECONDS = 60;  // tuning: becomes config/game.json in the course port
 
 const game = {
   loop: 1,
   timeLeft: LOOP_SECONDS,
-  items: [], // resets every loop
-  flags: {}, // resets every loop: e.g. { paintingClicks: 2, cabinetOpen: true }
-  clues: [], // KEPT across loops: e.g. ["BLUE - 4"]
-  message: "", // resets every loop: last thing an object "said"
+  items: [],     // resets every loop
+  flags: {},     // resets every loop: e.g. { paintingClicks: 2, cabinetOpen: true }
+  clues: [],     // KEPT across loops: e.g. ["BLUE - 4"]
+  message: "",   // resets every loop: last thing an object "said"
   won: false,
   // two-player race (never reset by a loop)
-  phase: "lobby", // "lobby" -> "playing" -> "over"
+  phase: "lobby",     // "lobby" -> "playing" -> "over"
   playerName: null,
-  opponent: null, // { name, loop, step } once the match starts
+  opponent: null,     // { name, loop, step } once the match starts
   winner: null,
 };
 
@@ -35,7 +35,7 @@ function resetLoop() {
   game.flags = {};
   game.message = "";
   game.won = false;
-  game.loop++; // never touch game.clues here
+  game.loop++;  // never touch game.clues here
   send("progress", { loop: game.loop, step: 0 });
   startLoop();
 }
