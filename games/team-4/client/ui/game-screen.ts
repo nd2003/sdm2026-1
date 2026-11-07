@@ -646,8 +646,14 @@ export function renderGameScreen(
           <span class="tle-loop-chip" id="hud-loop">LOOP #01</span>
           <span class="tle-room-pill" id="hud-room-title">ROOM 01 // OFFICE</span>
           <div class="tle-player-chips">
-            <span class="tle-p-chip"><span class="tle-p-dot tle-dot-you"></span> You</span>
-            <span class="tle-p-chip"><span class="tle-p-dot tle-dot-drek"></span> Drek</span>
+            <span class="tle-p-chip" id="chip-player-1">
+              <span class="tle-p-dot tle-dot-you"></span>
+              <span id="label-player-1">Saif</span>
+            </span>
+            <span class="tle-p-chip" id="chip-player-2">
+              <span class="tle-p-dot tle-dot-drek"></span>
+              <span id="label-player-2">Drek</span>
+            </span>
           </div>
           <div class="tle-diff-group" role="group" aria-label="Room Progression">
             <button type="button" class="tle-diff-btn" id="btn-diff-basic" data-diff="basic">
@@ -3079,6 +3085,25 @@ export function renderGameScreen(
         Math.min(100, (state.timeLeftSeconds / Math.max(1, state.loopDurationSeconds)) * 100),
       );
       progEl.style.width = `${pct}%`;
+    }
+
+    const roomTitleEl = container.querySelector<HTMLElement>("#hud-room-title");
+    if (roomTitleEl) {
+      roomTitleEl.textContent = ROOM_TITLES[state.difficulty] ?? state.roomId;
+    }
+
+    const coopNamesEl = container.querySelector<HTMLElement>("#header-coop-names");
+    if (coopNamesEl) {
+      coopNamesEl.textContent = `🤝 ${state.player1Name} & ${state.player2Name}`;
+    }
+
+    const p1Label = container.querySelector<HTMLElement>("#label-player-1");
+    if (p1Label) {
+      p1Label.textContent = state.localRole === "host" ? `${state.player1Name} (You)` : state.player1Name;
+    }
+    const p2Label = container.querySelector<HTMLElement>("#label-player-2");
+    if (p2Label) {
+      p2Label.textContent = state.localRole === "guest" ? `${state.player2Name} (You)` : state.player2Name;
     }
 
     // Sequential Top-Bar Room Unlocking (Room 1 -> 🔒 Room 2 -> 🔒 Room 3)
