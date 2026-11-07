@@ -1,11 +1,12 @@
 import { Client, type Room } from "@colyseus/sdk";
 import { normalizeRoomCode, readClientParams, serverUrlFromPage } from "@sdm/core/client";
 import { JoinByCodeResponseSchema, Routes, ServerMessage } from "@sdm/core/shared";
-import { timeLoopGame } from "../shared/game.ts";
+import { levelDuration, timeLoopGame } from "../shared/game.ts";
 import type { TimeLoopInput, TimeLoopState } from "../shared/index.ts";
-import { isClueId } from "../shared/rules.ts";
+import { isClueId, LEVEL_COUNT } from "../shared/rules.ts";
 import "./style.css";
 import { currentInviteLink, loadNetworkAddress } from "./invite.ts";
+import { onBrowserBack, type Step } from "./nav.ts";
 import { TAPS } from "./targets.ts";
 import * as ui from "./ui.ts";
 import * as view from "./view.ts";
@@ -30,6 +31,16 @@ const client = new Client(SERVER_URL);
 
 let room: Room<TimeLoopState> | null = null;
 let seq = 0;
+
+/** Where the player is, and whether the next popstate is one we asked for by leaving a room. */
+let step: Step = "start";
+let skipPop = false;
+
+/** Moves to a new step and gives it a browser history entry, so Back returns here instead of leaving the game. */
+function enter(next: Step): void {
+  step = next;
+  history.pushState({ tle: next }, "");
+}
 
 const INTRO = [
   {
@@ -90,6 +101,7 @@ function connect(joined: Room<TimeLoopState>): void {
   });
 
   ui.showMain("game");
+  enter("room");
   if (joined.state?.phase) view.render(joined.state, joined.sessionId);
 }
 
@@ -143,18 +155,24 @@ function startIntro(): void {
   introIndex = 0;
   showIntroSlide();
   ui.showMain("intro");
+  enter("intro");
 }
 
 function nextIntro(): void {
   if (introIndex >= INTRO.length - 1) {
-    showLobby();
+    goLobby();
     return;
   }
   introIndex += 1;
   showIntroSlide();
 }
 
-function showLobby(): void {
+function goLobby(): void {
+  renderLobby();
+  if (step !== "lobby") enter("lobby");
+}
+
+function renderLobby(): void {
   ui.setLobbyName(params.name ?? safe(() => localStorage.getItem(NAME_KEY)) ?? "");
   if (params.room) ui.setLobbyCode(params.room);
   ui.setLobbyError("");
@@ -196,6 +214,54 @@ async function retryConnection(): Promise<void> {
   ui.setLostText("The room is gone or the seat expired. Go back to the lobby to start again.");
 }
 
+// ── going back ────────────────────────────────────────────────────────────────
+
+/** Leaves the room (if there is one) and returns to the lobby, undoing the room's history entry. */
+function leaveRoom(): void {
+  // Clear `room` first so its onLeave doesn't show "Connection lost" for a leave we asked for.
+  const leaving = room;
+  room = null;
+  leaving?.leave().catch(() => {});
+  safe(() => sessionStorage.removeItem(TOKEN_KEY));
+  ui.closeConfirmEnd();
+  ui.closeConfirmLeave();
+  ui.setOverlay(null);
+  if ((history.state as { tle?: string } | null)?.tle === "room") {
+    skipPop = true;
+    history.back();
+    // If the browser never answers, don't leave the player on the game screen.
+    setTimeout(() => {
+      if (!skipPop) return;
+      skipPop = false;
+      step = "lobby";
+      renderLobby();
+    }, 400);
+  } else {
+    step = "lobby";
+    renderLobby();
+  }
+}
+
+/** The browser's Back button: move to the previous screen, or ask before leaving a room. */
+function onPopState(e: PopStateEvent): void {
+  if (skipPop) {
+    skipPop = false;
+    step = "lobby";
+    renderLobby();
+    history.replaceState({ tle: "lobby" }, "");
+    return;
+  }
+  const action = onBrowserBack(step, e.state);
+  if (action.kind === "ask-leave") {
+    history.pushState({ tle: "room" }, "");
+    ui.openConfirmLeave(room?.state.solo === true);
+    return;
+  }
+  step = action.step;
+  if (action.step === "lobby") renderLobby();
+  else ui.showMain(action.step);
+}
+
 // ── submitting a code ─────────────────────────────────────────────────────────
 
 function submitCode(): void {
@@ -217,12 +283,26 @@ function bindEnter(id: string, handler: () => void): void {
 
 document.addEventListener("DOMContentLoaded", () => {
   ui.startRain();
-  ui.renderLoopTimes(timeLoopGame.config.loopTimes, timeLoopGame.config.defaultLoopTime);
+  const { config } = timeLoopGame;
+  ui.renderLoopTimes(
+    config.loopTimes.map((seconds) => {
+      const rooms = Array.from({ length: LEVEL_COUNT }, (_, i) => levelDuration(config, seconds, i + 1));
+      return { seconds, label: `${seconds} seconds: ${rooms.join(" / ")}` };
+    }),
+    config.defaultLoopTime,
+  );
   void loadNetworkAddress();
 
   bind("btn-start", startIntro);
   bind("intro-next", nextIntro);
-  bind("intro-skip", showLobby);
+  bind("intro-skip", goLobby);
+  bind("intro-back", () => {
+    if (introIndex > 0) {
+      introIndex -= 1;
+      showIntroSlide();
+    } else history.back();
+  });
+  bind("lobby-back", () => history.back());
 
   bind("lobby-create", () => void lobbyAction(() => createRoom(false)));
   bind("lobby-solo", () => void lobbyAction(() => createRoom(true)));
@@ -248,23 +328,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if ((e as KeyboardEvent).key === "Escape") ui.closeConfirmEnd();
   });
   bind("ended-restart", () => send({ type: "restart" }));
-  bind("ended-lobby", () => {
-    // Clear `room` first so its onLeave doesn't show "Connection lost" for a leave we asked for.
-    const leaving = room;
-    room = null;
-    void leaving?.leave();
-    safe(() => sessionStorage.removeItem(TOKEN_KEY));
-    ui.setOverlay(null);
-    showLobby();
-  });
+  bind("ended-lobby", leaveRoom);
+  bind("win-lobby", leaveRoom);
+  bind("wait-cancel", leaveRoom);
 
   bind("lost-retry", () => void retryConnection());
-  bind("lost-lobby", () => {
-    room = null;
-    safe(() => sessionStorage.removeItem(TOKEN_KEY));
-    ui.setOverlay(null);
-    showLobby();
+  bind("lost-lobby", leaveRoom);
+
+  bind("brief-leave", () => ui.openConfirmLeave(room?.state.solo === true));
+  bind("confirm-leave-no", ui.closeConfirmLeave);
+  bind("confirm-leave-yes", leaveRoom);
+  document.getElementById("confirm-leave")?.addEventListener("keydown", (e) => {
+    if ((e as KeyboardEvent).key === "Escape") ui.closeConfirmLeave();
   });
+
+  window.addEventListener("popstate", onPopState);
+  history.replaceState({ tle: "start" }, "");
 
   for (const [id, target] of Object.entries(TAPS)) {
     bind(id, () => send({ type: "interact", target }));
