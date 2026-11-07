@@ -1697,12 +1697,14 @@ body.no-flicker :is(.candles, .needle) {
 /* Admin only: the wrong casket glows red so the bite is telegraphed */
 #room[data-adminvamp="left"] #obj-casket-left,
 #room[data-adminvamp="right"] #obj-casket-right {
-  box-shadow: 0 0 10px #c00, 0 0 20px #c00;
-  animation: vampGlow 2s ease-in-out infinite alternate;
+  outline: 4px solid #ff0000 !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 16px #ff0000, 0 0 32px #ff0000 !important;
+  animation: vampGlow 1.2s ease-in-out infinite alternate;
 }
 @keyframes vampGlow {
-  from { box-shadow: 0 0 6px #c00, 0 0 12px #c00; }
-  to { box-shadow: 0 0 14px #c00, 0 0 28px #c00; }
+  from { outline-color: #ff0000; box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000; }
+  to { outline-color: #ff4444; box-shadow: 0 0 24px #ff0000, 0 0 48px #ff0000; }
 }
 @keyframes redlight {
   0% {
