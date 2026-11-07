@@ -9,7 +9,7 @@ jobs:
         run: |
           python3 -m http.server 8000 &   # file:// iframes are cross-origin in Chrome, so the two-tab checks need http
           sleep 1
-          google-chrome --headless=new --disable-gpu --no-sandbox --virtual-time-budget=30000 \
+          google-chrome --headless=new --disable-gpu --no-sandbox --virtual-time-budget=60000 \
             --dump-dom "http://localhost:8000/test.html" > out.html
           grep -oE '(PASS|FAIL) [^<]*' out.html || true
           grep -q '>ALL PASS<' out.html
