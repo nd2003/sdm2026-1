@@ -271,7 +271,6 @@ const SHAFT = [
   "indicator",
   "emergency-phone",
   "graffiti",
-  ,
   "zombie",
 ];
 export const OBJECT_IDS = [...OFFICE, ...CORRIDOR, ...SHAFT];
