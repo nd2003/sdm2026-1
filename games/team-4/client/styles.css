@@ -1,10 +1,1643 @@
-* {
+/* ==========================================================================
+   TIME LOOP ESCAPE — TEAM 4 "FRACTURED TIMELINE" SHARED VISUAL SYSTEM
+   - Theme: Dark, cinematic, mysterious, and slightly broken in time.
+   - Zero aggressive neon glow; subtle temporal offset lines & broken borders.
+   - Palette:
+       Background:        #0B0D14
+       Main panels:       #151722
+       Raised panels:     #1D202B
+       Borders:           #343747
+       Primary purple:    #8069B5
+       Secondary blue:    #586D91
+       Warm accent:       #B8895C
+       Main text:         #F0EDF5
+       Muted text:        #9CA2B1
+       Success:           #67A17D
+       Error/warning:     #C46B75
+   ========================================================================== */
+
+:root {
+  --color-bg: #0b0d14;
+  --color-panel: #151722;
+  --color-panel-raised: #1d202b;
+  --color-border: #343747;
+  --color-border-subtle: #242735;
+  --color-primary: #8069b5;
+  --color-primary-soft: rgba(128, 105, 181, 0.2);
+  --color-secondary: #586d91;
+  --color-secondary-soft: rgba(88, 109, 145, 0.2);
+  --color-accent-warm: #b8895c;
+  --color-accent-warm-soft: rgba(184, 137, 92, 0.18);
+  --color-text-main: #f0edf5;
+  --color-text-muted: #9ca2b1;
+  --color-success: #67a17d;
+  --color-warning: #c46b75;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0b0f14;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-main);
+  overflow-x: hidden;
+}
+
+/* !important: classes like .tle-modal-backdrop set display later in this file and would otherwise win. */
+.hidden {
+  display: none !important;
+}
+
+.tle-root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 680px;
+  background: var(--color-bg);
+  color: var(--color-text-main);
+  user-select: none;
+  overflow: hidden;
+}
+
+/* ================= PREVIEW ROLE SWITCHER (LOCAL TEST ONLY) ================= */
+.tle-perspective-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 14px;
+  background: var(--color-panel-raised);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.82rem;
+  z-index: 50;
+}
+
+.tle-persp-label {
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.tle-role-pill {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.8rem;
+  transition: all 0.15s ease;
+}
+
+.tle-role-pill.tle-role-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-text-main);
+}
+
+/* ================= FULL-SCREEN LOBBY SCENE ================= */
+.tle-lobby-scene {
+  position: relative;
+  width: 100%;
+  min-height: 680px;
+  flex: 1;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 30%, #151722 0%, #0b0d14 85%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-lobby-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0.85;
+}
+
+.tle-lobby-title-pill {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tle-lobby-title-pill::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.tle-lobby-title-pill::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  right: 18px;
+  width: 26px;
+  height: 1px;
+  background: var(--color-secondary);
+}
+
+/* Two Robots Standing in Center of Lobby */
+.tle-robots-stage {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 54px;
+  margin-top: 80px;
+}
+
+.tle-robot-actor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: default;
+  animation: tle-bot-bob 3.2s ease-in-out infinite;
+}
+
+.tle-robot-actor.tle-bot-drek {
+  animation-delay: -1.6s;
+}
+
+@keyframes tle-bot-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.tle-robot-nameplate {
+  position: relative;
+  margin-bottom: 12px;
+  min-width: 140px;
+  padding: 8px 30px 10px 16px;
+  border-radius: 8px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tle-robot-nameplate::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 12px;
+  width: 22px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.tle-bot-drek .tle-robot-nameplate::before {
+  background: var(--color-secondary);
+}
+
+.tle-robot-nameplate.tle-nameplate-ready {
+  border-color: var(--color-success);
+}
+
+.tle-you-chip {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  vertical-align: middle;
+}
+
+.tle-name-ready-tick {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(103, 161, 125, 0.18);
+  border: 1px solid var(--color-success);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-robot-svg {
+  width: 126px;
+  height: 180px;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.65));
+}
+
+/* In-Lobby Comms & Chatbox */
+.tle-lobby-comms {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  z-index: 18;
+  width: min(340px, calc(100% - 48px));
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tle-lobby-comms-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 6px;
+}
+
+.tle-lobby-comms-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.tle-lobby-mic-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-warning);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-lobby-mic-btn:hover {
+  border-color: var(--color-secondary);
+}
+
+.tle-lobby-mic-btn.tle-mic-live {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: rgba(103, 161, 125, 0.15);
+}
+
+.tle-lobby-chat-log {
+  height: 110px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  user-select: text;
+}
+
+.tle-chat-msg {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-text-main);
+  word-break: break-word;
+}
+
+.tle-chat-sender-p1 {
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.tle-chat-sender-p2 {
+  font-weight: 800;
+  color: var(--color-secondary);
+}
+
+.tle-lobby-chat-form {
+  display: flex;
+  gap: 6px;
+}
+
+.tle-lobby-chat-input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-raised);
+  color: var(--color-text-main);
+  font-size: 0.82rem;
+  padding: 0 10px;
+  outline: none;
+}
+
+.tle-lobby-chat-input:focus {
+  border-color: var(--color-primary);
+}
+
+.tle-lobby-chat-send {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-raised);
+  color: var(--color-text-main);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-lobby-chat-send:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* Bottom-Left Lobby Actions */
+.tle-lobby-action-row {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tle-lobby-start-btn {
+  min-width: 200px;
+  padding: 13px 28px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-raised);
+  color: var(--color-text-main);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-lobby-start-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.tle-lobby-start-btn.tle-lobby-btn-green {
+  border-color: var(--color-success);
+  background: rgba(103, 161, 125, 0.22);
+  color: var(--color-text-main);
+}
+
+.tle-lobby-start-btn.tle-lobby-btn-gray {
+  border-color: var(--color-border);
+  background: var(--color-panel-raised);
+  color: var(--color-text-muted);
+}
+
+.tle-lobby-start-btn.tle-lobby-btn-waiting {
+  border-color: var(--color-border);
+  background: var(--color-panel);
+  color: var(--color-text-muted);
+}
+
+.tle-lobby-cancel-ready {
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   MAIN GAME SCREEN TOP HEADER BAR
+   Layout:
+     Top left: Pause / Help
+     Top center: TIME LOOP ESCAPE + Near the title: LOOP 03, MEMORY 2/4
+     Top right: timer such as 00:43
+   ========================================================================== */
+.tle-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 64px;
+  padding: 8px 20px;
+  background: var(--color-panel);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 30;
+  flex-wrap: wrap;
+}
+
+/* Broken Timeline offset hairline in header */
+.tle-header::before {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 48px;
+  width: 72px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.tle-header::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  right: 120px;
+  width: 54px;
+  height: 1px;
+  background: var(--color-secondary);
+}
+
+.tle-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.tle-header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.tle-title-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tle-main-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+}
+
+.tle-meta-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tle-loop-chip {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 1px solid rgba(128, 105, 181, 0.4);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.tle-memory-chip {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-secondary);
+  background: var(--color-secondary-soft);
+  border: 1px solid rgba(88, 109, 145, 0.4);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.tle-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex: 1;
+}
+
+.tle-timer-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+}
+
+.tle-top-timer-display {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--color-text-main);
+  letter-spacing: 0.04em;
+}
+
+.tle-timer-progress-bar-wrap {
+  width: 60px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tle-prog-fill {
+  height: 100%;
+  background: var(--color-secondary);
+  transition: width 0.35s linear;
+}
+
+.tle-coop-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-coop-pill:hover {
+  border-color: var(--color-secondary);
+  color: var(--color-text-main);
+}
+
+.tle-p-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+/* Header Buttons */
+.tle-btn-header {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-raised);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.tle-btn-header:hover {
+  border-color: var(--color-secondary);
+}
+
+.tle-btn-help {
+  border-color: rgba(184, 137, 92, 0.4);
+  background: var(--color-accent-warm-soft);
+  color: var(--color-accent-warm);
+}
+
+.tle-btn-help:hover {
+  border-color: var(--color-accent-warm);
+  color: var(--color-text-main);
+}
+
+.tle-diff-group {
+  display: inline-flex;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.tle-diff-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-diff-btn.tle-diff-active {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+}
+
+.tle-diff-btn.tle-diff-locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   MAIN GAMEPLAY CONTAINER
+   - Center: the room remains the main visual focus
+   - Bottom left: INVENTORY (dark matte panel, thin border, ~10px radius)
+   - Bottom right: CLUES (dark matte panel, thin border, ~10px radius)
+   ========================================================================== */
+.tle-stage-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 16px;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Center Room Stage (Primary Visual Focus!) */
+.tle-room-stage {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  min-height: 480px;
+  background: #0b0d14;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Subtle Fractured Timeline corner ticks on Room Stage */
+.tle-room-stage::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 28px;
+  width: 48px;
+  height: 1px;
+  background: var(--color-primary);
+  z-index: 25;
+}
+
+.tle-room-stage::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  right: 28px;
+  width: 48px;
+  height: 1px;
+  background: var(--color-secondary);
+  z-index: 25;
+}
+
+/* Real-Time Door Zoom Walk-Through */
+.tle-room-blur-target {
+  position: absolute;
+  inset: 0;
+  transition:
+    transform 0.92s cubic-bezier(0.32, 0, 0.15, 1),
+    opacity 0.85s ease,
+    filter 0.25s ease;
+}
+
+.tle-room-blurred {
+  filter: blur(6px) brightness(0.6);
+  pointer-events: none;
+}
+
+.tle-zoom-walkthrough {
+  transform: scale(3.2);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.tle-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tle-scene-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Clean, Non-Intrusive Interaction Hotspots & Tags */
+.tle-hotspot {
+  position: absolute;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.tle-hotspot:hover {
+  transform: scale(1.02);
+}
+
+.tle-obj-tag {
+  position: absolute;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(21, 23, 34, 0.92);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 18;
+  transition: all 0.15s ease;
+}
+
+.tle-hotspot:hover + .tle-obj-tag,
+.tle-obj-tag:hover {
+  color: var(--color-text-main);
+  border-color: var(--color-accent-warm);
+}
+
+.tle-obj-tag.tle-tag-solved {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+/* 3D Doors */
+.tle-door-3d-wrap {
+  position: absolute;
+  perspective: 800px;
+}
+
+.tle-door-leaf-3d {
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tle-door-open .tle-door-leaf-3d {
+  transform: rotateY(-82deg);
+}
+
+.tle-r1-door-leaf {
+  position: absolute;
+  inset: 6px;
+  background: linear-gradient(90deg, #272a38, #1d202b);
+  border: 2px solid var(--color-border);
+}
+
+.tle-r1-door-sign {
+  position: absolute;
+  top: 22%;
+  left: 14%;
+  right: 14%;
+  background: var(--color-panel);
+  color: var(--color-text-main);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px;
+  text-align: center;
+  border: 1px solid var(--color-border);
+}
+
+.tle-r1-door-handle {
+  position: absolute;
+  right: 14%;
+  top: 50%;
+  width: 10px;
+  height: 26px;
+  background: var(--color-accent-warm);
+  border-radius: 2px;
+}
+
+.tle-r2-door-frame {
+  position: absolute;
+  inset: 0;
+  background: #0b0d14;
+  border: 3px solid #29150e;
+}
+
+.tle-r2-door-leaf {
+  position: absolute;
+  inset: 4px;
+  background: #2b120c;
+  border: 1px solid #1f0c08;
+}
+
+.tle-r2-door-sign {
+  margin: 12px auto;
+  width: 72%;
+  height: 42%;
+  background: #f0edf5;
+  color: #2b120c;
+  font-size: 0.62rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tle-r3-door-frame {
+  position: absolute;
+  inset: 0;
+  background: #11141d;
+  border: 4px solid #3d351e;
+}
+
+.tle-r3-door-leaf {
+  position: absolute;
+  inset: 4px;
+  background: #473e20;
+  border: 2px solid #2b2512;
+}
+
+.tle-r3-door-panel-top,
+.tle-r3-door-panel-bot {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  border: 2px solid #2b2512;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.tle-r3-door-panel-top {
+  top: 8%;
+  height: 42%;
+}
+
+.tle-r3-door-panel-bot {
+  top: 56%;
+  height: 34%;
+}
+
+.tle-r3-door-handle {
+  position: absolute;
+  right: 8%;
+  top: 45%;
+  width: 9px;
+  height: 36px;
+  border-radius: 2px;
+  background: var(--color-border);
+}
+
+/* Corridor turbine */
+@keyframes tle-turbine-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tle-turbine-fast {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tle-turbine-spin 1.4s linear infinite;
+}
+
+/* VHS Rewind */
+.tle-vhs-rewind-layer {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 13, 20, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 70;
+}
+
+.tle-vhs-text {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--color-text-main);
+  background: var(--color-panel);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  padding: 10px 22px;
+}
+
+/* ==========================================================================
+   BOTTOM DOCK: BOTTOM-LEFT INVENTORY & BOTTOM-RIGHT CLUES
+   Both areas use dark matte panels with thin borders and ~10px radius.
+   ========================================================================== */
+.tle-bottom-dock {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr minmax(320px, 440px);
+  gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 860px) {
+  .tle-bottom-dock {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tle-panel-matte {
+  position: relative;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Broken Timeline offset detail on matte panels */
+.tle-panel-matte::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 16px;
+  width: 28px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.tle-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.tle-panel-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+}
+
+.tle-panel-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tle-panel-tag.tle-tag-saved {
+  color: var(--color-secondary);
+  border-color: rgba(88, 109, 145, 0.4);
+}
+
+/* Bottom Left: INVENTORY */
+.tle-inventory-panel {
+  grid-column: 1;
+}
+
+.tle-inv-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tle-inv-slot {
+  min-height: 64px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-raised);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-inv-slot:hover {
+  border-color: var(--color-secondary);
+}
+
+.tle-inv-slot.tle-slot-filled {
+  border-color: var(--color-border);
+  background: var(--color-panel-raised);
+}
+
+/* Selected inventory items: muted purple border/background, NO large glow! */
+.tle-inv-slot.tle-inv-selected {
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.tle-slot-name {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  max-width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tle-slot-empty {
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+/* Bottom Center: Compact Objective Tasks */
+.tle-tasks-dock {
+  grid-column: 2;
+}
+
+.tle-tasks-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.tle-task-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.tle-task-row.tle-task-done {
+  color: var(--color-success);
+}
+
+/* Bottom Right: CLUES */
+.tle-clues-panel {
+  grid-column: 3;
+}
+
+.tle-clues-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.tle-clue-item {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-main);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-left: 3px solid var(--color-secondary);
+  border-radius: 4px;
+  padding: 6px 9px;
+}
+
+.tle-clue-empty {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  padding: 4px 2px;
+}
+
+/* ================= TOASTS & HINT CARD ================= */
+.tle-feedback-toast {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 86%;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  padding: 9px 18px;
+  border-radius: 8px;
+  z-index: 95;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.tle-banner-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tle-hint-card {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(500px, 92%);
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75);
+  z-index: 96;
+  color: var(--color-text-main);
+}
+
+.tle-hint-card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 20px;
+  width: 36px;
+  height: 1px;
+  background: var(--color-accent-warm);
+}
+
+.tle-hint-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tle-hint-badge {
+  background: var(--color-accent-warm-soft);
+  border: 1px solid rgba(184, 137, 92, 0.4);
+  color: var(--color-accent-warm);
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.tle-hint-target {
+  margin: 0 0 5px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--color-secondary);
+}
+
+.tle-hint-body {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-text-main);
+}
+
+.tle-hint-gotit {
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 5px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-hint-gotit:hover {
+  border-color: var(--color-accent-warm);
+}
+
+/* ================= MODALS & PUZZLES ================= */
+.tle-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 13, 20, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+.tle-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.8);
+  color: var(--color-text-main);
+}
+
+.tle-modal-card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 24px;
+  width: 44px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.tle-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+.tle-modal-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+  letter-spacing: 0.04em;
+}
+
+.tle-close-btn {
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-close-btn:hover {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.tle-puz-box {
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.tle-puz-desc {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-text-main);
+}
+
+.tle-puz-btn {
+  padding: 9px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  color: var(--color-text-main);
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-puz-btn:hover {
+  border-color: var(--color-secondary);
+}
+
+.tle-puz-btn.tle-active {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-text-main);
+}
+
+.tle-status-readout {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.45;
+  padding: 9px 12px;
+  border-radius: 6px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  text-align: center;
+  margin-top: 10px;
+}
+
+.tle-lobby-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.tle-suspect-card {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-suspect-card:hover {
+  border-color: var(--color-primary);
+}
+
+.tle-suspect-card.tle-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* Countdown Overlay */
+.tle-countdown-num {
+  font-size: 4.5rem;
+  font-weight: 900;
+  color: var(--color-primary);
+}
+
+/* End-of-Game Co-Op Scoreboard Modal */
+.tle-modal-card.tle-score-card-wide {
+  max-width: 620px;
+}
+
+.tle-winner-banner {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.tle-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+@media (max-width: 540px) {
+  .tle-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tle-stat-card {
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.tle-stat-player-head {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.tle-stat-card.tle-stat-opp .tle-stat-player-head {
+  color: var(--color-secondary);
+}
+
+.tle-stat-hero-box {
+  background: var(--color-panel);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  margin-bottom: 8px;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.tle-stat-hero-num {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--color-text-main);
+}
+
+.tle-stat-hero-sub {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.tle-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.tle-stat-row:last-child {
+  border-bottom: none;
+}
+
+.tle-stat-row strong {
+  color: var(--color-text-main);
+  font-weight: 700;
+}
+
+.tle-end-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.tle-btn-rematch {
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-text-main);
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-btn-rematch:hover {
+  background: var(--color-primary);
   color: #ffffff;
+}
+
+.tle-btn-exit-lobby {
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-raised);
+  color: var(--color-text-main);
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-btn-exit-lobby:hover {
+  border-color: var(--color-secondary);
+}
+
+/* PUBG-Style Rematch Invite Slide-in Drawer */
+.tle-pubg-drawer {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 320px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8);
+  z-index: 135;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+.tle-pubg-drawer::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 14px;
+  width: 32px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.tle-side-hidden {
+  transform: translateX(360px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Green Escape Toast Popup */
+.tle-escape-green-popup {
+  position: fixed;
+  top: 76px;
+  right: 20px;
+  z-index: 132;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.tle-escape-popup-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+/* In-Room Voice Mic Button (Symbol Only) */
+.tle-pubg-mic-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 68;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  color: var(--color-warning);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tle-pubg-mic-btn:hover {
+  border-color: var(--color-secondary);
+}
+
+.tle-pubg-mic-btn.tle-mic-live {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: rgba(103, 161, 125, 0.15);
 }
