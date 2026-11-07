@@ -578,3 +578,11 @@ body.is-admin #hud { padding-right: 262px; }  /* room for the Skip button beside
 .watchers .w:nth-child(5) .eyes { animation-delay: -4.2s; }
 .watchers .w:nth-child(6) .eyes { animation-delay: -2.4s; }
 @keyframes watch { 0%, 61%, 64%, 100% { opacity: 1; } 62%, 63% { opacity: 0; } }
+
+/* Faces peeking around the doorframes. They pull back when the flashlight lands on them. */
+.peeker { opacity: clamp(0, calc((max(var(--nx, .5) - var(--p), var(--p) - var(--nx, .5)) - .07) * 7), 1); transition: opacity .45s; }
+.peekers .later-only { display: none; }
+#room.later .peekers .later-only { display: inline; }
+.peeker .eyes { animation: watch 6.5s steps(1) infinite; }
+.peeker:nth-child(4) .eyes { animation-delay: -2.2s; }
+.peeker:nth-child(6) .eyes { animation-delay: -4.1s; }
