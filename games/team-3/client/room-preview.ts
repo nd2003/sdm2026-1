@@ -3,6 +3,7 @@
  * checked without the server. Buttons switch the level and the object states, and a click shows the object id.
  */
 import "./room.css";
+import { type HudView, mountHud, updateHud } from "./hud.ts";
 import { buildRoom, placeObjects, type RoomView, updateRoom } from "./room.ts";
 
 const room = document.getElementById("room") as HTMLElement;
@@ -23,6 +24,7 @@ placeObjects(room, rand, { color: "BLUE", casket: "left" });
 
 const show = (): void => {
   updateRoom(room, view);
+  updateHud(hudRoot, { ...hud, loop: view.loop, stage: view.stage });
   for (const b of document.querySelectorAll<HTMLButtonElement>("[data-stage-btn]"))
     b.setAttribute("aria-pressed", String(Number(b.dataset.stageBtn) === view.stage));
 };
@@ -41,7 +43,41 @@ for (const b of document.querySelectorAll<HTMLButtonElement>("[data-flag]"))
   });
 (document.getElementById("next-loop") as HTMLElement).addEventListener("click", () => {
   view.loop += 1;
+  hud.items = [];
+  hud.timeLeft = hud.loopSeconds;
+  hud.message = "Time ran out. The loop reset: your items are gone, your journal stays.";
   show();
 });
+
+// The HUD with a sample state: the timer counts down, and buttons add an item or a clue.
+const hudRoot = document.getElementById("hud-root") as HTMLElement;
+const hud: HudView = {
+  timeLeft: 60,
+  loopSeconds: 60,
+  loop: 1,
+  stage: 1,
+  items: [],
+  clues: [],
+  message: "",
+  escaped: false,
+};
+mountHud(hudRoot);
+const button = (id: string, run: () => void): void =>
+  (document.getElementById(id) as HTMLElement).addEventListener("click", () => {
+    run();
+    show();
+  });
+button("add-item", () => {
+  hud.items.push(hud.items.includes("key") ? "fuse" : "key");
+  hud.message = "You found something.";
+});
+button("add-clue", () => {
+  hud.clues.push(`BLUE - ${hud.clues.length + 4}`);
+  hud.message = "You wrote it in your journal.";
+});
+setInterval(() => {
+  hud.timeLeft = hud.timeLeft > 1 ? hud.timeLeft - 1 : hud.loopSeconds;
+  show();
+}, 1000);
 
 show();
