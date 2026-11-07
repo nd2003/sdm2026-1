@@ -315,8 +315,11 @@ export function formatStudentReport(rows, meta) {
   ];
   for (const r of rows) {
     const s = r.stats;
+    // Work imported from a team repository (#310) is shown next to the student's own PRs and commits.
+    const merged = `${s.prsMerged}${s.importsMerged ? ` + ${s.importsMerged} import` : ""}`;
+    const commits = `${s.commits} (${s.commitsWithRefs})${s.commitsImported ? ` + ${s.commitsImported} imported` : ""}`;
     lines.push(
-      `| ${who(r)} | ${r.team ?? "–"} | **${r.score}** | ${r.points} (${r.delivery}/${r.process}/${r.collaboration}) | ${s.prsMerged} / ${s.prsOpen} | ${s.commits} (${s.commitsWithRefs}) | ${s.docPass}/${s.docPass + s.docFail} | ${s.reviewsGiven} | ${cell(r.justification)} |`,
+      `| ${who(r)} | ${r.team ?? "–"} | **${r.score}** | ${r.points} (${r.delivery}/${r.process}/${r.collaboration}) | ${merged} / ${s.prsOpen} | ${commits} | ${s.docPass}/${s.docPass + s.docFail} | ${s.reviewsGiven} | ${cell(r.justification)} |`,
     );
   }
   lines.push(
