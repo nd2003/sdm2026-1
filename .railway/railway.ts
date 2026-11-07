@@ -51,6 +51,7 @@ export const GAMES: readonly Game[] = [
   { service: "template", dir: "server/template", package: "@sdm/template" },
   { service: "team-1", dir: "games/team-1", package: "@team-1/game" },
   { service: "team-2", dir: "games/team-2", package: "@team-2/game" },
+  { service: "team-3", dir: "games/team-3", package: "@team-3/game" },
   { service: "team-4", dir: "games/team-4", package: "@team-4/game" },
 ];
 
