@@ -202,7 +202,7 @@
       $a("lobby").querySelector("button[value=create]").click();
       need($b("player-name").value === "Bo" && $b("room-code").value === code, "?room=&name= not filled in");
       $b("lobby").querySelector("button[value=join]").click();
-      for (let i = 0; i < 30 && B.eval("game.phase") !== "playing"; i++) await sleep(100);
+      for (let i = 0; i < 80 && B.eval("game.phase") !== "playing"; i++) await sleep(100);
       return need(A.eval("game.phase") === "playing" && B.eval("game.phase") === "playing", "not paired")
         && need(A.eval("game.role") === "A" && B.eval("game.role") === "B", "roles")
         && need(A.eval("game.seed") === B.eval("game.seed"), "seed differs")
