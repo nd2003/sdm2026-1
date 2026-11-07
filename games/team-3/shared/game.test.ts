@@ -60,6 +60,25 @@ describe("Time Loop Escape room logic", () => {
     expect(() => m.sim.join("c", { name: "Cy" })).toThrow();
   });
 
+  it("loop length: 60/90/120 for anyone, 600 only for an admin creator, anything else falls back to 60", () => {
+    expect(match(3, 120).player("a").timeLeft).toBe(120);
+    const length = (name: string, seconds: number) => {
+      const sim = new Simulation(timeLoopGame, {
+        seed: 1,
+        roomId: "r",
+        sha: "t",
+        startedAt: "x",
+        mode: "live",
+      });
+      sim.join("a", { name, seconds });
+      return sim.state.loopSeconds;
+    };
+    expect(length("Sam", 600)).toBe(60);
+    expect(length("admin", 600)).toBe(600);
+    expect(length("ADMIN", 600)).toBe(600);
+    expect(length("Sam", 45)).toBe(60);
+  });
+
   it("answers differ per player and nothing reacts before its clue is known", () => {
     const m = match(11);
     expect(m.answers("a")).not.toEqual(m.answers("b"));
