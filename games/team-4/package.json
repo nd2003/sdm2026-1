@@ -1,11 +1,11 @@
 {
-  "name": "@sdm/team-4",
+  "name": "@team-4/game",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "description": "Reference game. Copy this folder to games/team-N/ to start a team's game.",
   "scripts": {
-    "dev": "pnpm --filter @sdm/team-4 --parallel run \"/^dev:/\"",
+    "dev": "pnpm --filter @team-4/game --parallel run \"/^dev:/\"",
     "dev:server": "tsx watch --clear-screen=false server.ts",
     "dev:client": "vite",
     "build": "vite build",
