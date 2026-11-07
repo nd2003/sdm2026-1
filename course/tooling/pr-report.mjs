@@ -88,6 +88,18 @@ const templates = Object.fromEntries(
     .map(([type, t]) => [type, readFileSync(`${root}/${t.prTemplate}`, "utf8")]),
 );
 
+// The first merged PR each commit appeared in (#310): a later work PR that brings in main carries those
+// commits again, and they are judged in that first PR, not again. Only the PRs read here are known, so
+// `--state open` sees fewer of them than the default `--state all`.
+const firstMerged = new Map();
+for (const p of prs) {
+  if (p.state !== "MERGED") continue;
+  for (const c of p.commits.nodes) {
+    const seen = firstMerged.get(c.commit.oid);
+    if (seen === undefined || p.number < seen) firstMerged.set(c.commit.oid, p.number);
+  }
+}
+
 const entries = prs.map((p) => {
   const pr = {
     number: p.number,
@@ -107,6 +119,9 @@ const entries = prs.map((p) => {
     committedDate: c.commit.committedDate,
   }));
   const number = linkedIssue(pr.body, { allowRefs: pr.head === "main" });
+  const judgedElsewhere = new Set(
+    commits.filter((c) => (firstMerged.get(c.oid) ?? Number.POSITIVE_INFINITY) < pr.number).map((c) => c.oid),
+  );
   const result = auditPr({
     pr,
     commits,
@@ -114,9 +129,10 @@ const entries = prs.map((p) => {
     issue: number === null ? null : (issues.get(number) ?? null),
     config,
     templates,
+    judgedElsewhere,
   });
   const ownComment = p.comments.nodes.find((c) => c.viewerDidAuthor && c.body.includes(COMMENT_MARKER));
-  return { pr, commits, result, ownComment };
+  return { pr, commits, judgedElsewhere, result, ownComment };
 });
 const selected = team ? entries.filter((e) => e.result.team === team) : entries;
 
@@ -127,6 +143,7 @@ if (flags.fix === true) {
       plan: planFix({
         pr: e.pr,
         commits: e.commits,
+        judgedElsewhere: e.judgedElsewhere,
         issues,
         config,
         templates,

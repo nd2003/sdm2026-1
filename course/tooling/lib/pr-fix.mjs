@@ -70,10 +70,12 @@ const itemText = (line) => normalize(line.replace(/^\s*-\s*\[[ xX]\]\s*/, "").re
  *   config: { teamLabels: string[] },
  *   templates: Record<string, string>,
  *   hadComment?: boolean,
- * }} input hadComment: this tool already left a comment, which a passing open PR gets updated to "nothing left"
+ *   judgedElsewhere?: Set<string>,
+ * }} input hadComment: this tool already left a comment, which a passing open PR gets updated to "nothing left".
+ *   judgedElsewhere: see auditPr.
  */
-export function planFix({ pr, commits, issues, config, templates, hadComment = false }) {
-  const before = auditPr({ pr, commits, issue: issueFor(pr, issues), config, templates });
+export function planFix({ pr, commits, issues, config, templates, hadComment = false, judgedElsewhere }) {
+  const before = auditPr({ pr, commits, issue: issueFor(pr, issues), config, templates, judgedElsewhere });
   /** @type {string[]} */
   const fixed = [];
   const fromMain = pr.head === "main";
@@ -111,7 +113,14 @@ export function planFix({ pr, commits, issues, config, templates, hadComment = f
 
   const after = { ...pr, title, body, base, labels: [...pr.labels, ...addLabels] };
   // Only current problems count; problems against rules from after the PR was opened are legacy.
-  const remaining = auditPr({ pr: after, commits, issue: issueFor(after, issues), config, templates });
+  const remaining = auditPr({
+    pr: after,
+    commits,
+    issue: issueFor(after, issues),
+    config,
+    templates,
+    judgedElsewhere,
+  });
   const notes = [];
   if (pr.state === "OPEN" && WORK_BRANCH.test(pr.base) && remaining.problems.some((p) => p.rule === "base"))
     notes.push(

@@ -65,6 +65,56 @@ describe("collectStats", () => {
     expect(s.commitsWithRefs).toBe(2);
   });
 
+  it("counts commits imported from a team repository separately, outside the Refs rule (#310)", () => {
+    const list = stats({
+      prs: [
+        pr({
+          number: 138,
+          author: "carol",
+          commits: [commit("i1", ["alice"], false), commit("i2", ["dave"], false), commit("i3", ["carol"])],
+        }),
+      ],
+    });
+    const alice = of(list, "alice");
+    expect([alice.commits, alice.commitsWithRefs, alice.commitsImported]).toEqual([0, 0, 1]);
+    // A commit with a reference in the import PR was written here and counts as usual.
+    expect([of(list, "carol").commits, of(list, "carol").commitsWithRefs]).toEqual([1, 1]);
+    const r = scoreStudent(alice);
+    expect(r.justification).toMatch(/1 commit imported from the team's own repository/);
+    expect(r.justification).not.toMatch(/no visible activity/);
+    expect(r.justification).not.toMatch(/reference an issue/);
+  });
+
+  it("credits a merged import PR to every author of its imported commits for Delivery (#310)", () => {
+    const importPr = (over: Record<string, unknown> = {}) =>
+      pr({
+        number: 138,
+        author: "carol",
+        commits: [commit("i1", ["alice"], false), commit("i2", ["carol"], false), commit("i3", ["bob"])],
+        ...over,
+      });
+    const list = stats({ prs: [importPr()] });
+    expect(of(list, "alice").importsMerged).toBe(1);
+    // The author already has it as a merged PR, and a commit written here is not an import.
+    expect(of(list, "carol").importsMerged).toBe(0);
+    expect(of(list, "bob").importsMerged).toBe(0);
+    const alice = scoreStudent(of(list, "alice"));
+    expect(alice.delivery).toBe(2);
+    expect(alice.justification).toMatch(/own work in 1 merged import PR opened by a teammate/);
+    expect(scoreStudent(of(list, "carol")).delivery).toBe(2);
+    // The table shows the import next to the student's own PRs and commits.
+    const md = formatStudentReport(scoreAll(list), {
+      repo: "o/r",
+      generatedAt: "now",
+      prCount: 1,
+      issueCount: 0,
+    });
+    const aliceRow = md.split("\n").find((l) => l.startsWith("| `alice` |")) ?? "";
+    expect(aliceRow).toContain("| 0 + 1 import / 0 | 0 (0) + 1 imported |");
+    // An import that is not merged delivers nothing yet.
+    expect(of(stats({ prs: [importPr({ state: "OPEN" })] }), "alice").importsMerged).toBe(0);
+  });
+
   it("counts a commit once when it appears in several PRs", () => {
     const list = stats({
       prs: [

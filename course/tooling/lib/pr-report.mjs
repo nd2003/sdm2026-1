@@ -29,6 +29,17 @@ export const RULE_ERAS = [
   { since: "2026-11-06T14:29:27Z", pr: 86, what: "Conventional Commits PR titles", rules: [], titles: true },
 ];
 
+/**
+ * PRs that brought a team's work in from its own repository, with that repository's history (#310). Their
+ * commits were written under the other repository's rules, so they are not checked for "Refs #N".
+ */
+export const IMPORTS = [
+  { pr: 138, from: "zaid-akroush/timeloop-escape" },
+  { pr: 280, from: "zaid-akroush/timeloop-escape" },
+];
+/** The import a PR number belongs to, or null. */
+export const importOf = (number) => IMPORTS.find((i) => i.pr === number) ?? null;
+
 /** The era that introduced a rule. */
 const eraOf = (rule) => RULE_ERAS.find((e) => e.rules.includes(rule)) ?? null;
 /** When PR titles had to become Conventional Commits. */
@@ -137,9 +148,20 @@ export function teamOf(pr, teamLabels) {
  *   issue: { number: number, labels: string[] } | null,
  *   config: { teamLabels: string[] },
  *   templates: Record<string, string>,
- * }} input `issue` is the linked issue as GitHub returned it (null if the PR links none or it does not exist)
+ *   judgedElsewhere?: Set<string>,
+ * }} input `issue` is the linked issue as GitHub returned it (null if the PR links none or it does not exist).
+ *   `judgedElsewhere`: oids of commits that are already part of an earlier merged PR (#310); a work PR that
+ *   brings in `main` carries them, and they were judged in their own PR.
  */
-export function auditPr({ pr, commits, commitsTruncated = false, issue, config, templates }) {
+export function auditPr({
+  pr,
+  commits,
+  commitsTruncated = false,
+  issue,
+  config,
+  templates,
+  judgedElsewhere = new Set(),
+}) {
   const template = checkPr({
     title: pr.title,
     body: pr.body,
@@ -206,8 +228,24 @@ export function auditPr({ pr, commits, commitsTruncated = false, issue, config, 
     }
 
     const ref = new RegExp(`^\\s*(?:Refs|Closes|Fixes|Resolves)\\s+#${number}\\b`, "im");
-    const checked = commits.filter((c) => !EXEMPT_COMMIT.test(c.message));
-    const missing = checked.filter((c) => !ref.test(c.message));
+    // Commits from an earlier merged PR were judged there; an import PR's commits come from another
+    // repository (#310). Neither is checked here.
+    const fromElsewhere = commits.filter((c) => c.oid && judgedElsewhere.has(c.oid));
+    const imported = importOf(pr.number);
+    const own = commits.filter((c) => !fromElsewhere.includes(c));
+    const checked = own.filter((c) => !EXEMPT_COMMIT.test(c.message));
+    const missing = imported ? [] : checked.filter((c) => !ref.test(c.message));
+    if (fromElsewhere.length > 0)
+      warnings.push(
+        `${fromElsewhere.length} commit(s) already belong to an earlier merged PR and are not checked here.`,
+      );
+    if (imported) {
+      const notChecked = checked.filter((c) => !ref.test(c.message)).length;
+      if (notChecked > 0)
+        warnings.push(
+          `${notChecked} commit(s) were imported from ${imported.from} and are not checked for "Refs #${number}".`,
+        );
+    }
     // A commit is judged by the rules in force when it was made, not when its PR was opened.
     const since = eraOf("commit-refs")?.since;
     const old = missing.filter((c) => since && before(c.committedDate, since));
