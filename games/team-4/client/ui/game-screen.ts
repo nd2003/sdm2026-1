@@ -31,6 +31,7 @@ export type RoomObjectId =
 
 export type InventoryItemId =
   | "Console Key"
+  | "Brass Corkscrew"
   | "Bar Token"
   | "Oscilloscope Key"
   | "Silver Door Key";
@@ -46,6 +47,7 @@ export interface LobbyChatMessage {
 
 export interface GameScreenState {
   roomId?: string;
+  selectedInventoryItem?: InventoryItemId | null;
   roomCode?: string;
   player1Name?: string;
   player2Name?: string;
@@ -121,7 +123,7 @@ export function renderGameScreen(
     opponentEscapedRoom: initialState?.opponentEscapedRoom ?? null,
     lobbyMessages: initialState?.lobbyMessages
       ? [...initialState.lobbyMessages]
-      : [{ sender: "p2", text: "Hey Saif! Ready up whenever you're set 🔥" }],
+      : [{ sender: "p2", text: "Hey Saif! Ready up so we can escape all 3 rooms together 🤝" }],
     difficulty: initialState?.difficulty ?? "basic",
     stageView: initialState?.stageView ?? "lobby",
     timeLeftSeconds: initialState?.timeLeftSeconds ?? 60,
@@ -152,6 +154,7 @@ export function renderGameScreen(
     r3CoatSolved: initialState?.r3CoatSolved ?? false,
     r3OscilloSolved: initialState?.r3OscilloSolved ?? false,
     r3HnocsSolved: initialState?.r3HnocsSolved ?? false,
+    selectedInventoryItem: initialState?.selectedInventoryItem ?? null,
     escaped: initialState?.escaped ?? false,
     clues: initialState?.clues ? [...initialState.clues] : [],
     inventory: initialState?.inventory ? [...initialState.inventory] : [],
@@ -180,6 +183,7 @@ export function renderGameScreen(
       r3CoatSolved: false,
       r3OscilloSolved: false,
       r3HnocsSolved: false,
+      selectedInventoryItem: null as InventoryItemId | null,
       pendingEscapePopup: "",
     };
   }
@@ -195,22 +199,28 @@ export function renderGameScreen(
     const arr = [...items];
     for (let i = arr.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));
-      const tmp = arr[i];
-      arr[i] = arr[j];
-      arr[j] = tmp;
+      const vi = arr[i];
+      const vj = arr[j];
+      if (vi !== undefined && vj !== undefined) {
+        arr[i] = vj;
+        arr[j] = vi;
+      }
     }
     return arr;
   }
 
   function shuffleNonSequential(items: string[], answerSeq: string[]): string[] {
+    const a0 = answerSeq[0] ?? "";
+    const a1 = answerSeq[1] ?? "";
+    const a2 = answerSeq[2] ?? "";
     for (let attempt = 0; attempt < 25; attempt += 1) {
       const cand = shuffleItems(items);
-      const i0 = cand.indexOf(answerSeq[0]);
-      const i1 = cand.indexOf(answerSeq[1]);
-      const i2 = cand.indexOf(answerSeq[2]);
-      const inLeftToRightOrder = i0 < i1 && i1 < i2;
+      const i0 = cand.indexOf(a0);
+      const i1 = cand.indexOf(a1);
+      const i2 = cand.indexOf(a2);
+      const inOrder = i0 >= 0 && i1 >= 0 && i2 >= 0 && i0 < i1 && i1 < i2;
       const sameAsOriginal = cand.every((v, idx) => v === items[idx]);
-      if (!inLeftToRightOrder && !sameAsOriginal) {
+      if (!inOrder && !sameAsOriginal) {
         return cand;
       }
     }
@@ -278,6 +288,7 @@ export function renderGameScreen(
     cur.r3CoatSolved = state.r3CoatSolved;
     cur.r3OscilloSolved = state.r3OscilloSolved;
     cur.r3HnocsSolved = state.r3HnocsSolved;
+    cur.selectedInventoryItem = state.selectedInventoryItem;
   }
 
   function loadActiveProgress(): void {
@@ -301,6 +312,7 @@ export function renderGameScreen(
     state.r3CoatSolved = cur.r3CoatSolved;
     state.r3OscilloSolved = cur.r3OscilloSolved;
     state.r3HnocsSolved = cur.r3HnocsSolved;
+    state.selectedInventoryItem = cur.selectedInventoryItem;
   }
 
   function formatTime(seconds: number): string {
@@ -312,7 +324,7 @@ export function renderGameScreen(
 
   function isCurrentRoomAllSolved(): boolean {
     if (state.difficulty === "basic") {
-      return state.r1GloveSolved && state.r1ConsoleSolved;
+      return state.r1GloveSolved && state.r1ChemSolved && state.r1ConsoleSolved;
     }
     if (state.difficulty === "medium") {
       return state.r2ChalkSolved && state.r2TapsSolved && state.r2BoardSolved;
@@ -321,12 +333,16 @@ export function renderGameScreen(
   }
 
   function totalRoomTasks(): number {
-    return state.difficulty === "basic" ? 2 : 3;
+    return 3;
   }
 
   function countRoomSolved(): number {
     if (state.difficulty === "basic") {
-      return Number(state.r1GloveSolved) + Number(state.r1ConsoleSolved);
+      return (
+        Number(state.r1GloveSolved) +
+        Number(state.r1ChemSolved) +
+        Number(state.r1ConsoleSolved)
+      );
     }
     if (state.difficulty === "medium") {
       return (
@@ -644,16 +660,24 @@ export function renderGameScreen(
       </section>
 
       <!-- =================================================================
-           2. TOP GAMEPLAY HEADER BAR (Shown when inside Rooms 1 / 2 / 3)
+           2. TOP GAMEPLAY HEADER BAR (FRACTURED TIMELINE LAYOUT)
+           Top left:   Pause / Help (+ Lobby)
+           Top center: TIME LOOP ESCAPE + Near title: LOOP 03, MEMORY 2/4
+           Top right:  timer such as 00:43
            ================================================================= -->
       <header class="tle-header hidden" id="gameplay-header">
         <div class="tle-header-left">
-          <div class="tle-corner-loop-badge" id="hud-loop">LOOP #01</div>
-          <button type="button" class="tle-lobby-corner-btn" id="btn-open-lobby">
-            🚪 Lobby
+          <button type="button" class="tle-btn-header" id="btn-pause-loop" title="Pause / Resume">
+            ⏸ Pause
           </button>
-          <button type="button" class="tle-icon-btn tle-icon-btn-hint" id="btn-hint">
-            💡 Hint
+          <button type="button" class="tle-btn-header hidden" id="btn-start-loop" title="Start / Resume">
+            ▶ Resume
+          </button>
+          <button type="button" class="tle-btn-header tle-btn-help" id="btn-hint" title="Help / Hints">
+            💡 Help
+          </button>
+          <button type="button" class="tle-btn-header" id="btn-open-lobby" title="Return to Lobby">
+            🚪 Lobby
           </button>
           <div class="tle-diff-group" role="group" aria-label="Room Progression">
             <button type="button" class="tle-diff-btn" id="btn-diff-basic" data-diff="basic">
@@ -669,31 +693,30 @@ export function renderGameScreen(
         </div>
 
         <div class="tle-header-center">
-          <div class="tle-top-timer-display" id="hud-timer-val">
-            ${formatTime(state.timeLeftSeconds)}
-          </div>
-          <div class="tle-timer-progress-bar-wrap">
-            <span class="tle-prog-bound">60s</span>
-            <div class="tle-prog-track">
-              <div class="tle-prog-fill" id="hud-timer-progress" style="width: 100%"></div>
+          <div class="tle-title-block">
+            <h1 class="tle-main-title">TIME LOOP ESCAPE</h1>
+            <div class="tle-meta-badges">
+              <span class="tle-loop-chip" id="hud-loop">LOOP 01</span>
+              <span class="tle-memory-chip" id="hud-memory">MEMORY 1/4</span>
             </div>
-            <span class="tle-prog-bound">00s</span>
           </div>
         </div>
 
         <div class="tle-header-right">
-          <button type="button" class="tle-player-tag" id="btn-scoreboard" title="Match Summary">
+          <div class="tle-timer-box" title="Time Remaining">
+            <span class="tle-top-timer-display" id="hud-timer-val">
+              ${formatTime(state.timeLeftSeconds)}
+            </span>
+            <div class="tle-timer-progress-bar-wrap">
+              <div class="tle-prog-fill" id="hud-timer-progress" style="width: 100%"></div>
+            </div>
+          </div>
+          <button type="button" class="tle-coop-pill" id="btn-scoreboard" title="Co-Op Summary">
             <span class="tle-p-dot"></span>
-            <span>${state.player1Name} &amp; ${state.player2Name}</span>
+            <span id="header-coop-names">🤝 ${state.player1Name} &amp; ${state.player2Name}</span>
           </button>
-          <button type="button" class="tle-ctrl-btn tle-ctrl-start" id="btn-start-loop">
-            ▶ Start
-          </button>
-          <button type="button" class="tle-ctrl-btn tle-ctrl-stop" id="btn-pause-loop">
-            ⏸ Pause
-          </button>
-          <button type="button" class="tle-ctrl-btn tle-ctrl-restart" id="btn-reset-loop">
-            ↺ Rewind
+          <button type="button" class="tle-btn-header" id="btn-reset-loop" title="Rewind Time Loop">
+            ↺
           </button>
         </div>
       </header>
@@ -910,7 +933,9 @@ export function renderGameScreen(
                   <rect x="64" y="38" width="14" height="18" rx="3" fill="#fbbf24" />
                 </svg>
               </button>
-              <span class="tle-obj-tag" style="left: 29.5%; top: 92%">📦 SUPPLY CRATE</span>
+              <span class="tle-obj-tag" id="tag-r1-crate" style="left: 29.5%; top: 92%">
+                📦 SUPPLY CRATE
+              </span>
 
               <!-- 1D. Glowing World Outbreak Map Screen -->
               <button
@@ -1198,7 +1223,9 @@ export function renderGameScreen(
                   <circle cx="106" cy="62" r="9" fill="#166534" />
                 </svg>
               </button>
-              <span class="tle-obj-tag" style="left: 73%; top: 68%">🍷 WINE RACK</span>
+              <span class="tle-obj-tag" id="tag-r2-wine" style="left: 73%; top: 68%">
+                🍷 WINE RACK
+              </span>
 
               <!-- 2E. Center Back Mahogany ROSSO'S Exit Door -->
               <div
@@ -1476,10 +1503,12 @@ export function renderGameScreen(
                   <text x="214" y="82" text-anchor="middle" fill="#1c1308" font-size="17"
                     font-weight="bold">8</text>
                   <text x="66" y="77" text-anchor="middle" fill="#1c1308" font-size="12"
-                    font-weight="bold">C-O-N</text>
+                    font-weight="bold">RING</text>
                 </svg>
               </button>
-              <span class="tle-obj-tag" style="left: 53%; top: 21%">🧪 WALL FORMULAS</span>
+              <span class="tle-obj-tag" id="tag-r3-graffiti" style="left: 53%; top: 21%">
+                🧪 WALL FORMULAS
+              </span>
 
               <!-- 3D. Scientist Desk: Draped White Lab Coat & Military Field Radio -->
               <button
@@ -1586,26 +1615,35 @@ export function renderGameScreen(
           </div>
         </div>
 
-        <!-- RIGHT SIDEBAR: TASKS, INVENTORY & PERMANENT CLUES -->
-        <aside class="tle-right-dock" id="inventory-clues-dock">
-          <div class="tle-dock-sec-header">
-            <span>ROOM PROGRESS</span>
-            <span id="hud-tasks-ratio">0 / 3</span>
-          </div>
-          <div class="tle-tasks-box" id="tasks-checklist"></div>
-
-          <div class="tle-inventory-panel">
-            <span class="tle-panel-title-amber">TEMPORARY INVENTORY</span>
-            <span class="tle-panel-sub">Items reset when 60s loop rewinds</span>
+        <!-- BOTTOM DOCK: INVENTORY (BOTTOM LEFT) & CLUES (BOTTOM RIGHT) -->
+        <div class="tle-bottom-dock" id="inventory-clues-dock">
+          <!-- Bottom Left: INVENTORY -->
+          <section class="tle-panel-matte tle-inventory-panel" id="panel-inventory">
+            <div class="tle-panel-head">
+              <span class="tle-panel-title">INVENTORY</span>
+              <span class="tle-panel-tag">TEMPORARY</span>
+            </div>
             <div class="tle-inv-slots" id="inventory-list"></div>
-          </div>
+          </section>
 
-          <div class="tle-clues-panel">
-            <span class="tle-panel-title-cyan">PERMANENT CLUES</span>
-            <span class="tle-panel-sub">Saved across every loop!</span>
+          <!-- Bottom Center: Room Objectives Checklist -->
+          <section class="tle-panel-matte tle-tasks-dock" id="panel-tasks">
+            <div class="tle-panel-head">
+              <span class="tle-panel-title">OBJECTIVES</span>
+              <span class="tle-panel-tag" id="hud-tasks-ratio">0 / 3</span>
+            </div>
+            <div class="tle-tasks-box" id="tasks-checklist"></div>
+          </section>
+
+          <!-- Bottom Right: CLUES -->
+          <section class="tle-panel-matte tle-clues-panel" id="panel-clues">
+            <div class="tle-panel-head">
+              <span class="tle-panel-title">CLUES</span>
+              <span class="tle-panel-tag tle-tag-saved">PERMANENT</span>
+            </div>
             <ul class="tle-clues-list" id="clues-list"></ul>
-          </div>
-        </aside>
+          </section>
+        </div>
       </main>
 
       <!-- =================================================================
@@ -1626,12 +1664,12 @@ export function renderGameScreen(
         <div class="tle-countdown-num" id="countdown-number">5</div>
       </div>
 
-      <!-- END-OF-GAME MODAL (My Stats vs Opponent Loops + Rematch / Exit to Lobby) -->
+      <!-- END-OF-GAME CO-OP MODAL (Saif & Partner Drek Co-Op Stats + Rematch / Exit) -->
       <div class="tle-modal-backdrop hidden" id="scoreboard-modal">
         <div class="tle-modal-card tle-score-card-wide" style="text-align: center">
           <div class="tle-modal-head">
             <h2 class="tle-modal-title" id="score-modal-title" style="font-size: 1.15rem">
-              🏆 ESCAPE COMPLETE — FINAL STATS
+              🤝 CO-OP ESCAPE COMPLETE — TEAM VICTORY!
             </h2>
             <button type="button" class="tle-close-btn" id="btn-close-score">✕</button>
           </div>
@@ -1647,7 +1685,7 @@ export function renderGameScreen(
           ></p>
           <div class="tle-end-actions">
             <button type="button" class="tle-btn-rematch" id="btn-invite-rematch">
-              ⚔️ Invite ${state.player2Name} for Rematch
+              🤝 Invite ${state.player2Name} for Co-Op Rematch
             </button>
             <button type="button" class="tle-btn-exit-lobby" id="btn-exit-lobby">
               🚪 Exit to Lobby
@@ -1656,10 +1694,10 @@ export function renderGameScreen(
         </div>
       </div>
 
-      <!-- PUBG-STYLE SLIDE-IN REMATCH INVITE DRAWER (Shown to Invited Player!) -->
+      <!-- PUBG-STYLE SLIDE-IN CO-OP REMATCH INVITE DRAWER (Shown to Invited Partner!) -->
       <aside class="tle-pubg-drawer tle-side-hidden" id="pubg-side-drawer">
         <div style="font-weight: 900; color: #fcd34d; font-size: 0.95rem">
-          ⚔️ REMATCH INVITE
+          🤝 CO-OP REMATCH INVITE
         </div>
         <p
           id="pubg-invite-text"
@@ -1720,7 +1758,7 @@ export function renderGameScreen(
 
   function notifyOtherPlayerEscape(finisher: "p1" | "p2", roomNum: number): void {
     const finisherName = finisher === "p1" ? state.player1Name : state.player2Name;
-    const msg = `${finisherName} escaped Room ${roomNum}`;
+    const msg = `🤝 Partner ${finisherName} escaped Room ${roomNum}`;
     const viewerKey = state.localRole === "host" ? "p1" : "p2";
     if (viewerKey !== finisher) {
       showEscapeGreenPopup(msg);
@@ -1862,70 +1900,95 @@ export function renderGameScreen(
   }
 
   // =========================================================================
-  // ROOM 1 PUZZLES (BASIC — FAST, SIMPLE, SHUFFLED & FUN IN 60 SECONDS!)
+  // ROOM 1 PUZZLES (BASIC — HIDDEN CLUE IN CRATE/RACK, SHUFFLED & FUN IN 60s!)
   // =========================================================================
 
-  function collectRoom1KeyAndClue(title: string): void {
+  function openR1Glovebox(): void {
     state.r1GloveSolved = true;
     addItem("Console Key");
-    addClue("Room 1 Console: Tap GREEN ➔ BLUE ➔ RED");
+    saveActiveProgress();
+    openModal("🧤 GLASS GLOVEBOX — CONSOLE KEY FOUND", (host) => {
+      host.innerHTML = `
+        <div class="tle-puz-box">
+          <p class="tle-puz-desc">
+            🔑 <strong>Console Key collected!</strong> A brass tag attached to the key ring
+            reads:
+          </p>
+          <div class="tle-status-readout" style="font-size:0.95rem">
+            <em>"The 3-color antidote override isn't stored in the glovebox — we hid the reagent
+            vials inside the <strong>📦 Supply Crate</strong> on the floor and the
+            <strong>🧪 Chemistry Rack</strong> above!"</em>
+          </div>
+          <p class="tle-puz-desc" style="margin:10px 0 0;color:#fde68a">
+            ${
+              state.r1ChemSolved
+                ? "✓ You already uncovered the hidden reagent clue! Click the 🎛️ Steel Console!"
+                : "👉 Search the 📦 Supply Crate (or 🧪 Chemistry Rack) to find the hidden color order!"
+            }
+          </p>
+        </div>
+      `;
+    });
+  }
+
+  function revealRoom1HiddenClue(title: string, locationNote: string): void {
+    state.r1ChemSolved = true;
+    addClue("Hidden Reagent Vials: Emerald (GREEN) ➔ Cobalt (BLUE) ➔ Crimson (RED)");
     saveActiveProgress();
     openModal(title, (host) => {
       host.innerHTML = `
         <div class="tle-puz-box">
           <p class="tle-puz-desc">
-            🔑 <strong>Console Key collected!</strong> Pinned beside the glowing glassware is the
-            3-color antidote override order:
+            🔍 <strong>Hidden Clue Uncovered!</strong> ${locationNote}
           </p>
-          <div class="tle-status-readout" style="font-size:1.05rem">
-            🟢 <strong>GREEN</strong> &nbsp;➔&nbsp; 🔵 <strong>BLUE</strong> &nbsp;➔&nbsp;
-            🔴 <strong>RED</strong>
+          <div class="tle-status-readout" style="text-align:left;font-size:0.96rem">
+            🧪 <strong>1st Vial (Top Valve):</strong> 🟢 Emerald Moss (<strong>GREEN</strong>)<br />
+            🧪 <strong>2nd Vial (Middle Coil):</strong> 🔵 Cobalt Condenser (<strong>BLUE</strong>)<br />
+            🧪 <strong>3rd Vial (Bottom Burner):</strong> 🔴 Crimson Flare (<strong>RED</strong>)
           </div>
           <p class="tle-puz-desc" style="margin:10px 0 0;color:#fde68a">
-            Now click the <strong>🎛️ Steel Console</strong> below the World Map and tap those 3
-            colors in order (watch out — the console buttons are shuffled!).
+            ${
+              state.r1GloveSolved
+                ? "🔑 Key & Hidden Clue ready! Click the 🎛️ Steel Console and tap the 3 colors in order!"
+                : "🔑 Now grab the Console Key from the lit 🧤 Glass Glovebox on the left ledge!"
+            }
           </p>
         </div>
       `;
     });
-  }
-
-  function openR1Glovebox(): void {
-    collectRoom1KeyAndClue("🧤 GLASS GLOVEBOX — KEY & ANTIDOTE SEQUENCE");
   }
 
   function openR1Chem(): void {
-    collectRoom1KeyAndClue("🧪 CHEMISTRY RACK — ANTIDOTE FLOW ORDER");
+    revealRoom1HiddenClue(
+      "🧪 CHEMISTRY RACK — HIDDEN REAGENT LABELS",
+      "Tucked behind the glassware coils are 3 numbered reagent tags:",
+    );
   }
 
   function openR1Crate(): void {
-    addClue("Room 1 Console: Tap GREEN ➔ BLUE ➔ RED");
-    openModal("📦 EMERGENCY SUPPLY CRATE", (host) => {
-      host.innerHTML = `
-        <div class="tle-puz-box">
-          <p class="tle-puz-desc">
-            Stamped on the supply manifest: <em>"Grab the <strong>Console Key</strong> from the
-            lit <strong>Glass Glovebox</strong>, then enter <strong>GREEN ➔ BLUE ➔ RED</strong> on
-            the <strong>Steel Console</strong>!"</em>
-          </p>
-        </div>
-      `;
-    });
+    revealRoom1HiddenClue(
+      "📦 WOODEN SUPPLY CRATE — HIDDEN COMPARTMENT",
+      "Under the false wooden lid sit 3 numbered antidote vials:",
+    );
   }
 
   function openR1Map(): void {
-    addClue("Room 1 Console: Tap GREEN ➔ BLUE ➔ RED");
     openModal("🗺️ BUNKER OUTBREAK MONITOR", (host) => {
       host.innerHTML = `
         <div class="tle-puz-box">
           <p class="tle-puz-desc">
-            The monitor links directly to the <strong>🎛️ Steel Console</strong> right underneath:
+            Bunker security checklist for the <strong>🎛️ Steel Console</strong> underneath:
           </p>
-          <div class="tle-status-readout">
-            ${
+          <div class="tle-status-readout" style="text-align:left">
+            1️⃣ <strong>Console Key:</strong> ${
               state.r1GloveSolved
-                ? "🔑 Key ready! Click the Steel Console below & tap: GREEN ➔ BLUE ➔ RED"
-                : "🔒 Grab the Console Key from the lit Glass Glovebox on the left first!"
+                ? "✅ Found in Glass Glovebox"
+                : "🔒 Hidden inside the lit 🧤 Glass Glovebox"
+            }<br />
+            2️⃣ <strong>Hidden Color Clue:</strong> ${
+              state.r1ChemSolved
+                ? "✅ Found in Supply Crate / Chemistry Rack"
+                : "🔍 Hidden inside the 📦 Supply Crate or 🧪 Chemistry Rack"
             }
           </div>
         </div>
@@ -1943,13 +2006,24 @@ export function renderGameScreen(
     };
 
     openModal("🎛️ SLANTED STEEL BUNKER CONSOLE (SHUFFLED)", (host) => {
-      if (!state.r1GloveSolved && !state.r1ConsoleSolved) {
+      if ((!state.r1GloveSolved || !state.r1ChemSolved) && !state.r1ConsoleSolved) {
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              🔒 Console locked! Click the lit <strong>🧤 Glass Glovebox</strong> on the left
-              ledge first (1 click grabs the key &amp; reveals the color sequence!).
+              🔒 Before unlocking the console, collect the key and uncover the hidden clue:
             </p>
+            <div class="tle-status-readout" style="text-align:left">
+              ${
+                state.r1GloveSolved
+                  ? "✅ 1. Console Key collected from Glass Glovebox"
+                  : "⬜ 1. Grab the Console Key from the lit 🧤 Glass Glovebox"
+              }<br />
+              ${
+                state.r1ChemSolved
+                  ? "✅ 2. Hidden Color Clue found in Supply Crate / Chemistry Rack"
+                  : "⬜ 2. Search the 📦 Supply Crate or 🧪 Chemistry Rack for the hidden color clue"
+              }
+            </div>
           </div>
         `;
         return;
@@ -1960,7 +2034,8 @@ export function renderGameScreen(
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              Tap the 3 antidote colors in sequence (buttons below are <strong>shuffled</strong>!):
+              Tap the 3 antidote colors from your discovered clue (buttons below are
+              <strong>shuffled</strong>!):
             </p>
             <div class="tle-lobby-grid">
               ${r1ConsoleOrder
@@ -2012,38 +2087,62 @@ export function renderGameScreen(
   }
 
   // =========================================================================
-  // ROOM 2 PUZZLES (MEDIUM — FRESH 60s, SHUFFLED DRINKS & SUSPECTS, FUN!)
+  // ROOM 2 PUZZLES (MEDIUM — CLUES HIDDEN IN WINE RACK BOTTLE, SHUFFLED!)
   // =========================================================================
 
-  function collectRoom2Clues(title: string): void {
-    state.r2ChalkSolved = true;
-    addItem("Bar Token");
-    addClue("Bar Dispenser Order: WINE ➔ ALE ➔ GIN");
-    addClue("Suspect Board Culprit: Dr. Sanchez (👓 Glasses)");
+  function openR2Chalk(): void {
+    addItem("Brass Corkscrew");
     saveActiveProgress();
-    openModal(title, (host) => {
+    openModal("🔍 CHALK OUTLINE — BRASS CORKSCREW FOUND", (host) => {
       host.innerHTML = `
         <div class="tle-puz-box">
           <p class="tle-puz-desc">
-            🍾 <strong>Bar Token &amp; Detective Notes collected!</strong> Here are both clues to
-            unlock <strong>ROSSO'S Door</strong>:
+            🍾 <strong>Brass Corkscrew collected!</strong> Beside the chalk outline is a matchbook
+            from the bartender:
           </p>
-          <div class="tle-status-readout" style="text-align:left">
-            1️⃣ <strong>Right Bar Dispenser:</strong> Tap <strong>🍷 WINE ➔ 🍺 ALE ➔ 🍸 GIN</strong>
-            (taps are shuffled!)<br />
-            2️⃣ <strong>Left Suspect Board:</strong> Pick <strong>Dr. Sanchez (👓 Glasses)</strong>
+          <div class="tle-status-readout" style="font-size:0.95rem">
+            <em>"I rolled the secret tap order &amp; culprit sketch inside a hollow Gold-Reserve
+            bottle in the <strong>🍷 Wine Rack</strong> under the right bar counter!"</em>
           </div>
+          <p class="tle-puz-desc" style="margin:10px 0 0;color:#fde68a">
+            ${
+              state.r2ChalkSolved
+                ? "✓ You already uncorked the Wine Rack bottle! Check the 🍺 Bar Dispenser & 🕵️ Suspect Board!"
+                : "👉 Click the 🍷 Wine Rack under the right bar counter to uncork the hidden bottle!"
+            }
+          </p>
         </div>
       `;
     });
   }
 
-  function openR2Chalk(): void {
-    collectRoom2Clues("🔍 CHALK OUTLINE — DETECTIVE EVIDENCE");
-  }
-
   function openR2Wine(): void {
-    collectRoom2Clues("🍷 GOLD-RESERVE WINE RACK — SECRET NOTE");
+    state.r2ChalkSolved = true;
+    addItem("Bar Token");
+    addClue("Hidden Bottle Scroll: Vintage Red (WINE) ➔ Golden Hops (ALE) ➔ Juniper (GIN)");
+    addClue("Hidden Eyewitness Sketch: Suspect wore cracked 👓 Glasses");
+    saveActiveProgress();
+    openModal("🍷 UNDER-BAR WINE RACK — HOLLOW BOTTLE UNCORKED!", (host) => {
+      host.innerHTML = `
+        <div class="tle-puz-box">
+          <p class="tle-puz-desc">
+            🔍 <strong>Hidden Scroll Uncovered!</strong> Inside the hollow Gold-Reserve bottle you
+            find a <strong>Bar Token</strong> and two rolled-up notes:
+          </p>
+          <div class="tle-status-readout" style="text-align:left;font-size:0.95rem">
+            📜 <strong>Cellar Pour Note:</strong> 1st <em>Vintage Red</em> (🍷 <strong>WINE</strong>)
+            ➔ 2nd <em>Golden Hops</em> (🍺 <strong>ALE</strong>) ➔ 3rd <em>Juniper</em>
+            (🍸 <strong>GIN</strong>)<br />
+            🕵️ <strong>Eyewitness Sketch:</strong> A pair of cracked <strong>👓 Glasses</strong>
+            dropped by the culprit at the scene!
+          </div>
+          <p class="tle-puz-desc" style="margin:10px 0 0;color:#fde68a">
+            Now unlock the <strong>🍺 6-Tap Dispenser</strong> and identify the culprit on the
+            <strong>🕵️ Suspect Board</strong>!
+          </p>
+        </div>
+      `;
+    });
   }
 
   function openR2Taps(): void {
@@ -2060,8 +2159,8 @@ export function renderGameScreen(
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              🔒 Inspect the <strong>🔍 Chalk Outline</strong> on the hardwood floor first to get
-              the 3-drink knock order!
+              🔒 You don't know the secret pour order yet! Check the <strong>🔍 Chalk Outline</strong>
+              and search the <strong>🍷 Wine Rack</strong> under the right bar counter first!
             </p>
           </div>
         `;
@@ -2073,7 +2172,8 @@ export function renderGameScreen(
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              Pull the 3 secret drinks in sequence (levers below are <strong>shuffled</strong>!):
+              Pull the 3 secret drinks from the hidden bottle scroll (levers below are
+              <strong>shuffled</strong>!):
             </p>
             <div class="tle-lobby-grid">
               ${r2TapOrder
@@ -2137,8 +2237,8 @@ export function renderGameScreen(
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              🔒 Unlock the <strong>🍺 Bar Dispenser</strong> on the right counter first (after
-              checking the <strong>Chalk Outline</strong>)!
+              🔒 Uncork the hidden bottle in the <strong>🍷 Wine Rack</strong> and unlock the
+              <strong>🍺 Bar Dispenser</strong> on the right counter first!
             </p>
           </div>
         `;
@@ -2149,7 +2249,8 @@ export function renderGameScreen(
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              Click the culprit matching your eyewitness clue (cards are <strong>shuffled</strong>!):
+              Click the culprit matching your hidden bottle sketch (cards are
+              <strong>shuffled</strong>!):
             </p>
             <div class="tle-lobby-grid">
               ${r2SuspectOrder
@@ -2194,54 +2295,67 @@ export function renderGameScreen(
   }
 
   // =========================================================================
-  // ROOM 3 PUZZLES: QUARANTINE COMMAND LAB (FAST, FUN & SHUFFLED!)
+  // ROOM 3 PUZZLES: QUARANTINE COMMAND LAB (CLUES HIDDEN IN WALL & MAP!)
   // =========================================================================
 
-  function collectRoom3Clues(title: string): void {
+  function openR3LabCoat(): void {
+    addItem("Oscilloscope Key");
+    saveActiveProgress();
+    openModal("🥼 LAB COAT & MILITARY RADIO — OSCILLOSCOPE KEY FOUND", (host) => {
+      host.innerHTML = `
+        <div class="tle-puz-box">
+          <p class="tle-puz-desc">
+            🔌 <strong>Oscilloscope Key collected!</strong> Inside the coat pocket is a torn
+            notebook page:
+          </p>
+          <div class="tle-status-readout" style="font-size:0.95rem">
+            <em>"I didn't write the frequency or atom sequence in my coat — look closely at the
+            <strong>🧪 Wall Formulas</strong> scrawled on the right mustard wall (or check the
+            <strong>🗺️ Outbreak Map</strong>)!"</em>
+          </div>
+          <p class="tle-puz-desc" style="margin:10px 0 0;color:#fde68a">
+            ${
+              state.r3CoatSolved
+                ? "✓ Wall cipher already decoded! Tune the 📺 CRT Oscilloscope & 🎛️ HNOCS Console!"
+                : "👉 Click the 🧪 Wall Formulas on the right wall to uncover the hidden frequency & atom clue!"
+            }
+          </p>
+        </div>
+      `;
+    });
+  }
+
+  function revealRoom3HiddenClues(title: string): void {
     state.r3CoatSolved = true;
     addItem("Oscilloscope Key");
-    addClue("CRT Oscilloscope: Tap 8 Hz (circled 8 on wall)");
-    addClue("HNOCS Console: Tap C ➔ O ➔ N (H & S crossed out)");
+    addClue("Hidden Wall Ring: Circled (8) inside benzene ring = 8 Hz");
+    addClue("Hidden Wall Formula: H & S crossed out ➔ Active atoms C · O · N");
     saveActiveProgress();
     openModal(title, (host) => {
       host.innerHTML = `
         <div class="tle-puz-box">
           <p class="tle-puz-desc">
-            🔌 <strong>Oscilloscope Key collected!</strong> Combining the field radio broadcast
-            with the scrawled chemical wall rings gives both Quarantine overrides:
+            🔍 <strong>Hidden Wall Cipher Decoded!</strong> Tracing the scrawled chemical rings on
+            the mustard wall reveals two secret overrides:
           </p>
-          <div class="tle-status-readout" style="text-align:left">
-            1️⃣ <strong>📺 CRT Oscilloscope (on grey block):</strong> Tap <strong>8 Hz</strong><br />
-            2️⃣ <strong>🎛️ H·N·O·C·S Console:</strong> Tap <strong>C ➔ O ➔ N</strong>
-            (buttons are shuffled!)
+          <div class="tle-status-readout" style="text-align:left;font-size:0.95rem">
+            1️⃣ <strong>Circled Ring Number:</strong> A bold <strong>(8)</strong> is circled on the
+            right bond ➔ Lock <strong>8 Hz</strong> on the <strong>📺 CRT Oscilloscope</strong><br />
+            2️⃣ <strong>Crossed-Out Elements:</strong> Decoy atoms <strong>H</strong> &amp;
+            <strong>S</strong> are scratched out, leaving the ring core <strong>C ➔ O ➔ N</strong>
+            for the <strong>🎛️ H·N·O·C·S Console</strong>!
           </div>
         </div>
       `;
     });
   }
 
-  function openR3LabCoat(): void {
-    collectRoom3Clues("🥼 LAB COAT & MILITARY RADIO — KEY & 8 Hz CLUE");
-  }
-
   function openR3Graffiti(): void {
-    collectRoom3Clues("🧪 CHEMICAL WALL FORMULAS — (8) Hz & C-O-N");
+    revealRoom3HiddenClues("🧪 CHEMICAL WALL FORMULAS — HIDDEN CIPHER UNCOVERED");
   }
 
   function openR3Map(): void {
-    openModal("🗺️ GLOBAL OUTBREAK TELEMETRY MONITOR", (host) => {
-      host.innerHTML = `
-        <div class="tle-puz-box">
-          <p class="tle-puz-desc">
-            ${
-              state.r3CoatSolved
-                ? "📡 Clues ready! 1) Tap 8 Hz on CRT Oscilloscope ➔ 2) Tap C ➔ O ➔ N on HNOCS Console!"
-                : "🔍 Inspect the Lab Coat & Radio or Wall Formulas on the right first!"
-            }
-          </p>
-        </div>
-      `;
-    });
+    revealRoom3HiddenClues("🗺️ GLOBAL OUTBREAK MONITOR — TELEMETRY CIPHER");
   }
 
   function openR3Oscillo(): void {
@@ -2250,8 +2364,9 @@ export function renderGameScreen(
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              🔒 Switch locked! Click the <strong>🥼 Lab Coat &amp; Radio</strong> (or
-              <strong>🧪 Wall Formulas</strong>) first to grab the key &amp; frequency!
+              🔒 You haven't uncovered the hidden harmonic frequency yet! Check the
+              <strong>🥼 Lab Coat</strong> and inspect the <strong>🧪 Wall Formulas</strong>
+              scrawled on the right wall first!
             </p>
           </div>
         `;
@@ -2294,7 +2409,7 @@ export function renderGameScreen(
               state.r3OscilloSolved = true;
               saveActiveProgress();
               closeModals();
-              flashToast("⚡ 8 Hz Locked! Now tap C ➔ O ➔ N on the steel H·N·O·C·S Console!");
+              flashToast("⚡ Carrier frequency locked! Now unlock the steel H·N·O·C·S Console!");
             } else {
               renderOsc("✕ Carrier mismatch! Pick the circled number from the mustard wall.");
             }
@@ -2312,8 +2427,8 @@ export function renderGameScreen(
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              🔒 Console unpowered! Click the <strong>📺 CRT Oscilloscope</strong> on the grey
-              concrete block and lock <strong>8 Hz</strong> first!
+              🔒 Console unpowered! Inspect the <strong>🧪 Wall Formulas</strong> and lock the
+              carrier frequency on the <strong>📺 CRT Oscilloscope</strong> first!
             </p>
           </div>
         `;
@@ -2325,7 +2440,7 @@ export function renderGameScreen(
         host.innerHTML = `
           <div class="tle-puz-box">
             <p class="tle-puz-desc">
-              Tap the 3 active antidote atoms in order (letter tiles below are
+              Tap the 3 active antidote atoms from the wall formula (letter tiles below are
               <strong>shuffled</strong>!):
             </p>
             <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0">
@@ -2358,7 +2473,7 @@ export function renderGameScreen(
             const expected = target[seq.length];
             if (ltr !== expected) {
               seq = [];
-              renderHnocs("✕ Wrong atom order! Check Permanent Clues & tap C ➔ O ➔ N.");
+              renderHnocs("✕ Wrong atom order! Check Permanent Clues & tap the 3 active atoms.");
               return;
             }
             seq.push(ltr);
@@ -2397,7 +2512,8 @@ export function renderGameScreen(
     const cur = activeProg();
     const idx = roomIndex(diff);
     const loopsArr = state.localRole === "host" ? state.p1RoomLoops : state.p2RoomLoops;
-    if (loopsArr[idx] === 0) {
+    const curRoomLoop = loopsArr[idx] ?? 0;
+    if (curRoomLoop === 0) {
       loopsArr[idx] = 1;
     }
 
@@ -2450,8 +2566,9 @@ export function renderGameScreen(
 
     const idx = roomIndex(state.difficulty);
     const loopsArr = state.localRole === "host" ? state.p1RoomLoops : state.p2RoomLoops;
-    loopsArr[idx] = Math.max(1, loopsArr[idx]) + 1;
-    state.loopCount = loopsArr[idx];
+    const curLoopVal = loopsArr[idx] ?? 0;
+    loopsArr[idx] = Math.max(1, curLoopVal) + 1;
+    state.loopCount = loopsArr[idx] ?? 1;
     state.timeLeftSeconds = 60;
     state.loopDurationSeconds = 60;
     state.timerRunning = true;
@@ -2509,7 +2626,7 @@ export function renderGameScreen(
             flashToast("🚶 Escaped Room 1! Spin the Corridor Wheel to enter Room 2.");
           });
         } else {
-          flashToast("🔒 Locked — check the Glass Glovebox, then tap the Console sequence!");
+          flashToast("🔒 Locked — grab Key in Glovebox, find Clue in Crate/Rack, then unlock Console!");
         }
         break;
 
@@ -2563,7 +2680,7 @@ export function renderGameScreen(
             flashToast("🚶 Escaped Room 2! Spin the Corridor Wheel to enter Room 3.");
           });
         } else {
-          flashToast("🔒 Locked — inspect Chalk Outline ➔ Bar Dispenser ➔ Suspect Board!");
+          flashToast("🔒 Locked — uncork hollow bottle in Wine Rack ➔ Bar Dispenser ➔ Suspect Board!");
         }
         break;
 
@@ -2601,7 +2718,7 @@ export function renderGameScreen(
             showEndModal();
           });
         } else {
-          flashToast("🔒 Locked — Lab Coat ➔ 8 Hz Oscilloscope ➔ C-O-N on Console!");
+          flashToast("🔒 Locked — inspect Wall Formulas ➔ CRT Oscilloscope ➔ HNOCS Console!");
         }
         break;
     }
@@ -2639,15 +2756,21 @@ export function renderGameScreen(
     if (state.difficulty === "basic") {
       if (!state.r1GloveSolved) {
         showReadableHint(
-          "ROOM 1 — STEP 1 OF 2",
+          "ROOM 1 — STEP 1 OF 3",
           "🧤 GLASS GLOVEBOX (lit glass case on the left ledge)",
-          "One click grabs the Console Key and shows the 3-color order (GREEN ➔ BLUE ➔ RED)!",
+          "Click the Glass Glovebox to collect the Console Key!",
+        );
+      } else if (!state.r1ChemSolved) {
+        showReadableHint(
+          "ROOM 1 — STEP 2 OF 3",
+          "📦 SUPPLY CRATE (floor) or 🧪 CHEMISTRY RACK (upper-left wall)",
+          "Search the Supply Crate on the floor (or Chemistry Rack) to uncover the 3-color order!",
         );
       } else if (!state.r1ConsoleSolved) {
         showReadableHint(
-          "ROOM 1 — STEP 2 OF 2",
+          "ROOM 1 — STEP 3 OF 3",
           "🎛️ STEEL CONSOLE (below the World Map)",
-          "Tap GREEN ➔ BLUE ➔ RED among the shuffled color buttons to open the Bunker Door!",
+          "Enter the 3-color order from your Permanent Clues on the shuffled console buttons!",
         );
       } else {
         showReadableHint(
@@ -2663,20 +2786,20 @@ export function renderGameScreen(
       if (!state.r2ChalkSolved) {
         showReadableHint(
           "ROOM 2 — STEP 1 OF 3",
-          "🔍 CHALK OUTLINE (center wood floor)",
-          "One click reveals the Bar Drink Order (WINE ➔ ALE ➔ GIN) and Culprit Clue!",
+          "🍷 WINE RACK (under the right bar counter)",
+          "Check Chalk Outline for corkscrew, then click Wine Rack under bar to uncork hidden bottle!",
         );
       } else if (!state.r2TapsSolved) {
         showReadableHint(
           "ROOM 2 — STEP 2 OF 3",
           "🍺 6-TAP DISPENSER (right bar counter)",
-          "Tap WINE ➔ ALE ➔ GIN among the shuffled drink buttons!",
+          "Pull the 3 drinks from the hidden bottle scroll on the shuffled tap buttons!",
         );
       } else if (!state.r2BoardSolved) {
         showReadableHint(
           "ROOM 2 — STEP 3 OF 3",
           "🕵️ SUSPECT BOARD (left crimson wall)",
-          "Click 'Dr. Sanchez (👓 Glasses)' among the shuffled cards to open ROSSO'S Door!",
+          "Click the suspect matching the eyewitness sketch from the hidden bottle!",
         );
       } else {
         showReadableHint(
@@ -2691,20 +2814,20 @@ export function renderGameScreen(
     if (!state.r3CoatSolved) {
       showReadableHint(
         "ROOM 3 — STEP 1 OF 3",
-        "🥼 LAB COAT & RADIO (corner desk)",
-        "One click grabs the Oscilloscope Key and reveals both lab clues (8 Hz + C-O-N)!",
+        "🧪 WALL FORMULAS (scrawled on the right mustard wall)",
+        "Grab key from Lab Coat, then click Wall Formulas on right wall to decode hidden ring & atoms!",
       );
     } else if (!state.r3OscilloSolved) {
       showReadableHint(
         "ROOM 3 — STEP 2 OF 3",
         "📺 CRT OSCILLOSCOPE (on the grey concrete block)",
-        "Click '8 Hz' among the shuffled frequencies to power the steel console!",
+        "Select the circled wall ring frequency among the shuffled frequencies to power the console!",
       );
     } else if (!state.r3HnocsSolved) {
       showReadableHint(
         "ROOM 3 — STEP 3 OF 3",
         "🎛️ H·N·O·C·S CONSOLE (below the Outbreak Map)",
-        "Tap C ➔ O ➔ N among the shuffled chemical tiles to open the Quarantine Exit Door!",
+        "Tap the 3 uncrossed atoms from the wall formula on the shuffled console tiles!",
       );
     } else {
       showReadableHint(
@@ -2770,7 +2893,7 @@ export function renderGameScreen(
       window.setTimeout(() => {
         state.lobbyMessages.push({
           sender: "p2",
-          text: `Copy that ${state.player1Name}! Ready when you are 🚀`,
+          text: `Copy that ${state.player1Name}! Let's escape together, partner 🤝`,
         });
         renderState();
       }, 750);
@@ -2925,11 +3048,12 @@ export function renderGameScreen(
   // =========================================================================
 
   function renderItemIcon(item: InventoryItemId): string {
-    if (item === "Console Key" || item === "Brass Crate Key") return "🔑";
-    if (item === "Bio-Fuse Vial") return "🧪";
-    if (item === "Bar Token" || item === "Brass Corkscrew") return "🍾";
+    if (item === "Console Key") return "🔑";
+    if (item === "Brass Corkscrew") return "🍾";
+    if (item === "Bar Token") return "🪙";
     if (item === "Oscilloscope Key") return "🔌";
-    return "🗝️";
+    if (item === "Silver Door Key") return "🗝️";
+    return "📦";
   }
 
   function renderState(): void {
@@ -2948,7 +3072,13 @@ export function renderGameScreen(
     blurTarget?.classList.toggle("tle-room-blurred", Boolean(modalOpen));
 
     const loopEl = container.querySelector<HTMLElement>("#hud-loop");
-    if (loopEl) loopEl.textContent = `LOOP #${String(state.loopCount).padStart(2, "0")}`;
+    if (loopEl) loopEl.textContent = `LOOP ${String(state.loopCount).padStart(2, "0")}`;
+
+    const memEl = container.querySelector<HTMLElement>("#hud-memory");
+    if (memEl) {
+      const memoryCount = Math.min(4, Math.max(1, state.clues.length + 1));
+      memEl.textContent = `MEMORY ${memoryCount}/4`;
+    }
 
     const timerEl = container.querySelector<HTMLElement>("#hud-timer-val");
     if (timerEl) timerEl.textContent = formatTime(state.timeLeftSeconds);
@@ -2989,8 +3119,12 @@ export function renderGameScreen(
 
     const startBtn = container.querySelector<HTMLButtonElement>("#btn-start-loop");
     const pauseBtn = container.querySelector<HTMLButtonElement>("#btn-pause-loop");
-    if (startBtn) startBtn.disabled = state.timerRunning;
-    if (pauseBtn) pauseBtn.disabled = !state.timerRunning;
+    if (pauseBtn) {
+      pauseBtn.textContent = state.timerRunning ? "⏸ Pause" : "▶ Resume";
+    }
+    if (startBtn) {
+      startBtn.disabled = state.timerRunning;
+    }
 
     // 3D Door Swing States & Solved Badges
     const r1Open = state.difficulty === "basic" && isCurrentRoomAllSolved();
@@ -3021,12 +3155,21 @@ export function renderGameScreen(
       ?.classList.toggle("tle-tag-solved", state.r1GloveSolved);
     container
       .querySelector("#tag-r1-chem")
-      ?.classList.toggle("tle-tag-solved", state.r1GloveSolved);
+      ?.classList.toggle("tle-tag-solved", state.r1ChemSolved);
+    container
+      .querySelector("#tag-r1-crate")
+      ?.classList.toggle("tle-tag-solved", state.r1ChemSolved);
     container
       .querySelector("#tag-r1-console")
       ?.classList.toggle("tle-tag-solved", state.r1ConsoleSolved);
     container
       .querySelector("#tag-r2-chalk")
+      ?.classList.toggle(
+        "tle-tag-solved",
+        state.inventory.includes("Brass Corkscrew") || state.r2ChalkSolved,
+      );
+    container
+      .querySelector("#tag-r2-wine")
       ?.classList.toggle("tle-tag-solved", state.r2ChalkSolved);
     container
       .querySelector("#tag-r2-taps")
@@ -3036,6 +3179,12 @@ export function renderGameScreen(
       ?.classList.toggle("tle-tag-solved", state.r2BoardSolved);
     container
       .querySelector("#tag-r3-coat")
+      ?.classList.toggle(
+        "tle-tag-solved",
+        state.inventory.includes("Oscilloscope Key") || state.r3CoatSolved,
+      );
+    container
+      .querySelector("#tag-r3-graffiti")
       ?.classList.toggle("tle-tag-solved", state.r3CoatSolved);
     container
       .querySelector("#tag-r3-oscillo")
@@ -3328,24 +3477,43 @@ export function renderGameScreen(
         .join("");
     }
 
-    // Inventory
+    // Inventory (Selected items use muted purple border/background, no large glow)
     const invEl = container.querySelector<HTMLElement>("#inventory-list");
     if (invEl) {
       const cells: string[] = [];
       for (let i = 0; i < 3; i += 1) {
         const item = state.inventory[i];
         if (item) {
+          const isSelected = state.selectedInventoryItem === item;
           cells.push(`
-            <div class="tle-inv-slot tle-slot-filled">
-              <span style="font-size: 1.35rem">${renderItemIcon(item)}</span>
+            <button
+              type="button"
+              class="tle-inv-slot tle-slot-filled ${isSelected ? "tle-inv-selected" : ""}"
+              data-inv-item="${item}"
+              title="Click to select ${item}"
+            >
+              <span style="font-size: 1.25rem">${renderItemIcon(item)}</span>
               <span class="tle-slot-name">${item}</span>
-            </div>
+            </button>
           `);
         } else {
-          cells.push(`<div class="tle-inv-slot"><span class="tle-slot-empty">EMPTY</span></div>`);
+          cells.push(`
+            <div class="tle-inv-slot">
+              <span class="tle-slot-empty">EMPTY</span>
+            </div>
+          `);
         }
       }
       invEl.innerHTML = cells.join("");
+      invEl.querySelectorAll<HTMLElement>("[data-inv-item]").forEach((slot) => {
+        slot.addEventListener("click", () => {
+          const itm = slot.dataset.invItem as InventoryItemId | undefined;
+          if (itm) {
+            state.selectedInventoryItem = state.selectedInventoryItem === itm ? null : itm;
+            renderState();
+          }
+        });
+      });
     }
 
     // Permanent Clues
