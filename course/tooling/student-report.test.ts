@@ -85,6 +85,27 @@ describe("collectStats", () => {
     expect(r.justification).not.toMatch(/reference an issue/);
   });
 
+  it("credits a merged import PR to every author of its imported commits for Delivery (#310)", () => {
+    const importPr = (over: Record<string, unknown> = {}) =>
+      pr({
+        number: 138,
+        author: "carol",
+        commits: [commit("i1", ["alice"], false), commit("i2", ["carol"], false), commit("i3", ["bob"])],
+        ...over,
+      });
+    const list = stats({ prs: [importPr()] });
+    expect(of(list, "alice").importsMerged).toBe(1);
+    // The author already has it as a merged PR, and a commit written here is not an import.
+    expect(of(list, "carol").importsMerged).toBe(0);
+    expect(of(list, "bob").importsMerged).toBe(0);
+    const alice = scoreStudent(of(list, "alice"));
+    expect(alice.delivery).toBe(2);
+    expect(alice.justification).toMatch(/own work in 1 merged import PR opened by a teammate/);
+    expect(scoreStudent(of(list, "carol")).delivery).toBe(2);
+    // An import that is not merged delivers nothing yet.
+    expect(of(stats({ prs: [importPr({ state: "OPEN" })] }), "alice").importsMerged).toBe(0);
+  });
+
   it("counts a commit once when it appears in several PRs", () => {
     const list = stats({
       prs: [

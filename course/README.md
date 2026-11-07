@@ -187,7 +187,7 @@ The score uses the criteria above that can be measured per person, from 0 to 10 
 
 | Area | Points | Rule |
 |---|---|---|
-| **Delivery** | 0–4 | Merged PRs authored: 5 or more → 4, 2–4 → 3, 1 → 2. No merged PR but an open one → 1. |
+| **Delivery** | 0–4 | Merged PRs authored: 5 or more → 4, 2–4 → 3, 1 → 2. No merged PR but an open one → 1. A merged import PR (see *Commits that weren't written for the PR*) also counts for every other author of its imported commits. |
 | **Process** | 0–3 | +1 if at least half of your PRs pass the PR documentation report; +1 if at least 80% of your commits reference an issue (`Refs #N` on its own line); +1 if every issue you opened has a team label and a matching `[team-…]` title. |
 | **Collaboration** | 0–3 | Reviewed other people's PRs: 5 or more → 2, 1–4 → 1. +1 for commenting on other people's issues or PRs. |
 
@@ -197,7 +197,7 @@ Keep in mind when you use it:
 
 - Only work visible on GitHub counts. Pair programming, work on a teammate's machine or unpushed work doesn't show up.
 - Commits co-authored by an AI agent (the course is AI first) count for the PR author. A commit that appears in several PRs (work branch → `feature/team-N` → `main`) is counted once.
-- Commits imported from a team's own repository (see *Commits that weren't written for the PR* above) are counted separately and left out of the `Refs` rule. The work done there before the import, its issues and reviews, is not scored; take it into account by hand.
+- Commits imported from a team's own repository (see *Commits that weren't written for the PR* above) are counted separately and left out of the `Refs` rule. A merged import counts for Delivery for each of their authors, not only for whoever opened the PR. The issues and reviews in the team repository are not scored; take them into account by hand.
 - Lines of code are shown for context and are not scored.
 - Rules that changed during the hackathon (for example the PR title format) make older PRs fail the documentation report through no fault of the author. Take that into account, as for the PR report.
 - Admin work, for example by the repository owner, doesn't show up in issues, PRs or reviews.
