@@ -1694,29 +1694,6 @@ body.no-flicker :is(.candles, .needle) {
 #room.vamp .wrong-one .lid {
   animation: wronglid 2.6s ease-in-out both;
 }
-#room[data-adminvamp="left"] #obj-casket-left,
-#room[data-adminvamp="right"] #obj-casket-right {
-  outline: 4px solid #ff0000 !important;
-  outline-offset: 2px;
-  box-shadow:
-    0 0 16px #ff0000,
-    0 0 32px #ff0000 !important;
-  animation: vampGlow 1.2s ease-in-out infinite alternate;
-}
-@keyframes vampGlow {
-  from {
-    outline-color: #ff0000;
-    box-shadow:
-      0 0 10px #ff0000,
-      0 0 20px #ff0000;
-  }
-  to {
-    outline-color: #ff4444;
-    box-shadow:
-      0 0 24px #ff0000,
-      0 0 48px #ff0000;
-  }
-}
 @keyframes redlight {
   0% {
     opacity: 0;
@@ -2199,9 +2176,7 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .dust::before,
-  .wipe,
-  #room[data-adminvamp] #obj-casket-left,
-  #room[data-adminvamp] #obj-casket-right {
+  .wipe {
     animation: none !important;
   }
 }

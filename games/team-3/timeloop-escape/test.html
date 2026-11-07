@@ -239,31 +239,6 @@
       return need(E.eval(`partnerSaid("hello")`), "partner's chat is treated as your own, so painting/lift can never open");
     });
 
-    await checkAsync("admin QA controls reveal and restart the current loop", async () => {
-      const restart = document.getElementById("demo-restart");
-      game.phase = "playing";
-      game.playerName = "Tester";
-      placeObjects();
-      await sleep(300);
-      const hiddenForPlayer = restart.hidden && !document.getElementById("room").dataset.adminvamp;
-      game.playerName = "admin";
-      placeObjects();
-      await sleep(300);
-      const visibleForAdmin =
-        !restart.hidden && document.getElementById("room").dataset.adminvamp === document.getElementById("room").dataset.wrong;
-      game.loop = 1;
-      game.stage = 3;
-      game.timeLeft = 10;
-      game.items = ["fuse"];
-      game.clues = ["kept"];
-      game.flags = { liftPower: true };
-      restart.click();
-      const reset = game.loop === 2 && game.stage === 1 && game.items.length === 0 && game.flags.justReset && game.clues.includes("kept");
-      game.phase = "over";
-      render();
-      return need(hiddenForPlayer && visibleForAdmin && reset, "admin controls were not gated or restart did not reset the loop");
-    });
-
     check("no prompt/alert/confirm was called", () => need(window.__popups.length === 0, window.__popups.join()));
     check("no uncaught errors", () => need(window.__errors.length === 0, window.__errors.join(" | ")));
 
