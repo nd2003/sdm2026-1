@@ -77,6 +77,22 @@ export function closeConfirmEnd(): void {
   setHidden("confirm-end", true);
 }
 
+/** The Leave room question, also client-only. Leaving costs a two-player room its clock, a solo room its game. */
+export function openConfirmLeave(solo: boolean): void {
+  setText(
+    "confirm-leave-text",
+    solo
+      ? "You leave this room and your game is lost."
+      : "You leave this room. Your partner stays, and the clock stops until somebody joins.",
+  );
+  setHidden("confirm-leave", false);
+  el<HTMLButtonElement>("confirm-leave-no").focus();
+}
+
+export function closeConfirmLeave(): void {
+  setHidden("confirm-leave", true);
+}
+
 // ── intro and lobby ──────────────────────────────────────────────────────────
 
 export function renderIntroSlide(

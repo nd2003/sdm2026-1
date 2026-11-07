@@ -2621,3 +2621,10 @@ button:disabled {
     gap: 6px;
   }
 }
+
+/* ── going back ──────────────────────────────────────────────────────────── */
+.back-button {
+  align-self: flex-start;
+  padding: 6px 14px;
+  font-size: 0.72rem;
+}
