@@ -286,6 +286,34 @@ function buildRoom() {
     <path d="M494 760h432M494 830h432" stroke="#1d190c" stroke-width="5"/><path d="M520 200v630M900 200v630" stroke="#1d190c" stroke-width="10"/>
     <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".45"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
     ${drip(1000, 150, 22, 360)}${drip(1110, 150, 14, 260)}${drip(420, 150, 18, 300)}
+    ${(() => {
+      const P = (u, v) => { const x = 60 + 240 * u, t = 150 * x / 410, b = 1000 - 210 * x / 410; return [x, t + (b - t) * v]; };
+      const [ox, oy] = P(0, .2), [ax, ay] = P(1, .2), [, by] = P(0, .95);
+      return `<g transform="matrix(${(ax - ox) / 100} ${(ay - oy) / 100} 0 ${(by - oy) / 200} ${ox} ${oy})">
+        <rect x="-6" y="-14" width="112" height="216" fill="#16150f" stroke="#050403" stroke-width="3"/>
+        <text x="50" y="-3" font-family="monospace" font-size="8" font-weight="bold" text-anchor="middle" fill="#8c1a15">SERVICE</text>
+        <rect x="38" y="0" width="24" height="200" fill="#000"/>
+        <g class="zombie"><g class="zlunge">
+          <path d="M34 200c2-50 4-90 16-112 12 22 14 62 16 112z" fill="#2a3324"/>
+          <path d="M44 96l6 14 6-14" fill="none" stroke="#a89c7c" stroke-width="1.5"/>
+          <path d="M40 58c0-12 4-16 10-16s10 4 10 16c0 14-4 24-10 24s-10-10-10-24z" fill="#4f5a44"/><path d="M50 42c6 0 10 4 10 16 0 14-4 24-10 24z" fill="#1a1f16" opacity=".7"/><path d="M41 52c4-3 14-3 18 0" stroke="#2a3324" stroke-width="2" fill="none"/>
+          <path d="M41 61c2-6 8-6 9 0-2 5-7 5-9 0zM51 61c2-6 8-6 9 0-2 5-7 5-9 0z" fill="#030302"/>
+          <circle cx="45.5" cy="60" r="1" fill="#e0463a"/><circle cx="54.5" cy="60" r="1" fill="#e0463a"/>
+          <path d="M44 70c4 2 8 2 12 0l-2 9c-3 2-6 2-8 0z" fill="#120302"/><path d="M46 71l1 3 1-3M50 71.5l1 3 1-3M54 71l-1 3-1-3" fill="#c9c2a8"/>
+          <path d="M52 76c0 6 1 10 2 10s1-4 0-10z" fill="#6e0d08"/>
+        </g></g>
+        <g class="zdoor-l"><rect x="0" y="0" width="40" height="200" fill="#22221c" stroke="#050403" stroke-width="2"/><path d="M6 12h28M6 188h28" stroke="#25241e" stroke-width="3"/><path d="M8 140c8 4 14 14 12 30" fill="none" stroke="#6e0d08" stroke-width="3" opacity=".8"/></g>
+        <g class="zdoor-r"><rect x="60" y="0" width="40" height="200" fill="#22221c" stroke="#050403" stroke-width="2"/><path d="M66 12h28M66 188h28" stroke="#25241e" stroke-width="3"/><path d="M70 30l22 30M74 80l18-6" stroke="#0d0c08" stroke-width="2"/></g>
+        <path class="zchain" d="M18 128C34 136 66 136 82 128" fill="none" stroke="#8d7433" stroke-width="4" stroke-dasharray="5 2"/><rect x="45" y="128" width="10" height="11" fill="#6f5a30" stroke="#090806"/>
+        <g class="zarms">
+          <g fill="none" stroke-linecap="round"><path d="M50 98c14-4 30-12 52-12 8 0 12-2 16 0" stroke="#3d4636" stroke-width="7"/><path d="M50 114c18 2 36 8 56 8 8 0 12-2 17-2" stroke="#3d4636" stroke-width="7"/><path d="M50 98c14-4 30-12 52-12" stroke="#5a6650" stroke-width="2" opacity=".6"/></g>
+          <path d="M80 92l3 4M96 118l2 4" stroke="#6e0d08" stroke-width="2"/>
+          <g fill="none" stroke="#6f7c62" stroke-width="2" stroke-linecap="round"><path d="M117 86l10-6M118 87l11-1M117 89l10 5M116 90l6 8"/><path d="M122 119l10-7M123 120l11 0M122 122l9 6M120 123l4 9"/></g>
+          <g fill="none" stroke="#6f7c62" stroke-width="2.4" stroke-linecap="round"><path d="M58 34c5-1 8 0 8 4M58 40c5-1 8 0 8 4M58 46c5-1 8 0 8 4"/></g>
+        </g>
+        <text x="4" y="168" font-family="Special Elite, monospace" font-size="10" fill="#8c1a15" transform="rotate(-6 4 168)">DON'T LET</text><text x="64" y="176" font-family="Special Elite, monospace" font-size="10" fill="#8c1a15" transform="rotate(-6 64 176)">IT OUT</text>
+      </g>`;
+    })()}
     <path d="M980 880l80 14-20 30-90-12z" fill="#7a7259" stroke="#0a0805" stroke-width="2"/>
   </svg></div>
   <div class="redlight"></div>

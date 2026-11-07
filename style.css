@@ -483,7 +483,7 @@ body.no-flicker :is(.candles, .needle) { animation: none; }
 #obj-lift            { left: 64%; bottom: 30%; --w: 6cqw; transform: translateX(-50%); }
 #obj-gate            { left: 44.5%; bottom: 17%; --w: 28cqw; }
 #obj-indicator       { left: 44.5%; top: 3%; --w: 12cqw; }
-#obj-emergency-phone { left: 11%; top: 40%; --w: 8cqw; transform: translateX(-50%) perspective(70cqw) rotateY(36deg); }
+#obj-emergency-phone { left: 90%; top: 60%; --w: 6.5cqw; transform: translateX(-50%) perspective(70cqw) rotateY(-36deg); }
 #obj-graffiti        { left: 85%; top: 30%; --w: 18cqw; transform: translateX(-50%) perspective(70cqw) rotateY(-34deg); }
 .folds { transform-origin: 0 50%; transform: scaleX(.24); transition: transform .8s cubic-bezier(.5, 0, .2, 1); }
 #room.gate-closed .folds { transform: none; }
@@ -586,3 +586,17 @@ body.is-admin #hud { padding-right: 262px; }  /* room for the Skip button beside
 .peeker .eyes { animation: watch 6.5s steps(1) infinite; }
 .peeker:nth-child(4) .eyes { animation-delay: -2.2s; }
 .peeker:nth-child(6) .eyes { animation-delay: -4.1s; }
+
+/* Level 3: the thing in the service lift slams into the doors every few seconds */
+.zlunge, .zarms, .zdoor-l, .zdoor-r, .zchain { transform-box: fill-box; }
+.zarms { transform-origin: 0 50%; animation: zlunge 4.6s cubic-bezier(.5, 0, .2, 1) infinite; }
+.zlunge { transform-origin: 50% 100%; animation: zlunge 4.6s cubic-bezier(.5, 0, .2, 1) infinite; }
+.zdoor-l { transform-origin: 0 50%; animation: zdoorL 4.6s infinite; }
+.zdoor-r { transform-origin: 100% 50%; animation: zdoorR 4.6s infinite; }
+.zchain { animation: zchain 4.6s infinite; }
+@keyframes zlunge { 0%, 62% { transform: none; } 70% { transform: translateX(6%) scale(1.06); } 74% { transform: translateX(3%) scale(1.03); } 80%, 100% { transform: none; } }
+@keyframes zdoorL { 0%, 66%, 84%, 100% { transform: none; } 70% { transform: translateX(-9%) skewY(-3deg); } 74% { transform: translateX(-4%) skewY(-1deg); } 77% { transform: translateX(-7%); } }
+@keyframes zdoorR { 0%, 66%, 84%, 100% { transform: none; } 70% { transform: translateX(9%) skewY(3deg); } 74% { transform: translateX(4%) skewY(1deg); } 77% { transform: translateX(7%); } }
+@keyframes zchain { 0%, 66%, 84%, 100% { transform: none; } 70% { transform: translateY(-6%) scaleX(1.04); } 75% { transform: translateY(2%); } }
+body.no-flicker :is(.zarms, .zlunge, .zdoor-l, .zdoor-r, .zchain) { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.zarms, .zlunge, .zdoor-l, .zdoor-r, .zchain) { animation: none !important; } }
