@@ -102,6 +102,15 @@ describe("collectStats", () => {
     expect(alice.delivery).toBe(2);
     expect(alice.justification).toMatch(/own work in 1 merged import PR opened by a teammate/);
     expect(scoreStudent(of(list, "carol")).delivery).toBe(2);
+    // The table shows the import next to the student's own PRs and commits.
+    const md = formatStudentReport(scoreAll(list), {
+      repo: "o/r",
+      generatedAt: "now",
+      prCount: 1,
+      issueCount: 0,
+    });
+    const aliceRow = md.split("\n").find((l) => l.startsWith("| `alice` |")) ?? "";
+    expect(aliceRow).toContain("| 0 + 1 import / 0 | 0 (0) + 1 imported |");
     // An import that is not merged delivers nothing yet.
     expect(of(stats({ prs: [importPr({ state: "OPEN" })] }), "alice").importsMerged).toBe(0);
   });
