@@ -195,6 +195,33 @@ describe("Time Loop Escape room logic", () => {
     expect(m.player("a").message).toMatch(/partner left/i);
   });
 
+  it("the vampire bites on level 2 (-20s, vampireBites), a wrong casket bites too, the zombie only talks", () => {
+    const m = match(14);
+    m.sim.applyDebug("a", "skip", ["a"]);
+    const t = m.player("a").timeLeft;
+    m.click("a", "vampire");
+    expect(t - m.player("a").timeLeft).toBeGreaterThanOrEqual(timeLoopGame.config.vampireDrain);
+    expect(m.player("a").flags.get("vampireBites")).toBe(1);
+    const me = m.answers("a");
+    m.click("a", `casket-${me.casket === "left" ? "right" : "left"}`);
+    expect(m.player("a").flags.get("vampireBites")).toBe(2);
+    m.sim.applyDebug("a", "skip", ["a"]);
+    const before = JSON.stringify({
+      t: m.player("a").timeLeft,
+      f: [...m.player("a").flags.entries()],
+      i: [...m.player("a").items],
+    });
+    m.click("a", "zombie");
+    expect(
+      JSON.stringify({
+        t: m.player("a").timeLeft,
+        f: [...m.player("a").flags.entries()],
+        i: [...m.player("a").items],
+      }),
+    ).toBe(before);
+    expect(m.player("a").message).toMatch(/lift gate/);
+  });
+
   it("the debug skip command moves a level and escapes from level 3", () => {
     const m = match(1);
     expect(m.sim.applyDebug("a", "skip", ["a"])).toMatch(/level 2/);

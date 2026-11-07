@@ -251,7 +251,16 @@ const OFFICE = [
   "vending",
   "scratches",
 ];
-const CORRIDOR = ["casket-left", "casket-right", "keypad", "fusebox", "shoes", "bricked-door", "candles"];
+const CORRIDOR = [
+  "casket-left",
+  "casket-right",
+  "keypad",
+  "fusebox",
+  "shoes",
+  "bricked-door",
+  "candles",
+  "vampire",
+];
 const SHAFT = [
   "lift",
   "lift-panel",
@@ -262,6 +271,8 @@ const SHAFT = [
   "indicator",
   "emergency-phone",
   "graffiti",
+  ,
+  "zombie",
 ];
 export const OBJECT_IDS = [...OFFICE, ...CORRIDOR, ...SHAFT];
 const FOR_PARTNER = "This isn't for you. Read it to your partner.";
@@ -491,6 +502,7 @@ export function click(ctx: Ctx, playerId: string, p: Player, id: string): void {
       if (flag(p, "casketOpen")) return say(p, "You've already disturbed enough of the dead tonight.");
       if ((id === "casket-left" ? "left" : "right") !== me.casket) {
         p.timeLeft = Math.max(1, p.timeLeft - ctx.config.vampireDrain);
+        setFlag(p, "vampireBites", flag(p, "vampireBites") + 1); // the client plays the bite scene
         say(
           p,
           `The lid slides open. Something in a Meridian Trust badge sits up and drinks the seconds out of you. (-${ctx.config.vampireDrain}s) The other casket, maybe.`,
@@ -643,6 +655,22 @@ export function click(ctx: Ctx, playerId: string, p: Player, id: string): void {
       );
       if (later) remember(p, 'Someone, me, scratched "UNLESS" under THE DOOR OPENS FOR ONE.');
       return;
+    case "vampire": // level 2: it bites
+      p.timeLeft = Math.max(1, p.timeLeft - ctx.config.vampireDrain);
+      setFlag(p, "vampireBites", flag(p, "vampireBites") + 1);
+      return say(
+        p,
+        `It was closer than you thought. Teeth in your neck, and the seconds pour out of you. (-${ctx.config.vampireDrain}s)`,
+      );
+    case "zombie": // level 3: a story prop behind the lift gate, no penalty
+      return say(
+        p,
+        atLoop(p, [
+          "It slams against the lift gate. The bars bend. Its jaw hangs open, still chewing on nothing.",
+          "It knows your name. It groans it, over and over, through a mouth that doesn't close anymore.",
+          "It's wearing a Meridian Trust badge. The photo on it is yours.",
+        ]),
+      );
     default:
       return say(p, "Nothing. But something saw you touch it.");
   }

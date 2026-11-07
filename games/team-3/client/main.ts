@@ -173,7 +173,7 @@ function play(room: Room<TimeLoopState>, health: BuildInfo): void {
     if (state.code) safeSession(() => sessionStorage.setItem(CODE_KEY, state.code));
     const me = state.players?.get(room.sessionId);
     const partner = [...(state.players?.entries() ?? [])].find(([id]) => id !== room.sessionId)?.[1];
-    const ids = OBJECT_IDS.slice(...(me?.stage === 2 ? [13, 20] : me?.stage === 3 ? [20] : [0, 13]));
+    const ids = OBJECT_IDS.slice(...(me?.stage === 2 ? [13, 21] : me?.stage === 3 ? [21] : [0, 13]));
     const html = !me
       ? "<p>Joining…</p>"
       : state.phase === "lobby"
