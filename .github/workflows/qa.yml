@@ -13,7 +13,7 @@ jobs:
           <iframe src="test.html" width="900" height="900"></iframe><pre id="out"></pre>
           <script>
             const t = setInterval(() => { const d = document.querySelector("iframe").contentDocument, r = d && d.getElementById("result");
-              if (!r || r.textContent === "running…") return; clearInterval(t);
+              if (!r || !r.className) return; clearInterval(t);  // test.html sets class ok|bad when it finishes
               document.getElementById("out").textContent = [...d.querySelectorAll("#log li")].map((li) => li.textContent).join("\n") + "\n" + r.textContent;
               fetch("/done"); }, 500);
           </script><img src="/hold">
