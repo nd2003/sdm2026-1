@@ -69,10 +69,11 @@
 
 /* Loop-length picker: real radio inputs (keyboard + screen readers), drawn as stamped tags. */
 .tle-loops {
+  position: relative;
   display: flex;
   gap: 10px;
   margin: 0 0 14px;
-  padding: 0;
+  padding: 0 0 8px;
   border: 0;
 }
 .tle-loops legend {
@@ -213,5 +214,28 @@
 @media (max-width: 480px) {
   .tle-loops {
     gap: 6px;
+  }
+}
+
+/* Picker underline: the accent colour, full width of the chosen option, slides when you pick another. */
+.tle-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px #c9b45899;
+  transition:
+    left 0.25s ease,
+    width 0.25s ease;
+}
+.tle-loop[hidden] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tle-underline {
+    transition: none;
   }
 }

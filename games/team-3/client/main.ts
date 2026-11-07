@@ -28,7 +28,7 @@ import {
 import { timeLoopGame } from "../shared/game.ts";
 import type { TimeLoopInput, TimeLoopState } from "../shared/index.ts";
 import { OBJECT_IDS } from "../shared/puzzles.ts";
-import { askQuit, renderLobby, syncScreens } from "./screens.ts";
+import { askQuit, type LoopSeconds, renderLobby, syncScreens } from "./screens.ts";
 
 /** In local dev the server runs on :2567; deployed builds are served by the server itself. */
 export const SERVER_URL: string =
@@ -84,7 +84,7 @@ async function joinByCode(raw: string, name = params.name ?? "player"): Promise<
 
 /** The last name and loop length used, so Main menu / Play again keep them. */
 let lastName = params.name ?? "";
-let lastSeconds: 60 | 90 | 120 = 60;
+let lastSeconds: LoopSeconds = 60;
 
 function showLobby(health: BuildInfo, error?: string): void {
   const fail = (err: unknown) => showLobby(health, err instanceof Error ? err.message : String(err));

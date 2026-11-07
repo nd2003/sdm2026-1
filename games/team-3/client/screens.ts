@@ -7,7 +7,9 @@
 import "./screens.css";
 import type { Player, TimeLoopState } from "../shared/index.ts";
 
-const LOOP_CHOICES = [60, 90, 120] as const;
+const LOOP_CHOICES = [60, 90, 120, 600] as const; // 600 = admin-only 10-minute loop (testing)
+export type LoopSeconds = (typeof LOOP_CHOICES)[number];
+const isAdminName = (name: string) => name.trim().toLowerCase() === "admin"; // ponytail: testing cheat
 const AUTO_RETURN_SECONDS = 20;
 const COOP_SEEN_KEY = "tle:coopSeen";
 
@@ -40,7 +42,7 @@ export interface LobbyOptions {
   build?: string;
 }
 export interface LobbyActions {
-  create(name: string, seconds: 60 | 90 | 120): void;
+  create(name: string, seconds: LoopSeconds): void;
   join(name: string, code: string): void;
 }
 
@@ -58,12 +60,13 @@ export function renderLobby(root: HTMLElement, opts: LobbyOptions, actions: Lobb
           <legend>Time per loop</legend>
           ${LOOP_CHOICES.map(
             (s) => `
-            <label class="tle-loop">
+            <label class="tle-loop" ${s === 600 ? "data-admin hidden" : ""}>
               <input type="radio" name="seconds" value="${s}" ${s === 60 ? "checked" : ""}>
-              <span class="tle-tag" aria-hidden="true">${s}<small>s</small></span>
-              <span class="tle-sr">${s} seconds</span>
+              <span class="tle-tag" aria-hidden="true">${s === 600 ? "10<small>min</small>" : `${s}<small>s</small>`}</span>
+              <span class="tle-sr">${s === 600 ? "10 minutes (admin)" : `${s} seconds`}</span>
             </label>`,
           ).join("")}
+          <span class="tle-underline" aria-hidden="true"></span>
         </fieldset>
         <button class="tle-btn" name="how" value="create">Create room</button>
         <div class="tle-or">or</div>
@@ -95,8 +98,30 @@ export function renderLobby(root: HTMLElement, opts: LobbyOptions, actions: Lobb
     error.textContent = problem;
     if (problem) return;
     if (how === "join") actions.join(name, code);
-    else actions.create(name, Number(data.get("seconds") ?? 60) as 60 | 90 | 120);
+    else actions.create(name, Number(data.get("seconds") ?? 60) as LoopSeconds);
   });
+  // The yellow underline slides under the chosen option; the 10 min option only exists for the name admin.
+  const loops = root.querySelector(".tle-loops") as HTMLElement;
+  const underline = root.querySelector(".tle-underline") as HTMLElement;
+  const adminOption = root.querySelector<HTMLElement>(".tle-loop[data-admin]");
+  const nameField = root.querySelector('input[name="name"]') as HTMLInputElement;
+  const placeUnderline = () => {
+    const chosen = loops.querySelector("input:checked")?.closest<HTMLElement>(".tle-loop");
+    if (!chosen) return;
+    underline.style.left = `${chosen.offsetLeft}px`;
+    underline.style.width = `${chosen.offsetWidth}px`;
+  };
+  const syncAdmin = () => {
+    const admin = isAdminName(nameField.value);
+    if (adminOption) adminOption.hidden = !admin;
+    const ten = adminOption?.querySelector("input");
+    if (!admin && ten?.checked) (loops.querySelector('input[value="60"]') as HTMLInputElement).checked = true;
+    placeUnderline();
+  };
+  loops.addEventListener("change", placeUnderline);
+  nameField.addEventListener("input", syncAdmin);
+  addEventListener("resize", placeUnderline);
+  requestAnimationFrame(syncAdmin);
   focusFirst(root);
 }
 
