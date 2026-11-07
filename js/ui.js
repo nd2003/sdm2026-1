@@ -85,6 +85,22 @@ function render() {
     document.dispatchEvent(new Event("tle-scare"));
   }
   $("room")._bites = bites;
+  // The vampire stalks you as time runs out: over the last 20s it creeps out of the dark, bigger and closer
+  // every second, and when the loop resets it lunges. (Admin's clock never runs out, so it never comes.)
+  const STALK = 20, escapedNow = !!(game.flags && game.flags.escaped);
+  const near = phase === "playing" && !escapedNow && game.timeLeft <= STALK ? 1 - game.timeLeft / STALK : 0;
+  $("room").style.setProperty("--stalk", near.toFixed(3));
+  $("room").classList.toggle("stalked", near > 0);
+  const attacked = phase === "playing" && game.loop > ($("room")._stalkLoop ?? game.loop);
+  if (attacked) {
+    $("room").dataset.scare = "timeout";
+    replay($("room"), "vamp");
+    splatter();
+    jolt("big");
+    document.dispatchEvent(new Event("tle-bite"));
+    document.dispatchEvent(new Event("tle-scare"));
+  }
+  $("room")._stalkLoop = game.loop;
   $("room").classList.toggle("casket-open", !!(game.flags && game.flags.casketOpen));
   $("room").classList.toggle("power-on", !!(game.flags && game.flags.powerOn));
   $("room").classList.toggle("gate-closed", !!(game.flags && game.flags.gateClosed));
@@ -167,7 +183,7 @@ function render() {
       document.body.append(flash);
     }
     flash.innerHTML = `<div>Time's up. The loop resets…<small>Your items are gone, but your journal remembers. Loop ${game.loop}</small></div>`;
-    replay(flash, "show");
+    setTimeout(() => replay(flash, "show"), attacked ? 1800 : 0);  // let the vampire's attack land first
     replay($("journal"), "remember");  // glows as the flash fades: "your clues survived"
   }
   data("loop", game.loop);

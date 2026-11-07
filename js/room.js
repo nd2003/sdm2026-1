@@ -292,7 +292,22 @@ function buildRoom() {
     <g class="chandelier"><path d="M800 0V140" stroke="#151510" stroke-width="5" stroke-dasharray="8 3"/>
       <ellipse cx="800" cy="172" rx="80" ry="15" fill="none" stroke="#151510" stroke-width="7"/><path d="M800 140l-60 30M800 140l60 30M800 140l-22 32M800 140l22 32" stroke="#151510" stroke-width="3"/>
       ${[-72, -36, 0, 36, 72].map((dx) => `<path d="M${800 + dx} ${172 + (Math.abs(dx) > 50 ? -6 : 10)}v-6" stroke="#151510" stroke-width="5"/>${candle(800 + dx, 172 + (Math.abs(dx) > 50 ? -12 : 4))}`).join("")}
-      <path d="M760 182c0 10 1 16 2 22M840 182c0 8 1 12 0 18" stroke="#e8dfc0" stroke-width="2" fill="none"/></g>
+      <path d="M760 182c0 10 1 16 2 22M840 182c0 8 1 12 0 18" stroke="#e8dfc0" stroke-width="2" fill="none"/>
+      <g class="chandelier-bat" transform="translate(800 186)">
+        <path d="M-6 0v10M6 0v10" stroke="#0a0806" stroke-width="4" stroke-linecap="round"/>
+        <g class="cbat-wings">
+          <path d="M-14 12c-16 44-70 52-110 32 16-10 22-22 22-34-12 6-28 6-40 0 28-12 64-22 98-18zM14 12c16 44 70 52 110 32-16-10-22-22-22-34 12 6 28 6 40 0-28-12-64-22-98-18z" fill="#120d0a" stroke="#050403" stroke-width="2"/>
+          <path d="M-26 20c-22 18-48 22-76 22M-20 16c-16 12-36 16-58 16M26 20c22 18 48 22 76 22M20 16c16 12 36 16 58 16" stroke="#2c2018" stroke-width="2" fill="none"/>
+        </g>
+        <path d="M-18 8c-4 46 6 82 18 92 12-10 22-46 18-92z" fill="#1b1410" stroke="#050403" stroke-width="2"/>
+        <path d="M-6 24c0 20 2 40 6 56M6 24c0 20-2 40-6 56" stroke="#2c2018" stroke-width="1.4" fill="none"/>
+        <g transform="translate(0 104)">
+          <path d="M-14 6l-10 24 15-12zM14 6l10 24-15-12z" fill="#1b1410" stroke="#050403" stroke-width="1.5"/>
+          <ellipse cx="0" cy="2" rx="17" ry="14" fill="#1b1410"/>
+          <circle class="cbat-eye" cx="-6.5" cy="5" r="3.8" fill="#ff3a26"/><circle class="cbat-eye" cx="6.5" cy="5" r="3.8" fill="#ff3a26"/>
+          <path d="M-4 -8l1.5 -6 1.5 5M4 -8l-1.5 -6-1.5 5" fill="#efe9d6"/>
+        </g>
+      </g></g>
     <g transform="translate(372 336) skewY(-4)" font-family="Special Elite, monospace" fill="#6a0c08"><text font-size="34" opacity=".9">ONLY ONE LEAVES</text>
       <path d="M14 6c0 18 2 30 2 40M70 6c0 12 1 20 1 26M150 8c0 22 2 34 1 46M222 6c0 14 2 22 1 30" stroke="#6a0c08" stroke-width="3"/></g>
     <g stroke="#0c0e0f" stroke-width="3" fill="none"><path d="M1268 520l18 50M1280 516l18 52M1292 520l14 44"/></g>
