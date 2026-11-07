@@ -57,7 +57,8 @@ function render() {
   set($("timer"), "textContent", "" + t + "s");
   $("timer").classList.toggle("low", t <= 10 && !out);
   document.body.classList.toggle("hurry", t <= 10 && !out && !game.won && phase === "playing");  // whole room goes red in the last 10s
-  $("admin-skip").hidden = !(phase === "playing" && String(game.playerName).toLowerCase() === "admin");
+  $("admin-skip").hidden = !(phase === "playing" && !out && String(game.playerName).toLowerCase() === "admin");
+  document.body.classList.toggle("is-admin", !$("admin-skip").hidden);
   cssVar($("hud"), "--time", Math.min(1, t / (game.loopSeconds || 60)));  // drives the shrinking time bar
   set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
   if (stage > Number(document.body.dataset.stage || stage)) { replay($("bonus"), "show"); replay($("room"), "entering"); }  // +1:00 and the doors sliding apart
