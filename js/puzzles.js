@@ -35,8 +35,8 @@ function inputLocked() { return !isAdmin() && game.flags.lockedUntil !== undefin
 // ponytail: testing cheat, becomes a ?debug command in the course port. The name "admin" (any case) passes every gate,
 // any code is right, nothing drains time, and the timer never runs out. Checked only at the gates below.
 function isAdmin() { return String(game.playerName || "").toLowerCase() === "admin"; }
-function adminSkip() {  // the UI's "Skip level" button (admin only): as if this level's exit were solved
-  if (!isAdmin() || game.phase !== "playing" || game.flags.escaped) return;
+function adminSkip() {  // the red "Skip level" button / Shift+N (?debug or the admin name): as if this level's exit were solved
+  if (!(isAdmin() || CONFIG.demoSkip) || game.phase !== "playing" || game.flags.escaped) return;
   game.input = null;
   if (game.stage === 1) enterStage(2, "You skip ahead. The door opens onto the casket corridor.");
   else if (game.stage === 2) enterStage(3, "You skip ahead. The wall slides open onto the lift shaft.");
