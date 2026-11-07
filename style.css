@@ -850,3 +850,8 @@ body.no-flicker :is(.cbat-wings, .cbat-eye) { animation: none; }
 }
 #room[data-scare="timeout"] .vampire { left: 50%; }
 @media (prefers-reduced-motion: reduce) { #room.stalked:not(.vamp) .vampire { transition: none; } }
+
+/* the hand holding the flashlight: whole, small, inside the corner and clear of every object */
+.arm { width: 8.5cqw; right: .6%; bottom: .6%; transform-origin: 100% 100%; }
+#obj-vampire { left: 56.5%; bottom: 31%; }
+#room[data-scare="vampire"] .vampire { left: 56.5%; }

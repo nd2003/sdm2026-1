@@ -10,6 +10,21 @@ function buildRoom() {
       <g class="lid"><path d="M60 10L97 36 85 140H35L23 36z" fill="#2c2017" ${ink}/><path d="M60 16L88 38 78 134H42L32 38z" fill="none" stroke="#120b06" stroke-width="2"/>
       <path d="M40 40l7 3M80 40l-7 3M42 128l7-2M78 128l-7-2" stroke="#0a0805" stroke-width="3"/><path d="M71 134c0 8 1 12 2 12s2-4 2-12z" fill="#8c1a15"/>
       <rect x="39" y="72" width="42" height="17" fill="#8d7433" stroke="#231a08" stroke-width="1.5"/><path d="M43 77h34M43 84h34M47 75l6 12M56 74l5 13M66 75l6 12" stroke="#2b2109" stroke-width="1.3"/></g>`;
+
+  const HAND = (x, y, angle, s = 1) => {
+    const fingers = [[-6, 17, -1.2, [7, 6, 5]], [-2.2, 18, -.3, [8, 7, 5]], [1.6, 18, .4, [7.5, 6.5, 5]], [5.2, 16.5, 1.4, [6, 5, 4]]];
+    const bones = fingers.map(([fx, fy, lean, segs]) => {
+      let px = fx, py = fy, d = `M${px} ${py}`, joints = "";
+      segs.forEach((len, i) => { px += lean * (i + 1) * .5; py += len; d += `L${px.toFixed(1)} ${py}`; if (i < 2) joints += `<circle cx="${px.toFixed(1)}" cy="${py}" r="1.5" fill="#20251b"/>`; });
+      return `<path d="${d}" fill="none" stroke="#2f3428" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>${joints}<circle cx="${px.toFixed(1)}" cy="${py + .8}" r="1.1" fill="#0b0906"/>`;
+    }).join("");
+    return `<g transform="translate(${x} ${y}) rotate(${angle}) scale(${s})">
+      <path d="M-4.5 -2C-5 4-8.5 9-8.5 15c0 2.5 2 4 4.5 4H5c2.5 0 4.5-1.5 4.5-4 0-6-3.5-11-4-17z" fill="#2b3024" stroke="#0b0906" stroke-width=".8"/>
+      <path d="M-3 4c1 3 1 7 0 10M1 3c.5 4 .5 8 0 12M4 5c0 3 0 6-1 9" stroke="#1d2119" stroke-width=".8" fill="none"/>
+      ${bones}
+      <path d="M-8 8c-4 2-7 6-8.5 10l-1 5" fill="none" stroke="#2f3428" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="-14.8" cy="17.5" r="1.4" fill="#20251b"/><circle cx="-17.4" cy="23.6" r="1" fill="#0b0906"/>
+    </g>`;
+  };
   const objects = [  // DOM order = Tab order: wall left to right, then floor left to right
     ["clock", "Clock", `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <g filter="url(#grime)"><circle cx="50" cy="50" r="46" fill="#3b2c1e" ${ink}/><circle cx="50" cy="50" r="38" fill="#8d8671" ${ink}/>
@@ -167,12 +182,10 @@ function buildRoom() {
         </g>
       </g>
       <g class="zarms">
-        <path d="M92 102l16 20 12 26" fill="none" stroke="#151711" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M93 103l15 19 11 25" fill="none" stroke="#454b3c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
-        <circle cx="108" cy="122" r="4.4" fill="#262a20"/><path d="M100 110l2 4M114 134l2 4" stroke="#5a120d" stroke-width="1.8"/>
-        <path d="M116 144c5-3 11 0 12 6 1 5-3 9-8 10-5 0-8-4-8-8 0-4 1-6 4-8z" fill="#2b3024"/>
-        <g fill="none" stroke="#2b3024" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M127 146l9-6 7 3 4 6"/><path d="M129 152l11 0 6 6 1 6"/><path d="M127 158l7 8 0 8"/><path d="M120 161l2 10-3 7"/><path d="M113 155l-7 6-1 7"/></g>
-        <g fill="#0b0906"><circle cx="147" cy="149" r="1.2"/><circle cx="147" cy="164" r="1.2"/><circle cx="134" cy="174" r="1.2"/><circle cx="119" cy="178" r="1.2"/><circle cx="105" cy="168" r="1.2"/></g>
+        <path d="M92 102l16 20" fill="none" stroke="#151711" stroke-width="10" stroke-linecap="round"/><path d="M108 122l10 22" fill="none" stroke="#151711" stroke-width="6.5" stroke-linecap="round"/>
+        <path d="M93 103l15 19 9 21" fill="none" stroke="#454b3c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+        <circle cx="108" cy="122" r="4.6" fill="#262a20"/><path d="M100 110l2 4M113 134l2 4" stroke="#5a120d" stroke-width="1.8"/>
+        ${HAND(118, 144, -28, .95)}
       </g>
       </g>
       <rect x="0" y="0" width="120" height="190" fill="url(#zdark)" pointer-events="none"/>
@@ -185,12 +198,10 @@ function buildRoom() {
         <rect x="104" y="86" width="13" height="18" fill="#c7a650" stroke="#231a08"/>
       </g>
       <g class="zreach-out" pointer-events="none">
-        <path d="M44 92c-14 10-28 28-38 52-6 14-12 24-20 32" fill="none" stroke="#151711" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M44 92c-14 10-28 28-38 52-6 14-12 24-20 32" fill="none" stroke="#4b5240" stroke-width="3.4" stroke-linecap="round" opacity=".75"/>
-        <path d="M18 120l-3 4M2 152l-3 4" stroke="#5a120d" stroke-width="2"/>
-        <path d="M-18 172c-6 0-10 6-8 12 2 5 8 6 12 3 4-3 5-9 2-13z" fill="#2b3024"/>
-        <g class="zclaw" fill="none" stroke="#2b3024" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M-24 180l-12 4-6 8"/><path d="M-22 186l-12 10-2 10"/><path d="M-16 188l-6 12 2 10"/><path d="M-10 186l2 12 6 6"/><path d="M-26 174l-10-4-8 2"/></g>
-        <g fill="#0b0906"><circle cx="-42" cy="192" r="1.3"/><circle cx="-36" cy="206" r="1.3"/><circle cx="-20" cy="210" r="1.3"/><circle cx="-4" cy="204" r="1.3"/><circle cx="-44" cy="172" r="1.3"/></g>
+        <path d="M44 92c-14 10-26 26-34 44" fill="none" stroke="#151711" stroke-width="11" stroke-linecap="round"/><path d="M10 136c-6 14-12 26-22 36" fill="none" stroke="#151711" stroke-width="7" stroke-linecap="round"/>
+        <path d="M44 92c-14 10-26 26-34 44-6 14-12 26-22 36" fill="none" stroke="#4b5240" stroke-width="2.6" stroke-linecap="round" opacity=".7"/>
+        <circle cx="10" cy="136" r="5" fill="#262a20"/><path d="M22 112l-3 4M0 152l-3 4" stroke="#5a120d" stroke-width="2"/>
+        <g class="zclaw">${HAND(-13, 172, 38, 1.25)}</g>
       </g>
     </g></svg>`, 3],
     ["lift", "Lift (out of order)", S("0 0 120 44", `
