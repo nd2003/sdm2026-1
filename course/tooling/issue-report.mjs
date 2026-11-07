@@ -54,7 +54,7 @@ const nodes = paginate(
           number title url state
           author { login }
           labels(first: 30) { nodes { name } }
-          comments(last: 50) { nodes { databaseId body viewerDidAuthor } }
+          comments(last: 50) { nodes { id databaseId body viewerDidAuthor isMinimized } }
         }
       }
     }
@@ -80,21 +80,27 @@ const selected = team ? entries.filter((e) => e.result.team === team) : entries;
 if (flags.fix === true) {
   const items = selected
     .filter((e) => !e.result.ok || e.ownComment)
-    .map((e) => ({ plan: planIssueFix({ issue: e.issue, config }), ownComment: e.ownComment }));
+    .map((e) => ({
+      plan: planIssueFix({ issue: e.issue, config, hadComment: Boolean(e.ownComment) }),
+      ownComment: e.ownComment,
+    }));
   const { failed } = runFixes({ root, repo, kind: "issue", apply: flags.apply === true, items });
-  process.exit(failed > 0 ? EXIT.failed : EXIT.ok);
-}
-const results = selected.map((e) => e.result);
-
-const failingOnly = flags.failing === true;
-const groups = groupByTeam(results, config.teamLabels)
-  .map((g) => (failingOnly ? { ...g, passing: [] } : g))
-  .filter((g) => !failingOnly || g.failCount > 0);
-
-if (flags.json === true) {
-  console.log(JSON.stringify({ repo, state, generatedAt: new Date().toISOString(), teams: groups }, null, 2));
+  // exitCode, not process.exit(): on macOS and Linux stdout to a pipe is asynchronous, and exit() would cut it off.
+  process.exitCode = failed > 0 ? EXIT.failed : EXIT.ok;
 } else {
-  const generatedAt = `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
-  process.stdout.write(formatReport(groups, { repo, state, generatedAt, failingOnly }));
+  const results = selected.map((e) => e.result);
+  const failingOnly = flags.failing === true;
+  const groups = groupByTeam(results, config.teamLabels)
+    .map((g) => (failingOnly ? { ...g, passing: [] } : g))
+    .filter((g) => !failingOnly || g.failCount > 0);
+
+  if (flags.json === true) {
+    console.log(
+      JSON.stringify({ repo, state, generatedAt: new Date().toISOString(), teams: groups }, null, 2),
+    );
+  } else {
+    const generatedAt = `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
+    process.stdout.write(formatReport(groups, { repo, state, generatedAt, failingOnly }));
+  }
+  process.exitCode = EXIT.ok;
 }
-process.exit(EXIT.ok);

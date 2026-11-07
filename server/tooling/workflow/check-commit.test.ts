@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkCommit, parseLog } from "./lib/check-commit.mjs";
+import { checkCommit, commitRangeArgs, parseLog } from "./lib/check-commit.mjs";
 
 const valid = "feat(team-2): add login page\n\nPlayers need an account.\n\nRefs #14\n";
 const rules = (msg: string, opts = {}) => checkCommit(msg, opts).problems.map((p) => p.rule);
@@ -80,5 +80,28 @@ describe("parseLog", () => {
 
   it("returns nothing for an empty range", () => {
     expect(parseLog("")).toEqual([]);
+  });
+});
+
+describe("commitRangeArgs", () => {
+  it("can exclude commits already reachable from a trusted ref", () => {
+    expect(commitRangeArgs(["base..HEAD"], "origin/main")).toEqual([
+      "log",
+      "--no-merges",
+      "--format=%H%x1f%B%x1e",
+      "base..HEAD",
+      "--not",
+      "origin/main",
+    ]);
+  });
+
+  it("keeps the existing range behavior when there is no exclusion", () => {
+    expect(commitRangeArgs(["-1", "HEAD"], undefined)).toEqual([
+      "log",
+      "--no-merges",
+      "--format=%H%x1f%B%x1e",
+      "-1",
+      "HEAD",
+    ]);
   });
 });

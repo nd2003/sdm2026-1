@@ -5,22 +5,49 @@
 //   node course/tooling/student-report.mjs > .private/student-scores.md    Markdown report
 //   node course/tooling/student-report.mjs --json                          machine-readable output
 //   node course/tooling/student-report.mjs --repo owner/name               another repository than the current one
+//   node course/tooling/student-report.mjs --roster path/to/teams.json     another roster than course/teams.json
 //
 // The output has individual scores and the repository is public: keep it in .private/ (ignored by git).
 // Exit codes: 0 report written, 2 usage error, 3 environment problem (gh missing or not logged in).
 import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { EXIT, parseArgs } from "../../server/tooling/workflow/lib/args.mjs";
 import { loadTypes } from "../../server/tooling/workflow/lib/types.mjs";
-import { collectStats, formatStudentReport, scoreAll } from "./lib/student-report.mjs";
+import {
+  collectStats,
+  docsFromReport,
+  formatStudentReport,
+  parseRoster,
+  rosterLogins,
+  scoreAll,
+} from "./lib/student-report.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const { flags, positional } = parseArgs(process.argv.slice(2), { boolean: ["json"] });
-if (positional?.length || (flags.repo !== undefined && typeof flags.repo !== "string")) {
-  console.error("usage: node course/tooling/student-report.mjs [--json] [--repo owner/name]");
+if (
+  positional?.length ||
+  (flags.repo !== undefined && typeof flags.repo !== "string") ||
+  (flags.roster !== undefined && typeof flags.roster !== "string")
+) {
+  console.error("usage: node course/tooling/student-report.mjs [--json] [--repo owner/name] [--roster path]");
   process.exit(EXIT.usage);
 }
 const config = loadTypes(root);
+
+// The roster (course/teams.json) says who is in which team. Without it, teams are guessed from labels.
+const rosterPath =
+  typeof flags.roster === "string" ? resolve(flags.roster) : resolve(root, "course/teams.json");
+let roster = null;
+if (typeof flags.roster === "string" || existsSync(rosterPath)) {
+  try {
+    roster = parseRoster(readFileSync(rosterPath, "utf8"));
+  } catch (err) {
+    console.error(`error: could not read the roster ${rosterPath}: ${err.message}`);
+    process.exit(EXIT.usage);
+  }
+}
 
 /** Runs a command and returns stdout, or exits with an environment error. */
 function run(cmd, args, what) {
@@ -125,34 +152,55 @@ const issues = paginate(
 }));
 
 // PR documentation: the same rules as the PR documentation report.
-const prReport = JSON.parse(
-  run(
-    process.execPath,
-    [fileURLToPath(new URL("pr-report.mjs", import.meta.url)), "--state", "all", "--json", "--repo", repo],
-    "run pr-report.mjs",
-  ),
+const prReportOutput = run(
+  process.execPath,
+  [fileURLToPath(new URL("pr-report.mjs", import.meta.url)), "--state", "all", "--json", "--repo", repo],
+  "run pr-report.mjs",
 );
-const docs = new Map();
-for (const team of prReport.teams) {
-  for (const p of team.passing ?? []) docs.set(p.number, { ok: true, rules: [] });
-  for (const p of team.failing ?? []) docs.set(p.number, { ok: false, rules: p.problems.map((x) => x.rule) });
+let prReport;
+try {
+  prReport = JSON.parse(prReportOutput);
+} catch (err) {
+  console.error(
+    `error: pr-report.mjs --json did not print valid JSON (${prReportOutput.length} characters, truncated?): ${err.message}`,
+  );
+  process.exit(EXIT.environment);
 }
+const docs = docsFromReport(prReport);
 
-const members = JSON.parse(
-  run(
-    "gh",
-    ["api", `repos/${repo}/assignees`, "--paginate", "--jq", "[.[].login]"],
-    "list collaborators",
-  ).replace(/\]\s*\[/g, ","),
+// One login per line: stitching per-page JSON arrays together breaks on an empty page.
+const members = run(
+  "gh",
+  ["api", `repos/${repo}/assignees`, "--paginate", "--jq", ".[].login"],
+  "list collaborators",
+)
+  .split(/\r?\n/)
+  .map((l) => l.trim())
+  .filter(Boolean);
+const rows = scoreAll(
+  collectStats({
+    prs,
+    issues,
+    docs,
+    teamLabels: config.teamLabels,
+    members: [...members, ...rosterLogins(roster)],
+  }),
+  roster,
 );
-const rows = scoreAll(collectStats({ prs, issues, docs, teamLabels: config.teamLabels, members }));
 
 if (flags.json === true) {
   console.log(JSON.stringify({ repo, generatedAt: new Date().toISOString(), students: rows }, null, 2));
 } else {
   const generatedAt = `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
   process.stdout.write(
-    formatStudentReport(rows, { repo, generatedAt, prCount: prs.length, issueCount: issues.length }),
+    formatStudentReport(rows, {
+      repo,
+      generatedAt,
+      prCount: prs.length,
+      issueCount: issues.length,
+      instructors: roster ? [...roster.instructors] : [],
+    }),
   );
 }
-process.exit(EXIT.ok);
+// exitCode, not process.exit(): on macOS and Linux stdout to a pipe is asynchronous, and exit() would cut it off.
+process.exitCode = EXIT.ok;

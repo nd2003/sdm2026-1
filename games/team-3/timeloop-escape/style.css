@@ -1,0 +1,3525 @@
+@import url("https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap");
+/* Owner: UI (see README)
+
+   STYLE GUIDE: one visual system for the whole game
+   Palette roles (use the variables, not raw colours):
+     --bg      the dark behind everything          --panel  raised surfaces (chat, inventory, cards)
+     --wall    room surfaces (sick yellow office)   --text   body text on dark
+     --gold    the accent: focus, buttons, the path to follow; --gold-hi for glows
+     --danger  blood red: bites, the zombie, time running out
+     --clue    pale green: power on, unlocked, escaped, "safe"
+   Light: each stage has one light source, and things you can use face it.
+     1 office: the ceiling tube, top centre (warm, steady, the calmest stage)
+     2 corridor: candles and the chandelier, low and flickering (cold blue-grey)
+     3 lift shaft: the red emergency lamp, top left, until the power comes on
+   Edges: dark ink outlines (2px at art scale), no glossy highlights; grime and stains on large surfaces only.
+   Detail density: puzzle objects are the most detailed and the brightest; props are dimmer; the background is the darkest and least detailed.
+   Motion character: slow and wrong. Idle motion is a slow sway or a long flicker; scares are a fast hit that returns to rest.
+     --t-small (presses), --t-medium (items, clues, panels), --t-big (level change, bites, the end card)
+   Tension curve: stage 1 teaches (calm), stage 2 adds pressure (the vampire, the drain), stage 3 is the climax (dark, the zombie, the escape).
+     --tension (0-1) drives the light dips, the vignette and the creature speed per stage, and the last 10s raise it again.
+*/
+:root {
+  --bg: #0b0a05;
+  --panel: #1b190f;
+  --panel-deep: #0d0c06;
+  --wall: #a09556;
+  --text: #e4dcbc;
+  --text-dim: #a79f8a;
+  --gold: #c9b458;
+  --gold-hi: #e8c86a;
+  --danger: #8c1a15;
+  --danger-hi: #e0655b;
+  --clue: #8fbf86;
+  --clue-hi: #a8cf9f;
+  --t-small: 0.12s;
+  --t-medium: 0.35s;
+  --t-big: 0.55s;
+  --tension: 0;
+}
+body[data-stage="1"] {
+  --tension: 0.2;
+}
+body[data-stage="2"] {
+  --tension: 0.55;
+}
+body[data-stage="3"] {
+  --tension: 0.85;
+}
+body.hurry {
+  --tension: 1;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0 auto;
+  padding: 16px;
+  max-width: 1040px;
+  min-height: 100vh;
+  font-family: "Courier Prime", "Courier New", monospace;
+  color: var(--text);
+  background: radial-gradient(circle at 50% 0, #2a2612, #0b0a05 70%);
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  grid-template-areas: "hud hud" "lobby lobby" "room opponent" "room journal" "message journal" "inventory journal";
+}
+h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 24px;
+}
+
+/* HUD */
+#hud {
+  grid-area: hud;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#timer,
+#loop-count {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #ffffff14;
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+#timer {
+  font-variant-numeric: tabular-nums;
+}
+#timer.low {
+  color: #fff;
+  background: #c22;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* Room: a wall and a floor. Wall objects are placed with top, floor objects with bottom. */
+#room {
+  grid-area: room;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 10px;
+  container-type: inline-size; /* lets object sizes scale with the room (cqw) */
+  background: #0a0904;
+  box-shadow:
+    inset 0 0 60px #000c,
+    0 8px 24px #0008;
+}
+.obj {
+  position: absolute;
+  transform: translateX(-50%); /* left = centre of object */
+  display: grid;
+  place-items: end center;
+  min-width: 44px;
+  min-height: 44px; /* finger-sized tap target */
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.obj:hover {
+  filter: drop-shadow(0 0 0.8cqw var(--gold)) brightness(1.08);
+}
+.obj:focus-visible {
+  outline: 2px dashed var(--gold);
+  outline-offset: 4px;
+}
+.obj .art {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: var(--w);
+  transition: transform 0.5s;
+  filter: drop-shadow(0 0.5cqw 0.4cqw #0009);
+}
+.obj svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.obj .label {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(10px, 1.5cqw, 13px);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #000b;
+  white-space: nowrap;
+}
+
+/* living details */
+#obj-clock .sec {
+  transform-origin: 50px 50px;
+  animation: tick 60s steps(60) infinite;
+} /* one lap = one loop */
+@keyframes tick {
+  to {
+    transform: rotate(360deg);
+  }
+}
+#obj-computer .cursor {
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* states (classes set by render() from game.flags) */
+#obj-painting.moved .art {
+  transform: translate(-30%, 34%) rotate(-14deg);
+}
+#obj-painting.moved::before {
+  /* the hole the key was hiding in */
+  content: "";
+  position: absolute;
+  inset: 25% 30% 30%;
+  border-radius: 3px;
+  background: #120c08;
+  box-shadow: inset 0 0 1cqw #000;
+}
+#obj-cabinet .dl,
+#obj-cabinet .dr {
+  transform-box: fill-box;
+  transition: transform 0.7s ease-in-out;
+}
+#obj-cabinet .dl {
+  transform-origin: left center;
+}
+#obj-cabinet .dr {
+  transform-origin: right center;
+}
+#obj-cabinet.open .dl,
+#obj-cabinet.open .dr {
+  transform: scaleX(0.12);
+}
+#obj-door .lock {
+  transition: fill 0.4s;
+}
+#obj-door .bolt {
+  transition: transform 0.4s;
+}
+#obj-door.unlocked .bolt {
+  transform: translateX(-13px);
+}
+#obj-cabinet .padlock {
+  transition: opacity 0.3s;
+}
+#obj-cabinet.open .padlock {
+  opacity: 0;
+}
+#obj-door.unlocked .lock {
+  fill: var(--clue);
+}
+#obj-door.unlocked .art {
+  filter: drop-shadow(0 0 1.5cqw var(--clue));
+}
+#obj-computer .screen {
+  transition: fill 0.4s;
+}
+#obj-computer.unlocked .screen {
+  fill: #24402c;
+}
+#obj-computer.unlocked text.txt {
+  fill: #d9ecd2;
+}
+#obj-computer.unlocked path.txt {
+  stroke: #d9ecd2;
+}
+#obj-computer.unlocked .cursor {
+  fill: #d9ecd2;
+}
+#obj-painting.moved .label::after {
+  content: " · moved";
+}
+#obj-cabinet.open .label::after {
+  content: " · open";
+}
+#obj-door.unlocked .label::after {
+  content: " · unlocked";
+  color: #6f6;
+}
+
+/* Message */
+#message {
+  grid-area: message;
+  min-height: 2.6em;
+  padding: 10px 14px;
+  background: var(--panel);
+  border-left: 4px solid var(--gold);
+  border-radius: 6px;
+}
+#message:empty::before {
+  content: "Click something in the room.";
+  opacity: 0.5;
+}
+
+/* Inventory (lost every loop) */
+#inventory {
+  grid-area: inventory;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border-radius: 6px;
+}
+#inventory h2::after {
+  content: ":";
+}
+#inventory ul {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#inventory li {
+  padding: 4px 10px;
+  background: #c9b45822;
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+}
+#inventory li svg {
+  width: 2em;
+  height: auto;
+  margin-right: 0.4em;
+  vertical-align: middle;
+}
+
+/* Journal: a notebook that survives the reset. Text sits on 24px ruled lines. */
+#journal {
+  grid-area: journal;
+  align-self: stretch;
+  padding: 24px 14px 24px 40px;
+  border-radius: 4px 10px 10px 4px;
+  color: #231e15;
+  font-family: "Special Elite", "Courier New", monospace;
+  line-height: 24px;
+  background:
+    radial-gradient(ellipse 60px 40px at 78% 72%, #6d5f3a66, #0000),
+    radial-gradient(ellipse 34px 26px at 24% 30%, #6d5f3a55, #0000),
+    #b5aa86 repeating-linear-gradient(#0000 0 23px, #92875f 23px 24px);
+  box-shadow:
+    inset 32px 0 0 -30px #8c1a15,
+    inset 8px 0 12px -6px #0003,
+    4px 6px 16px #000a; /* red margin + spine */
+  transform: rotate(0.6deg);
+}
+#journal h2 {
+  font-family: inherit;
+  color: #6e1410;
+}
+#journal ol {
+  margin: 0;
+  padding-left: 18px;
+}
+.empty {
+  margin: 0;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* Loop-reset flash */
+#loop-flash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  background: #fff;
+  color: #111;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 16px;
+}
+#loop-flash.show {
+  animation: flash 1.6s ease-out;
+}
+@keyframes flash {
+  0% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.85;
+    background: #111;
+    color: var(--gold);
+  }
+  100% {
+    opacity: 0;
+    background: #111;
+  }
+}
+
+/* Win screen */
+#win {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #000d;
+  text-align: center;
+  padding: 16px;
+}
+#win[hidden] {
+  display: none;
+}
+#win > div {
+  padding: 24px 32px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--gold);
+}
+#win button {
+  font: inherit;
+  font-weight: bold;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--gold);
+  color: #111;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "hud" "lobby" "opponent" "room" "message" "inventory" "journal";
+    grid-template-rows: none;
+  }
+  #journal {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* --- Feedback for the puzzle half (driven by render()) --- */
+/* time bar under the HUD, shrinks with game.timeLeft */
+#hud {
+  position: relative;
+  padding-bottom: 10px;
+}
+#hud::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  border-radius: 2px;
+  width: calc(var(--time, 1) * 100%);
+  background: hsl(calc(var(--time, 1) * 52) 55% 45%); /* yellow -> red */
+  transition:
+    width 1s linear,
+    background 1s;
+}
+/* painting tilts a little more on each click until it swings aside on the 4th */
+#obj-painting:not(.moved) .art {
+  transform: rotate(calc(var(--clicks, 0) * -4deg));
+}
+/* pressed objects squish, so every click feels registered */
+.obj:active .art {
+  scale: 0.9;
+}
+/* new message pops in */
+#message.pop {
+  animation: pop 0.35s ease-out;
+}
+@keyframes pop {
+  from {
+    transform: translateY(4px);
+    background: #c9b45833;
+  }
+}
+/* newly written clue glows like fresh ink */
+#journal li.new {
+  animation: ink 2.5s ease-out;
+}
+@keyframes ink {
+  from {
+    background: #c9b45888;
+    color: #8a2b2b;
+  }
+}
+#loop-flash small {
+  display: block;
+  margin-top: 8px;
+  font-size: 1rem;
+  font-weight: normal;
+}
+/* last 10 seconds: the room pulses red */
+/* new item in the inventory */
+#inventory li.new {
+  animation: got 1.2s ease-out;
+}
+@keyframes got {
+  from {
+    transform: scale(1.4);
+    background: var(--gold);
+    color: #111;
+  }
+}
+/* after a reset the journal glows: the clues survived */
+#journal.remember {
+  animation: remember 1.2s 1.2s ease-out;
+}
+@keyframes remember {
+  40% {
+    box-shadow:
+      0 0 0 4px var(--gold),
+      0 0 40px #c9b458cc;
+  }
+}
+/* game title between the timer and the loop counter */
+#hud::before {
+  content: "Time Loop Escape";
+  order: 1;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+#loop-count {
+  order: 2;
+}
+@media (max-width: 420px) {
+  #hud::before {
+    display: none;
+  }
+}
+
+/* --- Two-player race: lobby, opponent panel, race result --- */
+/* lobby hides the game; the game hides the lobby */
+body[data-phase="lobby"] :is(#hud, #opponent, #room, #message, #inventory, #journal) {
+  display: none;
+}
+#lobby {
+  grid-area: lobby;
+}
+#lobby:empty,
+#opponent:empty {
+  display: none;
+}
+#lobby .card {
+  max-width: 440px;
+  margin: 10vh auto 0;
+  padding: 28px;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1px solid #c9b45855;
+  box-shadow: 0 12px 40px #000a;
+  text-align: center;
+}
+#lobby h1 {
+  margin: 0 0 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+#lobby p {
+  margin: 0 0 18px;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+#lobby label {
+  display: block;
+  text-align: left;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+#lobby .row {
+  display: flex;
+  gap: 8px;
+}
+#lobby input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background: var(--panel-deep);
+  color: inherit;
+}
+#lobby input:focus-visible {
+  outline: 2px solid var(--gold);
+  border-color: transparent;
+}
+#lobby button,
+#win button {
+  font: inherit;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--gold);
+  color: #111;
+  cursor: pointer;
+}
+#lobby button:focus-visible,
+#win button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.wait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid #c9b45833;
+  border-top-color: var(--gold);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* opponent panel: their name, loop and 5 progress steps */
+#opponent {
+  grid-area: opponent;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid #e5535355;
+}
+#opponent h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+#opponent small {
+  font-weight: normal;
+  opacity: 0.7;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.steps li {
+  padding-top: 10px;
+  font-size: 0.7rem;
+  text-align: center;
+  opacity: 0.5;
+  background: linear-gradient(#444, #444) top / 100% 6px no-repeat;
+  border-radius: 3px;
+}
+.steps li.done {
+  opacity: 1;
+  background-image: linear-gradient(#e55, #e55);
+}
+#opponent.bump {
+  animation: bump 0.6s ease-out;
+}
+@keyframes bump {
+  30% {
+    box-shadow:
+      0 0 0 3px #e55,
+      0 0 24px #e558;
+  }
+}
+
+/* race result */
+#win .first {
+  border-color: var(--gold);
+  box-shadow: 0 0 60px #c9b45844;
+}
+#win .second {
+  border-color: #e55;
+}
+#win p {
+  opacity: 0.85;
+}
+
+/* --- Eerie restyle --- */
+h1,
+h2,
+#timer,
+#loop-count,
+#hud::before {
+  font-family: "Special Elite", "Courier New", monospace;
+}
+/* loop reset: harsh static instead of a white flash */
+#loop-flash {
+  background: repeating-linear-gradient(0deg, #d9cf8a 0 2px, #15130a 2px 5px);
+  color: #fff;
+  text-shadow:
+    0 0 6px #000,
+    0 0 2px #000,
+    0 0 14px #000;
+}
+#loop-flash.show {
+  animation: staticburst 1.6s linear;
+}
+@keyframes staticburst {
+  0% {
+    opacity: 1;
+  }
+  8% {
+    opacity: 0.35;
+  }
+  16% {
+    opacity: 1;
+  }
+  26% {
+    opacity: 0.5;
+  }
+  34%,
+  60% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --- First-person view: an old, rotting office seen through your own eyes --- */
+/* The scene is a bit larger than the frame, so looking around can shift it without showing an edge. */
+.scene {
+  position: absolute;
+  inset: -3%;
+  translate: calc((0.5 - var(--nx, 0.5)) * 3cqw) calc((0.5 - var(--ny, 0.45)) * 2cqw);
+  transition: translate 0.3s ease-out;
+  animation: breathe 5s ease-in-out infinite; /* your breathing */
+  will-change: transform, translate; /* own layer: looking around and breathing never repaint the art */
+}
+@keyframes breathe {
+  50% {
+    transform: translateY(0.35cqw);
+  }
+} /* no scale: scaling re-draws every SVG filter each frame */
+.walls {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.figure {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: scale(calc(0.75 + var(--dread, 1) * 0.12));
+} /* closer every loop */
+body.hurry .figure {
+  opacity: 1;
+}
+
+/* Back wall */
+#obj-door {
+  left: 50%;
+  bottom: 30%;
+  --w: 10cqw;
+}
+#obj-clock {
+  left: 38%;
+  top: 27%;
+  --w: 5.5cqw;
+}
+/* Left wall */
+#obj-painting {
+  left: 18%;
+  top: 19%;
+  --w: 18cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(36deg);
+}
+/* Right wall */
+#obj-photo {
+  left: 73%;
+  top: 27%;
+  --w: 5.5cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(-34deg);
+}
+#obj-cabinet {
+  left: 74%;
+  bottom: 25%;
+  --w: 9cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(-36deg);
+}
+#obj-shelf {
+  left: 89%;
+  bottom: 10%;
+  --w: 17cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(-40deg);
+}
+/* Ceiling, hanging crooked from one chain */
+#obj-lamp {
+  left: 50%;
+  top: 6%;
+  --w: 20cqw;
+  transform: translateX(-50%) rotate(-4deg);
+}
+/* The desk right in front of you */
+#obj-computer {
+  left: 29%;
+  bottom: 11%;
+  --w: 17cqw;
+}
+#obj-note {
+  left: 44%;
+  bottom: 7%;
+  --w: 7cqw;
+}
+
+/* Labels stay out of the view until you look at something. Touch screens have no hover, so they always show there. */
+.obj .label {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.obj:hover .label,
+.obj:focus-visible .label {
+  opacity: 1;
+}
+@media (hover: none) {
+  .obj .label {
+    opacity: 0;
+  }
+  :is(
+      #obj-note,
+      #obj-painting,
+      #obj-cabinet,
+      #obj-photo,
+      #obj-computer,
+      #obj-door,
+      #obj-casket-left,
+      #obj-casket-right,
+      #obj-keypad,
+      #obj-fusebox,
+      #obj-hatch,
+      #obj-lift-breaker,
+      #obj-vent
+    )
+    .label {
+    opacity: 1;
+  }
+}
+
+/* Your flashlight. Outside the beam the room stays faintly visible, so nothing is impossible to find. */
+#room {
+  --beam: 34cqw;
+}
+#room::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: var(--panic, linear-gradient(#0000, #0000));
+  animation: dip 7s steps(1) infinite;
+}
+.beam {
+  position: absolute;
+  z-index: 3;
+  left: -100%;
+  top: -100%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  background: radial-gradient(circle var(--beam) at 50% 50%, #0000 0 30%, #07060366 62%, #030201bd 100%);
+  transform: translate(25%, 22.5%); /* starts aimed at 50% / 45% of the room */
+  will-change: transform;
+}
+@keyframes dip {
+  0%,
+  41%,
+  45%,
+  47%,
+  83%,
+  86%,
+  100% {
+    background-color: #0a090400;
+  }
+  42%,
+  46% {
+    background-color: #0a0904b8;
+  }
+  84% {
+    background-color: #0a090480;
+  }
+}
+#obj-lamp .tube {
+  animation: stutter 7s steps(1) infinite;
+}
+@keyframes stutter {
+  0%,
+  41%,
+  45%,
+  47%,
+  83%,
+  86%,
+  100% {
+    opacity: 1;
+  }
+  42%,
+  46% {
+    opacity: 0.2;
+  }
+  84% {
+    opacity: 0.45;
+  }
+}
+#obj-lamp .art {
+  filter: drop-shadow(0 0 2cqw #f3e9a688);
+}
+#obj-painting .art {
+  filter: brightness(1.45) saturate(1.25);
+} /* the clue needs its colour to stay clear in the dark */
+#obj-painting.moved .art {
+  transform: translate(-6%, 20%) rotate(-12deg) scale(0.86);
+}
+body.hurry #obj-painting .art {
+  filter: brightness(1.9) saturate(1.5);
+} /* keeps its colour under the red light */
+
+/* The arm holding the flashlight swings toward where you look */
+.arm {
+  position: absolute;
+  z-index: 4;
+  right: -1%;
+  bottom: -5%;
+  width: 19cqw;
+  height: auto;
+  pointer-events: none;
+  transform-origin: 100% 100%;
+  transform: rotate(calc((var(--nx, 0.5) - 0.55) * 34deg)) translateY(calc((var(--ny, 0.45) - 0.45) * 5cqw));
+  transition: transform 0.18s ease-out;
+}
+
+/* Last 10 seconds: the beam narrows, red closes in, the view shakes */
+body.hurry #room {
+  --beam: 24cqw;
+  --panic: radial-gradient(ellipse at 50% 50%, #0000 45%, #6e0d0888 100%);
+  animation: shake 0.35s steps(2) infinite;
+}
+@keyframes shake {
+  50% {
+    transform: translate(0.15cqw, -0.1cqw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #room::after {
+    animation: none !important;
+  }
+  .scene {
+    translate: none !important;
+  }
+}
+
+/* Losing the race: the light fails, the figure comes for you, then black */
+.killer {
+  position: absolute;
+  z-index: 5;
+  left: 58%;
+  bottom: 8%;
+  height: 62%;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: 50% 40%;
+}
+body.dead #room {
+  --beam: 11cqw;
+  --panic: none;
+  animation: none;
+}
+body.dead .arm {
+  transform: translateY(70%) rotate(32deg);
+  transition: transform 0.9s ease-in;
+}
+body.dead .killer {
+  animation: lunge 1.7s cubic-bezier(0.7, 0, 1, 0.6) forwards;
+}
+@keyframes lunge {
+  0% {
+    opacity: 0;
+    transform: scale(0.45);
+  }
+  20%,
+  55% {
+    opacity: 1;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-12cqw, 6cqw) scale(7);
+  }
+}
+body.dead #win {
+  background: #030201;
+  animation: deathcard 0.5s 1.6s both;
+}
+@keyframes deathcard {
+  from {
+    opacity: 0;
+  }
+}
+body.dead #win > div {
+  background: none;
+  border: 0;
+}
+body.dead #win h1 {
+  margin: 0 0 8px;
+  color: #c6352c;
+  font-size: clamp(2.6rem, 9vw, 4.5rem);
+  letter-spacing: 0.04em;
+}
+#win,
+#loop-flash {
+  z-index: 10;
+} /* above the arm and the figure in #room */
+
+/* A long journal scrolls inside its own column instead of stretching the whole page */
+@media (min-width: 701px) and (min-aspect-ratio: 27 / 20) {
+  #journal {
+    height: 0;
+    min-height: 100%;
+    overflow-y: auto;
+    background-attachment: local;
+    scrollbar-width: thin;
+    scrollbar-color: #6d5f3a #0000;
+  }
+}
+
+/* Settings: music and flicker */
+#hud {
+  padding-right: 140px;
+}
+#settings-btn,
+#settings-panel button {
+  font:
+    700 0.9rem "Courier Prime",
+    "Courier New",
+    monospace;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid #c9b45866;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+#settings-btn:hover,
+#settings-panel button:hover {
+  background: #2a2612;
+  border-color: var(--gold);
+}
+#settings-btn:focus-visible,
+#settings-panel button:focus-visible,
+#set-volume:focus-visible {
+  outline: 2px dashed var(--gold);
+  outline-offset: 2px;
+}
+#settings-btn {
+  position: absolute;
+  z-index: 11;
+  top: 16px;
+  right: 16px;
+}
+#settings-panel {
+  position: absolute;
+  z-index: 12;
+  top: 60px;
+  right: 16px;
+  width: min(280px, calc(100vw - 32px));
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: #14120a;
+  border: 1px solid #c9b45866;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px #000c;
+}
+#settings-panel[hidden] {
+  display: none;
+}
+#settings-panel label {
+  font-size: 0.85rem;
+  margin-bottom: -6px;
+}
+#settings-panel input {
+  width: 100%;
+  accent-color: var(--gold);
+}
+#settings-panel p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-dim);
+}
+@media (max-width: 560px) {
+  #hud::before {
+    display: none;
+  }
+}
+
+/* Stop flickering: the room's light holds steady, and the reset message fades instead of flashing */
+body.no-flicker #room::after,
+body.no-flicker #obj-lamp .tube,
+body.no-flicker #timer.low,
+body.no-flicker #obj-computer .cursor {
+  animation: none;
+}
+body.no-flicker.hurry #room {
+  animation: none;
+}
+body.no-flicker #loop-flash {
+  background: #0b0a05;
+  color: var(--gold);
+  text-shadow: none;
+}
+body.no-flicker #loop-flash.show {
+  animation: calmfade 1.6s ease-out;
+}
+@keyframes calmfade {
+  0%,
+  60% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The game fills the whole window. The room takes the width its height allows, and the journal column takes the rest. */
+body {
+  max-width: none;
+  margin: 0;
+}
+@media (min-width: 701px) and (min-aspect-ratio: 27 / 20) {
+  body[data-phase]:not([data-phase="lobby"]) {
+    --chrome: 108px; /* page padding, HUD row and one gap */
+    height: 100dvh;
+    min-height: 480px;
+    overflow: hidden;
+    grid-template-columns: min(calc((100dvh - var(--chrome)) * 1.6), calc(100vw - 324px)) minmax(280px, 1fr);
+    grid-template-areas: "hud hud" "room opponent" "room journal" "room message" "room inventory";
+    grid-template-rows: 64px auto minmax(0, 1fr) 74px 52px;
+  }
+  body[data-phase]:not([data-phase="lobby"]) #room {
+    aspect-ratio: auto;
+    height: 100%;
+    min-height: 0;
+  }
+  #message {
+    height: 74px;
+    overflow-y: auto;
+  }
+  #inventory {
+    height: 52px;
+  }
+}
+/* Tall windows and phones stack, and the journal uses whatever height is left */
+@media (max-width: 700px), (max-aspect-ratio: 27 / 20) {
+  body[data-phase]:not([data-phase="lobby"]) {
+    min-height: 100dvh;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "hud" "opponent" "room" "message" "inventory" "journal";
+    grid-template-rows: auto auto auto auto auto minmax(160px, 1fr);
+  }
+  #journal {
+    transform: none;
+  }
+  #hud {
+    padding-right: 132px;
+  }
+}
+
+/* Front screen: the game's name is the first thing you see */
+body[data-phase="lobby"] {
+  min-height: 100dvh;
+  grid-template: "lobby" 1fr / minmax(0, 1fr);
+  padding: 16px;
+}
+#lobby {
+  display: grid;
+  place-items: center;
+}
+#lobby .card {
+  width: min(760px, 100%);
+  max-width: none;
+  margin: 0;
+  padding: 16px;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+#lobby h1 {
+  margin: 0 0 18px;
+  font-size: clamp(2.8rem, 9vw, 6.5rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-wrap: balance;
+  color: var(--gold);
+  text-shadow:
+    0 0 28px #c9b45855,
+    0 3px 0 #0a0904;
+  animation: titlebuzz 7s steps(1) infinite;
+}
+@keyframes titlebuzz {
+  0%,
+  41%,
+  45%,
+  47%,
+  83%,
+  86%,
+  100% {
+    opacity: 1;
+  }
+  42%,
+  46% {
+    opacity: 0.35;
+  }
+  84% {
+    opacity: 0.6;
+  }
+}
+#lobby p {
+  max-width: 46ch;
+  margin-inline: auto;
+  font-size: 1.05rem;
+}
+#lobby form,
+#lobby .row,
+#lobby label {
+  max-width: 460px;
+  margin-inline: auto;
+}
+body.no-flicker #lobby h1 {
+  animation: none;
+}
+
+/* --- Co-op: lobby, partner panel, chat, in-game input, levels --- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+#lobby input,
+#lobby select {
+  width: 100%;
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background: var(--panel-deep);
+  color: inherit;
+}
+#lobby select:focus-visible {
+  outline: 2px solid var(--gold);
+  border-color: transparent;
+}
+#lobby .card {
+  text-align: center;
+}
+#lobby form.card > label,
+#lobby form.card > input {
+  display: block;
+  max-width: 460px;
+  margin-inline: auto;
+  text-align: left;
+}
+.ways {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.way {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 14px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid #c9b45844;
+  border-radius: 10px;
+}
+#lobby .way label {
+  margin: 0;
+}
+#lobby .way button {
+  width: 100%;
+}
+#lobby-error {
+  margin: 12px auto 0;
+  color: var(--danger-hi);
+  font-weight: 700;
+}
+#lobby button.solo {
+  margin-top: 14px;
+  background: none;
+  color: #d8d0ba;
+  border: 1px solid #c9b45866;
+  font-weight: 400;
+}
+#lobby button.solo:hover {
+  background: var(--panel);
+}
+#lobby .wait {
+  display: flex;
+  margin-top: 8px;
+}
+.code-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+#room-code-shown {
+  font:
+    400 clamp(2.4rem, 7vw, 3.6rem) "Special Elite",
+    "Courier New",
+    monospace;
+  letter-spacing: 0.14em;
+  color: var(--text);
+  user-select: all;
+}
+@media (max-width: 560px) {
+  .ways {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.steps {
+  grid-template-columns: repeat(7, 1fr);
+}
+.steps li {
+  font-size: 0.6rem;
+  white-space: nowrap;
+}
+.partner-out {
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: var(--clue-hi);
+}
+.obj[data-stage="2"],
+.obj[data-stage="3"],
+.level-view {
+  display: none;
+}
+body[data-stage="2"] .obj[data-stage="1"],
+body[data-stage="3"] .obj[data-stage="1"] {
+  display: none;
+}
+body[data-stage="2"] .obj[data-stage="2"],
+body[data-stage="3"] .obj[data-stage="3"] {
+  display: grid;
+}
+body[data-stage="2"] .level-view[data-stage="2"],
+body[data-stage="3"] .level-view[data-stage="3"] {
+  display: block;
+}
+#obj-casket-left {
+  left: 30%;
+  bottom: 7%;
+  --w: 20cqw;
+}
+#obj-casket-right {
+  left: 70%;
+  bottom: 7%;
+  --w: 20cqw;
+}
+#obj-keypad {
+  left: 50%;
+  top: 42%;
+  --w: 5cqw;
+}
+#obj-lift {
+  left: 50%;
+  bottom: 22%;
+  --w: 30cqw;
+}
+#hud {
+  position: relative;
+}
+#bonus {
+  position: absolute;
+  left: 100px;
+  top: 14px;
+  font:
+    700 1.3rem "Special Elite",
+    "Courier New",
+    monospace;
+  color: var(--clue-hi);
+  opacity: 0;
+  pointer-events: none;
+}
+#bonus.show {
+  animation: bonus 2s ease-out;
+}
+@keyframes bonus {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  15%,
+  70% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+.out-note {
+  display: none;
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  place-items: center;
+  padding: 16px;
+  text-align: center;
+  font:
+    400 clamp(1.2rem, 3cqw, 2rem) "Special Elite",
+    "Courier New",
+    monospace;
+  background: #050402c4;
+}
+body.waiting .out-note {
+  display: grid;
+}
+
+#chat {
+  grid-area: chat;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 10px 12px;
+  background: var(--panel);
+  border-radius: 8px;
+}
+#chat-log {
+  flex: 1;
+  min-height: 60px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+#chat-log .me {
+  color: #c9c2a8;
+}
+#chat-log .empty {
+  color: var(--text-dim);
+  font-style: italic;
+  opacity: 1;
+}
+#chat-form {
+  display: flex;
+  gap: 6px;
+}
+#chat-form input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 7px 9px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: var(--panel-deep);
+  color: inherit;
+}
+#chat-form button,
+#game-input button {
+  font:
+    700 0.9rem "Courier Prime",
+    "Courier New",
+    monospace;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--gold);
+  color: #111;
+  cursor: pointer;
+}
+#chat-form input:focus-visible,
+#game-input input:focus-visible {
+  outline: 2px solid var(--gold);
+  border-color: transparent;
+}
+#chat-form button:focus-visible,
+#game-input button:focus-visible {
+  outline: 2px dashed var(--text);
+  outline-offset: 2px;
+}
+#game-input {
+  grid-area: room;
+  place-self: center;
+  z-index: 7;
+  display: grid;
+  gap: 10px;
+  width: min(320px, 90%);
+  padding: 16px;
+  background: #0d0c06f2;
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  box-shadow: 0 10px 40px #000;
+}
+#game-input[hidden] {
+  display: none;
+}
+#game-input label {
+  font:
+    400 1.3rem "Special Elite",
+    "Courier New",
+    monospace;
+}
+#game-input input {
+  font:
+    700 1.3rem "Courier Prime",
+    "Courier New",
+    monospace;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #000;
+  color: var(--clue-hi);
+  letter-spacing: 0.1em;
+}
+#game-input .row {
+  display: flex;
+  gap: 8px;
+}
+#game-input-cancel {
+  background: none !important;
+  color: #d8d0ba !important;
+  border: 1px solid #c9b45866 !important;
+}
+body[data-phase="lobby"] :is(#chat, #game-input) {
+  display: none;
+}
+
+/* Side by side: the room keeps the full height, the panels share the side column, and object text is a caption over the room */
+@media (min-width: 701px) and (min-aspect-ratio: 27 / 20) {
+  body[data-phase]:not([data-phase="lobby"]) {
+    grid-template-areas: "hud hud" "room opponent" "room journal" "room chat" "room inventory";
+    grid-template-rows: 64px auto minmax(0, 1fr) minmax(0, 1fr) 52px;
+  }
+  #message {
+    grid-area: room;
+    align-self: start;
+    justify-self: center;
+    z-index: 6;
+    width: min(92%, 680px);
+    height: auto;
+    min-height: 0;
+    max-height: 7.5em;
+    margin-top: 10px;
+    overflow: hidden;
+    pointer-events: none;
+    background: #0b0a05e0;
+    font-size: 1.02rem;
+  }
+  #message:empty {
+    display: none;
+  }
+}
+@media (max-width: 700px), (max-aspect-ratio: 27 / 20) {
+  body[data-phase]:not([data-phase="lobby"]) {
+    grid-template-areas: "hud" "opponent" "room" "message" "inventory" "chat" "journal";
+    grid-template-rows: auto auto auto auto auto auto minmax(160px, 1fr);
+  }
+  #chat {
+    height: 220px;
+  }
+  #loop-count {
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+  #bonus {
+    left: 84px;
+  }
+}
+
+/* --- Story set dressing (Abdullah's notes on #12) --- */
+#obj-keypad {
+  left: 85%;
+  top: 40%;
+  --w: 6.5cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(-38deg);
+}
+#obj-lift {
+  left: 50%;
+  bottom: 14%;
+  --w: 36cqw;
+}
+#obj-casket-left {
+  left: 27%;
+  bottom: 3%;
+  --w: 18cqw;
+}
+#obj-casket-right {
+  left: 73%;
+  bottom: 3%;
+  --w: 18cqw;
+  transition: none;
+}
+.page {
+  display: none;
+}
+.right-one .page {
+  display: inline;
+}
+.lid {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.8s ease-in-out;
+}
+.casket-open .right-one .lid {
+  transform: translate(60%, 8%) rotate(14deg);
+}
+.candles {
+  animation: candle 3s steps(1) infinite;
+}
+@keyframes candle {
+  0%,
+  37%,
+  41%,
+  77%,
+  100% {
+    opacity: 1;
+  }
+  38%,
+  40% {
+    opacity: 0.55;
+  }
+  78% {
+    opacity: 0.75;
+  }
+}
+.needle {
+  transform-origin: 80px 24px;
+  animation: needle 2.6s steps(1) infinite;
+}
+@keyframes needle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  12% {
+    transform: rotate(-9deg);
+  }
+  18% {
+    transform: rotate(3deg);
+  }
+  55% {
+    transform: rotate(-22deg);
+  }
+  60% {
+    transform: rotate(-6deg);
+  }
+}
+body.no-flicker :is(.candles, .needle) {
+  animation: none;
+}
+#inventory li small {
+  margin-left: 0.5em;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* The wrong casket: the scariest moment in the game */
+.redlight,
+.vampire {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+}
+.redlight {
+  inset: 0;
+  z-index: 4;
+  background: #7e0d08;
+  mix-blend-mode: multiply;
+}
+.vampire {
+  z-index: 5;
+  bottom: -4%;
+  left: 73%;
+  height: 84%;
+  transform-origin: 50% 100%;
+  translate: -50% 0;
+}
+#room[data-wrong="left"] .vampire {
+  left: 27%;
+}
+#room.vamp .redlight {
+  animation: redlight 2.6s ease-out both;
+}
+#room.vamp .vampire {
+  animation: vampire 2.6s cubic-bezier(0.3, 0, 0.2, 1) both;
+}
+#room.vamp .wrong-one .lid {
+  animation: wronglid 2.6s ease-in-out both;
+}
+@keyframes redlight {
+  0% {
+    opacity: 0;
+  }
+  12%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes vampire {
+  0% {
+    opacity: 0;
+    transform: translateY(70%) scale(0.55);
+  }
+  10% {
+    opacity: 1;
+  }
+  34% {
+    transform: translateY(26%) scale(0.7);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(2%) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(40%) scale(0.9);
+  }
+}
+@keyframes wronglid {
+  0% {
+    transform: none;
+  }
+  12%,
+  80% {
+    transform: translate(60%, 8%) rotate(14deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+#drain {
+  position: absolute;
+  left: 190px;
+  top: 8px;
+  font:
+    700 2rem "Special Elite",
+    "Courier New",
+    monospace;
+  color: #e0463a;
+  opacity: 0;
+  pointer-events: none;
+}
+#drain.show {
+  animation: drain 2.4s ease-out;
+}
+@keyframes drain {
+  0% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+  10%,
+  65% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* The ending: the visitor log, with two names signed out for the first time */
+.ledger {
+  margin: 12px auto;
+  border-collapse: collapse;
+  font:
+    0.9rem "Courier Prime",
+    "Courier New",
+    monospace;
+  color: #231e15;
+  background: #b5aa86;
+  text-align: left;
+}
+.ledger caption {
+  padding-bottom: 8px;
+  font:
+    400 1rem "Special Elite",
+    "Courier New",
+    monospace;
+  color: var(--text);
+}
+.ledger th,
+.ledger td {
+  padding: 3px 12px;
+  border: 1px solid #6d5f3a;
+}
+.ledger .gone {
+  opacity: 0.55;
+}
+.ledger .us td {
+  font-weight: 700;
+}
+.clock-stopped {
+  margin: 8px 0 14px;
+  font-style: italic;
+}
+#obj-note {
+  left: 41%;
+} /* clear of the newspaper ad on the desk */
+#journal li.memory {
+  font-style: italic;
+  color: #5b4a34;
+}
+
+/* --- Visual overhaul (#13) and the new story objects (#15) --- */
+/* Level 1 props */
+#obj-phone {
+  left: 50%;
+  bottom: 8%;
+  --w: 7.5cqw;
+}
+#obj-coat {
+  left: 28%;
+  top: 37%;
+  --w: 5cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(36deg);
+}
+#obj-vending {
+  left: 41%;
+  bottom: 28%;
+  --w: 8cqw;
+}
+#obj-scratches {
+  left: 56.5%;
+  bottom: 30%;
+  --w: 1.9cqw;
+}
+/* Level 2 props */
+#obj-fusebox {
+  left: 19%;
+  top: 36%;
+  --w: 6.5cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(38deg);
+}
+#obj-bricked-door {
+  left: 8%;
+  bottom: 19%;
+  --w: 11cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(46deg);
+}
+#obj-shoes {
+  left: 50%;
+  bottom: 15%;
+  --w: 8cqw;
+}
+#obj-candles {
+  left: 41%;
+  bottom: 25%;
+  --w: 5.5cqw;
+}
+.led {
+  fill: #6e0d08;
+}
+#room.power-on .led {
+  fill: var(--clue);
+}
+.lever {
+  transition: transform 0.25s;
+}
+#room.power-on .lever {
+  transform: translateY(32px);
+}
+/* Level 3: the gate folds across the lift car, and the buttons sit beside it */
+#obj-lift-panel {
+  left: 61.5%;
+  bottom: 30%;
+  --w: 5.5cqw;
+  transform: translateX(-50%);
+}
+#obj-lift {
+  left: 44.5%;
+  top: 17%;
+  bottom: auto;
+  --w: 13cqw;
+}
+#obj-gate {
+  left: 44.5%;
+  bottom: 17%;
+  --w: 28cqw;
+}
+#obj-indicator {
+  left: 44.5%;
+  top: 3%;
+  --w: 12cqw;
+}
+#obj-emergency-phone {
+  left: 11%;
+  top: 40%;
+  --w: 8cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(36deg);
+}
+#obj-graffiti {
+  left: 85%;
+  top: 30%;
+  --w: 18cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(-34deg);
+}
+.folds {
+  transform-origin: 0 50%;
+  transform: scaleX(0.8);
+  transition: transform 0.8s cubic-bezier(0.5, 0, 0.2, 1);
+}
+#room.gate-closed .folds {
+  transform: none;
+}
+#room.gate-closed .car-light {
+  opacity: 0.3;
+}
+.car-light {
+  transition: opacity 0.6s;
+}
+#room.lift-power .lift-lamp {
+  fill: var(--clue);
+}
+.needle {
+  transform-origin: 75px 74px;
+}
+/* Door: the ad on loop 1, your own warning after that */
+.scrawl {
+  display: none;
+}
+#room.later .ad {
+  display: none;
+}
+#room.later .scrawl {
+  display: inline;
+}
+/* Things that stand on the floor throw a shadow */
+#obj-door::after,
+#obj-cabinet::after,
+#obj-shelf::after,
+#obj-vending::after,
+#obj-casket-left::after,
+#obj-casket-right::after,
+#obj-shoes::after,
+#obj-candles::after,
+#obj-computer::after,
+#obj-phone::after {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: -2%;
+  height: 9%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #000c, #0000);
+  pointer-events: none;
+}
+/* Press feedback */
+.obj .art {
+  transition:
+    transform 0.5s,
+    scale 0.12s;
+}
+.obj:active .art {
+  scale: 0.94;
+}
+/* Dust drifting through the flashlight beam: only transform moves */
+.dust {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 60cqw;
+  height: 60cqw;
+  margin: -30cqw 0 0 -30cqw;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: 0.4;
+}
+.dust::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  animation: dust 26s linear infinite;
+  background-image:
+    radial-gradient(circle, #e8dfb8 0 1px, #0000 1.6px),
+    radial-gradient(circle, #e8dfb8 0 0.7px, #0000 1.2px),
+    radial-gradient(circle, #e8dfb8 0 1.2px, #0000 1.8px);
+  background-size:
+    9cqw 11cqw,
+    6cqw 7cqw,
+    15cqw 13cqw;
+  background-position:
+    0 0,
+    3cqw 2cqw,
+    7cqw 5cqw;
+}
+@keyframes dust {
+  to {
+    transform: translate(-12cqw, -18cqw);
+  }
+}
+/* Between levels: two dark doors slide apart */
+.wipe {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  bottom: 0;
+  width: 51%;
+  background: linear-gradient(#14130e, #050403);
+  pointer-events: none;
+}
+.wipe.l {
+  left: 0;
+  transform: translateX(-101%);
+  box-shadow: inset -6px 0 0 #2c2819;
+}
+.wipe.r {
+  right: 0;
+  transform: translateX(101%);
+  box-shadow: inset 6px 0 0 #2c2819;
+}
+#room.entering .wipe.l {
+  animation: wipeL 1.2s 0.15s cubic-bezier(0.6, 0, 0.3, 1) backwards;
+}
+#room.entering .wipe.r {
+  animation: wipeR 1.2s 0.15s cubic-bezier(0.6, 0, 0.3, 1) backwards;
+}
+@keyframes wipeL {
+  from {
+    transform: none;
+  }
+}
+@keyframes wipeR {
+  from {
+    transform: none;
+  }
+}
+
+/* Panels: stamped metal, tape and paper instead of plain boxes */
+body {
+  background: radial-gradient(ellipse at 40% 0, #2c2710, #090804 65%);
+}
+#timer,
+#loop-count {
+  border-radius: 3px;
+  background: linear-gradient(#26231a, #14120b);
+  color: var(--text);
+  box-shadow:
+    inset 0 0 0 1px #4a4326,
+    inset 0 2px 0 #4a432666,
+    0 2px 5px #0009;
+}
+#timer {
+  min-width: 3.4em;
+  text-align: center;
+  color: var(--gold-hi);
+  text-shadow: 0 0 10px #e8c86a55;
+}
+#timer.low {
+  color: #ffd9d4;
+  background: linear-gradient(#7e130f, #4a0806);
+  text-shadow: 0 0 12px #ff4a3a;
+}
+#hud::after {
+  height: 3px;
+  border-radius: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+#room {
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 0 5px #1a170c,
+    0 0 0 6px #4a4326,
+    0 14px 40px #000c;
+}
+#opponent {
+  border-radius: 3px;
+  border: 0;
+  background: linear-gradient(#a89c7c, #8f8664);
+  color: #17140d;
+  box-shadow: 0 3px 10px #000a;
+  transform: rotate(-0.4deg);
+}
+#opponent small {
+  opacity: 0.8;
+  color: #2c271c;
+}
+#opponent h2 {
+  color: #17140d;
+}
+.steps li {
+  opacity: 0.75;
+  color: #2c271c;
+  background-image: linear-gradient(#6d5f3a, #6d5f3a);
+}
+.steps li.done {
+  opacity: 1;
+  font-weight: 700;
+  color: #4a0806;
+  background-image: linear-gradient(#8c1a15, #8c1a15);
+}
+.partner-out {
+  color: #1f4d24;
+}
+#chat {
+  border-radius: 3px;
+  background: linear-gradient(#10130e, #0a0c08);
+  box-shadow:
+    inset 0 0 0 1px #2d3a2a,
+    inset 0 0 26px #000,
+    0 3px 10px #000a;
+  color: #b9d0ae;
+  font-family: "Courier Prime", "Courier New", monospace;
+}
+#chat h2 {
+  color: var(--clue);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+#chat-log .me {
+  color: #7f9b78;
+}
+#chat-log .empty {
+  color: #6f8a68;
+}
+#chat-form input {
+  background: #050604;
+  border-color: #2d3a2a;
+  color: #b9d0ae;
+}
+#chat-form button {
+  background: #2d3a2a;
+  color: #d9ecd2;
+}
+#inventory {
+  border-radius: 3px;
+  background: repeating-linear-gradient(90deg, #2a1e14 0 34px, #261b12 34px 36px);
+  box-shadow:
+    inset 0 0 0 1px #4a3620,
+    inset 0 6px 12px #0009,
+    0 3px 10px #000a;
+}
+#inventory li {
+  border-radius: 2px;
+  background: #1b130b;
+  border-color: #6c5a35;
+}
+#message {
+  border-radius: 2px;
+  border-left-color: #8c1a15;
+}
+#journal {
+  background-color: #b5aa86;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 97%,
+    94% 100%,
+    86% 98%,
+    74% 100%,
+    61% 98%,
+    49% 100%,
+    36% 98%,
+    22% 100%,
+    10% 98%,
+    0 100%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .dust::before,
+  .wipe {
+    animation: none !important;
+  }
+}
+body.no-flicker .dust {
+  opacity: 0.25;
+}
+
+/* QA fixes */
+body.asking #message {
+  display: none;
+} /* no stale message above an open input box */
+#hud::after {
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(var(--time, 1));
+  transition:
+    transform 1s linear,
+    background 1s;
+} /* no layout on every tick */
+.obj:hover {
+  filter: none;
+  outline: 1px dashed #c9b45888;
+  outline-offset: 5px;
+} /* no repaint of the filtered art */
+#chat-log {
+  scrollbar-width: thin;
+  scrollbar-color: #2d3a2a #0000;
+}
+.dust {
+  opacity: 0.24;
+}
+#lobby-note {
+  margin: 14px auto 0;
+  color: var(--danger-hi);
+  font-weight: 700;
+}
+#lobby-note:empty {
+  display: none;
+}
+
+/* Level 2: cockroaches scurry in short bursts and stop, like real ones */
+.roach {
+  transform-origin: 0 0;
+}
+.roach-a {
+  animation: roachA 9s infinite;
+}
+.roach-b {
+  animation: roachB 12s infinite;
+}
+.roach-c {
+  animation: roachC 10.5s infinite;
+}
+.roach-d {
+  animation: roachD 14s infinite;
+}
+@keyframes roachA {
+  0%,
+  18% {
+    transform: none;
+  }
+  24% {
+    transform: translate(70px, 0);
+  }
+  40% {
+    transform: translate(70px, 0);
+  }
+  42% {
+    transform: translate(70px, 0) rotate(40deg);
+  }
+  50%,
+  70% {
+    transform: translate(110px, 34px) rotate(40deg);
+  }
+  73% {
+    transform: translate(110px, 34px) rotate(200deg);
+  }
+  86%,
+  100% {
+    transform: rotate(180deg);
+  }
+}
+@keyframes roachB {
+  0%,
+  30% {
+    transform: none;
+  }
+  36%,
+  60% {
+    transform: translate(90px, 8px);
+  }
+  62% {
+    transform: translate(90px, 8px) rotate(-150deg);
+  }
+  72%,
+  100% {
+    transform: rotate(-180deg);
+  }
+}
+@keyframes roachC {
+  0%,
+  10% {
+    transform: none;
+  }
+  16%,
+  48% {
+    transform: translate(60px, 4px) rotate(10deg);
+  }
+  54%,
+  80% {
+    transform: translate(110px, -16px) rotate(-20deg);
+  }
+  82% {
+    transform: translate(110px, -16px) rotate(160deg);
+  }
+  94%,
+  100% {
+    transform: rotate(180deg);
+  }
+}
+@keyframes roachD {
+  0%,
+  42% {
+    transform: none;
+  }
+  47% {
+    transform: translate(-60px, 10px) rotate(8deg);
+  }
+  49%,
+  78% {
+    transform: translate(-60px, 10px) rotate(8deg);
+  }
+  80% {
+    transform: translate(-60px, 10px) rotate(-170deg);
+  }
+  90%,
+  100% {
+    transform: rotate(-180deg);
+  }
+}
+.roach .legs {
+  transform-origin: 0 0;
+  animation: legs 0.14s steps(2) infinite;
+}
+@keyframes legs {
+  50% {
+    transform: skewX(9deg);
+  }
+}
+.roach .antennae {
+  transform-origin: 16px 0;
+  animation: feel 2.3s ease-in-out infinite alternate;
+}
+@keyframes feel {
+  to {
+    transform: rotate(9deg);
+  }
+}
+
+/* The candelabra's flames, and the bat that lives on it */
+.flame {
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  animation: flame 1.7s ease-in-out infinite alternate;
+}
+.flame + .flame,
+rect + path + ellipse + .flame {
+  animation-duration: 2.1s;
+}
+@keyframes flame {
+  0% {
+    transform: scale(1, 1);
+  }
+  30% {
+    transform: scale(0.94, 1.08) skewX(-3deg);
+  }
+  60% {
+    transform: scale(1.04, 0.95) skewX(2deg);
+  }
+  100% {
+    transform: scale(0.97, 1.05);
+  }
+}
+.bat-head {
+  transform-box: fill-box;
+  transform-origin: 50% 80%;
+  animation: batlook 8s steps(1) infinite;
+}
+@keyframes batlook {
+  0%,
+  100% {
+    transform: none;
+  }
+  38% {
+    transform: rotate(-14deg);
+  }
+  52% {
+    transform: rotate(10deg);
+  }
+  66% {
+    transform: none;
+  }
+}
+.bat-wing-l,
+.bat-wing-r {
+  transform-box: fill-box;
+  animation: batwing 11s ease-in-out infinite;
+}
+.bat-wing-l {
+  transform-origin: 100% 90%;
+}
+.bat-wing-r {
+  transform-origin: 0 90%;
+  animation-name: batwingR;
+}
+@keyframes batwing {
+  0%,
+  84%,
+  92%,
+  100% {
+    transform: none;
+  }
+  87% {
+    transform: rotate(-38deg) scaleX(1.5);
+  }
+  89% {
+    transform: rotate(-30deg) scaleX(1.4);
+  }
+}
+@keyframes batwingR {
+  0%,
+  84%,
+  92%,
+  100% {
+    transform: none;
+  }
+  87% {
+    transform: rotate(38deg) scaleX(1.5);
+  }
+  89% {
+    transform: rotate(30deg) scaleX(1.4);
+  }
+}
+body.no-flicker .flame {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.roach, .roach .legs, .roach .antennae, .flame, .bat-head, .bat-wing-l, .bat-wing-r) {
+    animation: none !important;
+  }
+}
+.candelabra {
+  position: absolute;
+  z-index: 2;
+  left: 3.5%;
+  bottom: 3%;
+  width: 15cqw;
+  height: auto;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Level 3: the vent ending. The shaft is dark until the breaker has a fuse; then the fan stops and daylight shows through. */
+#obj-hatch {
+  left: 73%;
+  top: 6%;
+  --w: 12cqw;
+}
+#obj-hatch .art {
+  filter: drop-shadow(0 0 1cqw #000) brightness(1.5);
+}
+#obj-lift-breaker {
+  left: 88%;
+  top: 56%;
+  --w: 6cqw;
+  transform: translateX(-50%) perspective(70cqw) rotateY(-34deg);
+}
+#obj-vent {
+  left: 70%;
+  bottom: 22%;
+  --w: 9cqw;
+}
+#obj-zombie {
+  left: 44.5%;
+  bottom: 17%;
+  --w: 28cqw;
+}
+/* The zombie stands behind the gate: clicks on the bars reach the gate, clicks between them reach the zombie */
+#obj-gate,
+#obj-zombie {
+  pointer-events: none;
+}
+#obj-gate .art svg *,
+#obj-zombie .art svg * {
+  pointer-events: visiblePainted;
+}
+#obj-zombie .z-back {
+  pointer-events: none;
+}
+.shaft-dark {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 1.2s;
+  background:
+    radial-gradient(ellipse 14% 12% at 73% 9%, #c0281a33, #0000),
+    radial-gradient(ellipse 10% 18% at 88% 64%, #c0281a2a, #0000),
+    radial-gradient(ellipse 12% 16% at 70% 72%, #c0281a2a, #0000),
+    radial-gradient(ellipse at 24% 18%, #5a0c0644, #000a 72%);
+}
+#room.lift-power .shaft-dark {
+  opacity: 0;
+}
+#room:not(.lift-power) .car-light {
+  opacity: 0;
+}
+.emergency {
+  animation: emergency 2.4s steps(1) infinite;
+}
+#room.lift-power .emergency {
+  display: none;
+}
+@keyframes emergency {
+  50% {
+    opacity: 0.45;
+  }
+}
+.fan {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fan 0.22s linear infinite;
+}
+@keyframes fan {
+  to {
+    transform: rotate(360deg);
+  }
+}
+#room.lift-power .fan {
+  animation: fan 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) 1 forwards;
+}
+.daylight {
+  opacity: 0.12;
+  transition: opacity 1.5s;
+}
+#room.lift-power .daylight {
+  opacity: 1;
+}
+.draft {
+  opacity: 0;
+}
+#room.lift-power .draft {
+  animation: draft 3s ease-in-out infinite;
+}
+@keyframes draft {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  50% {
+    opacity: 0.4;
+    transform: translateX(4px);
+  }
+}
+.power-led {
+  transition: fill 0.4s;
+}
+#room.lift-power .power-led {
+  fill: var(--clue);
+}
+#room:not(.lift-power) .fuse-in {
+  opacity: 0;
+}
+.vent-cover {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.9s cubic-bezier(0.5, 0, 0.7, 0.4),
+    opacity 0.9s;
+}
+#room.vent-out .vent-cover {
+  transform: translateY(70%) rotate(-12deg);
+  opacity: 0;
+}
+#room.vent-out .daylight {
+  animation: daylight 1.6s ease-in forwards;
+}
+@keyframes daylight {
+  to {
+    transform: scale(2.4);
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+}
+
+/* The zombie: jerky, broken-necked, faster as time runs out and every loop */
+#room {
+  --zs: calc(3.6s - var(--dread, 1) * 0.3s);
+}
+body.hurry #room {
+  --zs: 1.3s;
+}
+.zbody,
+.zhead,
+.zjaw,
+.zarms,
+.rattle {
+  transform-box: fill-box;
+}
+.zbody {
+  transform-origin: 50% 100%;
+  animation: zlunge var(--zs) cubic-bezier(0.5, 0, 0.2, 1) infinite;
+}
+.zhead {
+  transform-origin: 50% 95%;
+  animation: zneck calc(var(--zs) * 1.7) steps(1) infinite;
+}
+.zjaw {
+  transform-origin: 20% 0;
+  animation: zjaw calc(var(--zs) * 0.6) ease-in-out infinite alternate;
+}
+.zarms {
+  transform-origin: 0 0;
+  animation: zreach var(--zs) cubic-bezier(0.5, 0, 0.2, 1) infinite;
+}
+.rattle {
+  animation: zrattle var(--zs) infinite;
+}
+@keyframes zlunge {
+  0%,
+  4% {
+    transform: translateY(-3%) scale(1.09);
+  }
+  10% {
+    transform: scale(1.04);
+  }
+  22%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes zneck {
+  0% {
+    transform: rotate(18deg);
+  }
+  18% {
+    transform: rotate(-9deg);
+  }
+  21% {
+    transform: rotate(26deg);
+  }
+  46% {
+    transform: rotate(12deg) translateX(3%);
+  }
+  70% {
+    transform: rotate(31deg);
+  }
+  73% {
+    transform: rotate(4deg);
+  }
+}
+@keyframes zjaw {
+  from {
+    transform: rotate(4deg);
+  }
+  to {
+    transform: rotate(14deg) translateY(4%);
+  }
+}
+@keyframes zreach {
+  0%,
+  4% {
+    transform: translate(5%, 7%) rotate(7deg) scale(1.22);
+  }
+  12% {
+    transform: rotate(2deg) scale(1.08);
+  }
+  30%,
+  100% {
+    transform: rotate(-4deg);
+  }
+}
+@keyframes zrattle {
+  0% {
+    transform: translateX(-1.2%);
+  }
+  2% {
+    transform: translateX(1%);
+  }
+  4% {
+    transform: translateX(-.6%);
+  }
+  6% {
+    transform: translateX(.4%);
+  }
+  10%,
+  100% {
+    transform: none;
+  }
+}
+#room.gate-closed .zarms {
+  animation-name: zreachShut;
+}
+@keyframes zreachShut {
+  0%,
+  4% {
+    transform: rotate(4deg) scale(0.95);
+  }
+  30%,
+  100% {
+    transform: rotate(-4deg) scale(0.85);
+  }
+}
+body.no-flicker :is(.zbody, .zhead, .zjaw, .zarms, .rattle, .emergency) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.zbody, .zhead, .zjaw, .zarms, .rattle, .fan, .draft, .emergency) {
+    animation: none !important;
+  }
+  .vent-cover {
+    transition: none;
+  }
+}
+/* --- Lobby: Create and Join as two cards, timer as tiles (same palette as the game) --- */
+.ways {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+.way {
+  position: relative;
+  gap: 10px;
+  padding: 18px 16px 16px;
+  border-radius: 12px;
+  border: 1px solid #c9b45844;
+  background: linear-gradient(180deg, #23200f, #15130a);
+  box-shadow:
+    0 10px 28px #000a,
+    inset 0 1px 0 #c9b45822;
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.way::before {
+  content: "";
+  position: absolute;
+  inset: 0 16px auto;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--gold);
+  opacity: 0.8;
+}
+.way:hover,
+.way:focus-within {
+  transform: translateY(-2px);
+  border-color: #c9b45899;
+  box-shadow:
+    0 14px 34px #000c,
+    0 0 18px #c9b45822;
+}
+#lobby .way h2 {
+  margin: 2px 0 0;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 1.05rem;
+}
+#lobby .way .way-note {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.65;
+  max-width: none;
+}
+.way-join {
+  align-content: start;
+}
+.way-join button {
+  margin-top: auto;
+}
+/* timer tiles: real radio inputs (keyboard + screen readers), drawn as cards */
+.loops {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  margin: 2px 0 4px;
+  padding: 0 0 9px;
+  border: 0;
+}
+.loops legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+.loop {
+  position: relative;
+  flex: 1;
+}
+#lobby .loop {
+  margin: 0;
+  opacity: 1;
+  font-size: inherit;
+} /* undo the generic #lobby label look */
+#lobby .loop[hidden] {
+  display: none;
+}
+.loop input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.tile {
+  display: grid;
+  place-items: center;
+  padding: 8px 2px 6px;
+  border-radius: 8px;
+  border: 1px dashed #c9b45855;
+  background: var(--panel-deep);
+  color: #d8d0ba;
+  line-height: 1.1;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s;
+}
+.tile b {
+  font-size: 1.35rem;
+}
+.tile small {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.loop input:checked + .tile {
+  border-style: solid;
+  border-color: var(--gold);
+  background: #2a2510;
+  color: var(--gold);
+  box-shadow: inset 0 0 12px #c9b45822;
+}
+.loop input:focus-visible + .tile {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.loop-line {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--gold);
+  box-shadow: 0 0 8px #c9b45899;
+  transition:
+    left 0.25s ease,
+    width 0.25s ease;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (max-width: 560px) {
+  .ways {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .way,
+  .tile,
+  .loop-line {
+    transition: none;
+  }
+  .way:hover,
+  .way:focus-within {
+    transform: none;
+  }
+}
+
+/* Level 2 set dressing */
+.chandelier {
+  transform-box: view-box;
+  transform-origin: 800px 0;
+  animation: swing 6s ease-in-out infinite alternate;
+}
+@keyframes swing {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
+}
+.chain {
+  transform-box: view-box;
+  animation: swing 7.5s ease-in-out infinite alternate;
+}
+.chain-a {
+  transform-origin: 470px 268px;
+}
+.chain-b {
+  transform-origin: 1130px 268px;
+  animation-delay: -3s;
+}
+.pupils {
+  transform: translate(calc((var(--nx, 0.5) - 0.5) * 5px), calc((var(--ny, 0.45) - 0.45) * 4px));
+  transition: transform 0.4s;
+}
+.drop {
+  animation: drop 2.6s ease-in infinite;
+}
+@keyframes drop {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(260px);
+    opacity: 0;
+  }
+}
+.puddle {
+  animation: puddle 7s steps(1) infinite;
+}
+@keyframes puddle {
+  0%,
+  41%,
+  45%,
+  47%,
+  83%,
+  86%,
+  100% {
+    opacity: 1;
+  }
+  42%,
+  46% {
+    opacity: 0.35;
+  }
+  84% {
+    opacity: 0.6;
+  }
+}
+.fog-a {
+  animation: fogA 22s ease-in-out infinite alternate;
+}
+.fog-b {
+  animation: fogB 28s ease-in-out infinite alternate;
+}
+@keyframes fogA {
+  to {
+    transform: translateX(120px);
+  }
+}
+@keyframes fogB {
+  to {
+    transform: translateX(-140px);
+  }
+}
+.far-shadow {
+  animation: farShadow 14s linear infinite;
+}
+@keyframes farShadow {
+  0%,
+  78% {
+    transform: translateX(-80px);
+  }
+  90%,
+  100% {
+    transform: translateX(260px);
+  }
+}
+body.no-flicker :is(.puddle, .far-shadow) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.chandelier, .chain, .pupils, .drop, .puddle, .fog-a, .fog-b, .far-shadow) {
+    animation: none !important;
+    transition: none !important;
+  }
+  .drop {
+    opacity: 0;
+  }
+}
+
+/* Level 2: the vampire lurks; a bite plays the scare where it came from */
+@keyframes veye {
+  0%,
+  46%,
+  50%,
+  100% {
+    opacity: 1;
+  }
+  47%,
+  49% {
+    opacity: 0;
+  }
+}
+#blood {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+#blood .splat {
+  position: absolute;
+  height: auto;
+  opacity: 0;
+}
+#blood.show .splat {
+  animation: splat 2.6s 1.55s ease-out both;
+}
+#blood.show .trickle {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: trickle 1.4s ease-in both;
+}
+@keyframes splat {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  6% {
+    opacity: 0.95;
+    transform: scale(1.06);
+  }
+  12% {
+    transform: scale(1);
+  }
+  60% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes trickle {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(2.6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #blood.show .splat {
+    animation: splatStill 1.6s 1s ease-out both;
+  }
+  #blood.show .trickle {
+    animation: none;
+  }
+  @keyframes splatStill {
+    0% {
+      opacity: 0.35;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
+/* Level 3: the zombie never stops moving, and one arm keeps reaching out at you */
+#obj-zombie {
+  --w: 30cqw;
+  left: 44.5%;
+  bottom: 16%;
+}
+.zsway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: zsway calc(var(--zs) * 1.3) ease-in-out infinite alternate;
+}
+@keyframes zsway {
+  from {
+    transform: rotate(-2deg) translateX(-2%);
+  }
+  to {
+    transform: rotate(2.5deg) translateX(2%) scale(1.02);
+  }
+}
+.zreach-out {
+  transform-box: fill-box;
+  transform-origin: 100% 0;
+  animation: zout calc(var(--zs) * 1.4) cubic-bezier(0.5, 0, 0.3, 1) infinite;
+}
+@keyframes zout {
+  0%,
+  8% {
+    transform: scale(0.35) rotate(18deg);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1.08) rotate(-4deg);
+    opacity: 1;
+  }
+  55% {
+    transform: scale(1.12) rotate(2deg);
+  }
+  70% {
+    transform: scale(1.05) rotate(-3deg);
+  }
+  100% {
+    transform: scale(0.35) rotate(18deg);
+    opacity: 0.3;
+  }
+}
+.zclaw {
+  transform-box: fill-box;
+  transform-origin: 80% 10%;
+  animation: zclaw 0.5s ease-in-out infinite alternate;
+}
+@keyframes zclaw {
+  to {
+    transform: rotate(14deg) scale(0.92);
+  }
+}
+.z-under {
+  transition: opacity 1s;
+}
+#room.lift-power .z-under {
+  opacity: 0.3;
+}
+body.no-flicker :is(.zsway, .zclaw) {
+  animation: none;
+}
+body.no-flicker .zreach-out,
+.zreach-out.still {
+  animation: none;
+  transform: scale(0.75) rotate(4deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.zsway, .zclaw) {
+    animation: none !important;
+  }
+  .zreach-out {
+    animation: none !important;
+    transform: scale(0.75) rotate(4deg);
+  }
+}
+
+/* Level 1: in the last 10 seconds a zombie claws at the far doorway, harder every loop. It never gets in. */
+.dz-body,
+.dz-head,
+.dz-hand {
+  transform-box: fill-box;
+}
+.dz-body {
+  transform-origin: 50% 100%;
+  animation: dzpound calc(1.4s - var(--dread, 1) * 0.12s) steps(2) infinite;
+}
+.dz-head {
+  transform-origin: 50% 100%;
+  animation: zneck 2.2s steps(1) infinite;
+}
+.dz-hand {
+  transform-origin: 0 50%;
+  animation: dzclaw 0.35s ease-in-out infinite alternate;
+}
+@keyframes dzpound {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2.5%) rotate(1.5deg);
+  }
+}
+@keyframes dzclaw {
+  to {
+    transform: rotate(-12deg) translateX(-3%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.dz-body, .dz-head, .dz-hand) {
+    animation: none !important;
+  }
+}
+
+/* --- Block 3 redesign: one clear path per stage --- */
+/* the hand holding the flashlight stays small and in the corner, clear of every object */
+.arm {
+  width: 11cqw;
+  right: -2%;
+  bottom: -10%;
+}
+/* stage 1: props spread to the sides */
+#obj-scratches {
+  left: 58.5%;
+}
+/* stage 2: the caskets fully in view */
+#obj-casket-left {
+  left: 26%;
+  bottom: 8%;
+  --w: 17cqw;
+}
+#obj-casket-right {
+  left: 70%;
+  bottom: 8%;
+  --w: 17cqw;
+}
+/* stage 3: the sign hangs beside the dial, off the gate */
+#obj-lift {
+  left: 55.5%;
+  top: 4%;
+  bottom: auto;
+  --w: 9cqw;
+}
+/* props are darker than puzzle objects, so the path reads first */
+:is(
+    #obj-lift,
+    #obj-lift-panel,
+    #obj-indicator,
+    #obj-graffiti,
+    #obj-emergency-phone,
+    #obj-shoes,
+    #obj-bricked-door,
+    #obj-candles,
+    #obj-phone,
+    #obj-coat,
+    #obj-vending,
+    #obj-scratches,
+    #obj-clock,
+    #obj-shelf,
+    #obj-lamp
+  )
+  .art {
+  filter: brightness(0.72);
+}
+/* the first object you need on a stage glows softly until you've used it */
+.obj.beckon .art {
+  animation: beckon 2.6s ease-in-out infinite;
+}
+@keyframes beckon {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0.2cqw #e8c86a00);
+  }
+  50% {
+    filter: drop-shadow(0 0 1.4cqw #e8c86acc) brightness(1.15);
+  }
+}
+/* a clear focus ring for keyboard players */
+.obj:focus-visible {
+  outline: 3px solid var(--gold-hi);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.obj:focus-visible .label {
+  opacity: 1;
+}
+
+/* the message sits under the room, never on top of it */
+@media (min-width: 701px) and (min-aspect-ratio: 27 / 20) {
+  body[data-phase]:not([data-phase="lobby"]) {
+    grid-template-areas: "hud hud" "room opponent" "room journal" "room chat" "message inventory";
+    grid-template-rows: 64px auto minmax(0, 1fr) minmax(0, 1fr) 56px;
+  }
+  /* an empty journal stays small, so the chat has the room */
+  body[data-phase]:not([data-phase="lobby"]):has(#journal .empty) {
+    grid-template-rows: 64px auto auto minmax(0, 1fr) 56px;
+  }
+  #message {
+    grid-area: message;
+    align-self: stretch;
+    justify-self: stretch;
+    z-index: auto;
+    width: auto;
+    height: 56px;
+    max-height: none;
+    margin: 0;
+    overflow-y: auto;
+    pointer-events: auto;
+    background: #0b0a05;
+    font-size: 0.98rem;
+    display: flex;
+    align-items: center;
+  }
+  #message:empty {
+    display: flex;
+  }
+}
+body:has(#journal .empty) #journal {
+  max-height: 150px;
+}
+
+/* juice: medium (an item flies into the tray) and big (the room jolts and flashes) */
+.fly {
+  position: fixed;
+  z-index: 30;
+  width: 80px;
+  height: auto;
+  pointer-events: none;
+  animation: fly 0.7s cubic-bezier(0.5, 0, 0.3, 1) forwards;
+  filter: drop-shadow(0 0 8px var(--gold-hi));
+}
+@keyframes fly {
+  0% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.6);
+    opacity: 0.2;
+  }
+}
+#inventory li.new {
+  box-shadow:
+    0 0 0 2px var(--gold-hi),
+    0 0 16px #e8c86a99;
+}
+.scene.jolt-big {
+  animation: joltBig 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.scene.jolt-small {
+  animation: joltSmall 0.25s ease-out;
+}
+@keyframes joltBig {
+  0% {
+    transform: translate(1.2cqw, -0.8cqw);
+  }
+  20% {
+    transform: translate(-1cqw, 0.6cqw);
+  }
+  40% {
+    transform: translate(0.6cqw, -0.4cqw);
+  }
+  60% {
+    transform: translate(-0.3cqw, 0.2cqw);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes joltSmall {
+  0% {
+    transform: translate(0.3cqw, -0.2cqw);
+  }
+  100% {
+    transform: none;
+  }
+}
+#flashfx {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background: #f4e6c8;
+  opacity: 0;
+}
+#flashfx.show {
+  animation: flashfx 0.45s ease-out;
+}
+@keyframes flashfx {
+  0% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+body.no-flicker :is(.scene.jolt-big, .scene.jolt-small, #flashfx.show, .obj.beckon .art) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.scene.jolt-big, .scene.jolt-small, #flashfx.show, .fly, .obj.beckon .art) {
+    animation: none !important;
+  }
+  .fly {
+    display: none;
+  }
+}
+/* stage 3: the room is shorter now the message sits below it, so the lift's contents are scaled to fit under the dial */
+#obj-gate {
+  --w: 21cqw;
+  bottom: 13%;
+}
+#obj-zombie {
+  --w: 22.5cqw;
+  bottom: 12.5%;
+}
+
+/* The tension curve, from the style guide: the light dips harder, the corners close in and creatures move faster as --tension rises */
+#room::after {
+  animation-duration: calc(9s - var(--tension) * 4s);
+}
+#room {
+  --beam: calc(38cqw - var(--tension) * 8cqw);
+}
+body.hurry #room {
+  --beam: 24cqw;
+}
+
+/* Print-style chrome around the room (Zaid, 2026-11-07): engraved serif type and framed HUD boxes, same colours as before */
+:root {
+  --print: "IM Fell English", Georgia, serif;
+  --print-sc: "IM Fell English SC", "IM Fell English", Georgia, serif;
+}
+body,
+button {
+  font-family: var(--print);
+}
+h1,
+h2,
+#timer,
+#loop-count,
+#hud::before {
+  font-family: var(--print-sc);
+  letter-spacing: 0.02em;
+}
+#timer,
+#loop-count {
+  background: none;
+  border: 1px solid #5a4e40;
+  border-radius: 0;
+  box-shadow:
+    inset 0 0 0 3px var(--bg),
+    inset 0 0 0 4px #3a3128;
+}
+.obj .label {
+  font-family: var(--print);
+}
+#journal {
+  font-family: var(--print);
+  font-style: italic;
+}
+#journal h2 {
+  font-style: normal;
+}
+#chat {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow:
+    inset 0 0 0 1px #3a3128,
+    0 3px 10px #000a;
+  font-family: var(--print);
+}
+#inventory,
+#opponent {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px #3a3128;
+}
+#opponent :is(h2, b, strong, span, small, p) {
+  color: var(--text);
+}
+#lobby h1 {
+  font-family: var(--print-sc);
+}
+/* The zombie: bleached and harsh, so it reads as dead flesh against the lift */
+#obj-zombie .art {
+  filter: grayscale(0.75) brightness(2.8) contrast(1.5) drop-shadow(0 0.5cqw 0.4cqw #000c);
+}
+#opponent .steps li {
+  color: var(--text-dim);
+}
+#opponent .steps li.done {
+  color: var(--danger-hi);
+}
+
+/* Level 2: a big bat hangs upside down from the chandelier (Abdullah); it swings with it */
+.cbat-wings {
+  transform-box: fill-box;
+  transform-origin: 50% 10%;
+  animation: cbatwings 5s ease-in-out infinite;
+}
+@keyframes cbatwings {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.86);
+  }
+}
+.cbat-eye {
+  animation: cbateye 2.4s ease-in-out infinite;
+}
+@keyframes cbateye {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+body.no-flicker :is(.cbat-wings, .cbat-eye) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.cbat-wings, .cbat-eye) {
+    animation: none !important;
+  }
+}
+
+/* The vampire stalks you in the last 20s (--stalk 0..1 from ui.js) and lunges when time runs out */
+#room.stalked:not(.vamp) .vampire {
+  left: 50%;
+  opacity: calc(0.12 + var(--stalk) * 0.88);
+  transform: translateY(calc((1 - var(--stalk)) * 45%)) scale(calc(0.32 + var(--stalk) * 0.72));
+  filter: brightness(calc(0.35 + var(--stalk) * 0.65));
+  transition:
+    transform 1s linear,
+    opacity 1s linear,
+    filter 1s linear;
+}
+#room[data-scare="timeout"] .vampire {
+  left: 50%;
+}
+@media (prefers-reduced-motion: reduce) {
+  #room.stalked:not(.vamp) .vampire {
+    transition: none;
+  }
+}
+
+/* the hand holding the flashlight: whole, small, inside the corner and clear of every object */
+.arm {
+  width: 8.5cqw;
+  right: .6%;
+  bottom: .6%;
+  transform-origin: 100% 100%;
+}
+#obj-vampire {
+  left: 56.5%;
+  bottom: 31%;
+}
+#room[data-scare="vampire"] .vampire {
+  left: 56.5%;
+}
