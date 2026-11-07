@@ -26,7 +26,11 @@ You're helping build **Time Loop Escape**, a browser game. The player has 60 sec
 
 ## Current work
 
-The game is now **co-op** (see "Co-op v2" in `AGENTS.md`). **Your current tasks are your open GitHub issues.** Each one has a "Done when" list. The sections below describe the older, finished work.
+**Phase 2 (2026-11-07): port to the course repo.** The game in this repo is done and frozen. `main` @ 6562cea is the final version, with both halves plus Zaid's QA fixes. **Your only current task is issue #19** in this repo. It has the steps and the "Done when" list. Older issues (#2, #4, #7, #11–#14, #17) are closed out by this, so don't keep working on them here. Don't push any more game changes to `issue-2-4-room-ui`.
+
+The port work happens in nd2003/sdm2026-1 under `games/team-3/`. Clone it next to this repo if you haven't already, and read its `CLAUDE.md`, `server/CLAUDE.md` and `GETTING_STARTED.md` first. You own the **client side**: `client/` (Vite + TypeScript), the room view, HUD, lobby, chat and styles. Abdullah owns the server room and the shared state shape that you render from.
+
+The sections below describe the older, finished work.
 
 ## Your scope
 

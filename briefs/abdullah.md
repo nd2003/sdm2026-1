@@ -16,7 +16,11 @@ You're helping build **Time Loop Escape**, a browser game. The player has 60 sec
 
 ## Current work
 
-The game is now **co-op** (see "Co-op v2" in `AGENTS.md`). **Your current tasks are your open GitHub issues.** Each one has a "Done when" list. The sections below describe the older, finished work.
+**Phase 2 (2026-11-07): port to the course repo.** The game in this repo is done and frozen. `main` @ 6562cea is the final version, with both halves plus Zaid's QA fixes. **Your only current task is issue #18** in this repo. It has the steps and the "Done when" list. Older issues (#1, #3, #6, #8–#10, #15, #16) are finished, so don't redo them. Don't push any more game changes to `issue-1-3-mechanics`.
+
+The port work happens in nd2003/sdm2026-1 under `games/team-3/`. Clone it next to this repo if you haven't already, and read its `CLAUDE.md`, `server/CLAUDE.md` and `GETTING_STARTED.md` first. You own the **server side**: the Colyseus room, shared types, `config/game.json` and the logic tests. Baasanjav owns the **client side**. yigitcemakbas (team-3) did the platform work, so ask him on the course issue if the room template is unclear.
+
+The sections below describe the older, finished work.
 
 ## Your scope
 
