@@ -57,7 +57,6 @@ function render() {
   set($("timer"), "textContent", "" + t + "s");
   $("timer").classList.toggle("low", t <= 10 && !out);
   document.body.classList.toggle("hurry", t <= 10 && !out && !game.won && phase === "playing");  // whole room goes red in the last 10s
-  $("admin-skip").hidden = !(phase === "playing" && !out && String(game.playerName).toLowerCase() === "admin");  // gone once you're out
   cssVar($("hud"), "--time", Math.min(1, t / (game.loopSeconds || 60)));  // drives the shrinking time bar
   set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
   if (stage > Number(document.body.dataset.stage || stage)) { replay($("bonus"), "show"); replay($("room"), "entering"); }  // +1:00 and the doors sliding apart
@@ -189,8 +188,7 @@ function render() {
     <form id="game-input" hidden><label id="game-input-label" for="game-input-text"></label>
       <input id="game-input-text" autocomplete="off" spellcheck="false">
       <div class="row"><button>Enter</button><button type="button" id="game-input-cancel">Step back</button></div></form>`);
-  $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span><span id="drain" aria-hidden="true">-20s</span><button id="admin-skip" type="button" hidden>Skip level</button>');
-  $("admin-skip").addEventListener("click", () => adminSkip());  // ponytail: testing cheat, becomes a ?debug command in the course port
+  $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span><span id="drain" aria-hidden="true">-20s</span>');
 
   $("chat-form").addEventListener("submit", (e) => {
     e.preventDefault();

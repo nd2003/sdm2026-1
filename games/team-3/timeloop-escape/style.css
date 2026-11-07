@@ -562,6 +562,3 @@ body.asking #message { display: none; }  /* no stale message above an open input
 #lobby-note:empty { display: none; }
 
 /* Testing only: looks nothing like the game on purpose */
-#admin-skip { position: fixed; z-index: 12; left: 16px; bottom: 16px;  /* debug control: its own corner, clear of the title */ padding: 5px 10px; font: 700 .8rem monospace; color: #000; background: #e6f; border: 2px dashed #000; cursor: pointer; }
-#admin-skip[hidden] { display: none; }
-#admin-skip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
