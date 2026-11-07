@@ -5,22 +5,49 @@
 //   node course/tooling/student-report.mjs > .private/student-scores.md    Markdown report
 //   node course/tooling/student-report.mjs --json                          machine-readable output
 //   node course/tooling/student-report.mjs --repo owner/name               another repository than the current one
+//   node course/tooling/student-report.mjs --roster path/to/teams.json     the instructors' roster (default:
+//                                                                          .private/teams.json, when it exists)
 //
 // The output has individual scores and the repository is public: keep it in .private/ (ignored by git).
 // Exit codes: 0 report written, 2 usage error, 3 environment problem (gh missing or not logged in).
 import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { EXIT, parseArgs } from "../../server/tooling/workflow/lib/args.mjs";
 import { loadTypes } from "../../server/tooling/workflow/lib/types.mjs";
-import { collectStats, formatStudentReport, scoreAll } from "./lib/student-report.mjs";
+import {
+  collectStats,
+  formatStudentReport,
+  parseRoster,
+  rosterLogins,
+  scoreAll,
+} from "./lib/student-report.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const { flags, positional } = parseArgs(process.argv.slice(2), { boolean: ["json"] });
-if (positional?.length || (flags.repo !== undefined && typeof flags.repo !== "string")) {
-  console.error("usage: node course/tooling/student-report.mjs [--json] [--repo owner/name]");
+if (
+  positional?.length ||
+  (flags.repo !== undefined && typeof flags.repo !== "string") ||
+  (flags.roster !== undefined && typeof flags.roster !== "string")
+) {
+  console.error("usage: node course/tooling/student-report.mjs [--json] [--repo owner/name] [--roster path]");
   process.exit(EXIT.usage);
 }
 const config = loadTypes(root);
+
+// The roster has real names, so it lives in .private/ (ignored by git). Without it, teams are guessed from labels.
+const rosterPath =
+  typeof flags.roster === "string" ? resolve(flags.roster) : resolve(root, ".private/teams.json");
+let roster = null;
+if (typeof flags.roster === "string" || existsSync(rosterPath)) {
+  try {
+    roster = parseRoster(readFileSync(rosterPath, "utf8"));
+  } catch (err) {
+    console.error(`error: could not read the roster ${rosterPath}: ${err.message}`);
+    process.exit(EXIT.usage);
+  }
+}
 
 /** Runs a command and returns stdout, or exits with an environment error. */
 function run(cmd, args, what) {
@@ -145,14 +172,29 @@ const members = JSON.parse(
     "list collaborators",
   ).replace(/\]\s*\[/g, ","),
 );
-const rows = scoreAll(collectStats({ prs, issues, docs, teamLabels: config.teamLabels, members }));
+const rows = scoreAll(
+  collectStats({
+    prs,
+    issues,
+    docs,
+    teamLabels: config.teamLabels,
+    members: [...members, ...rosterLogins(roster)],
+  }),
+  roster,
+);
 
 if (flags.json === true) {
   console.log(JSON.stringify({ repo, generatedAt: new Date().toISOString(), students: rows }, null, 2));
 } else {
   const generatedAt = `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
   process.stdout.write(
-    formatStudentReport(rows, { repo, generatedAt, prCount: prs.length, issueCount: issues.length }),
+    formatStudentReport(rows, {
+      repo,
+      generatedAt,
+      prCount: prs.length,
+      issueCount: issues.length,
+      instructors: roster ? [...roster.instructors] : [],
+    }),
   );
 }
 process.exit(EXIT.ok);

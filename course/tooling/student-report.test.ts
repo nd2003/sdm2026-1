@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { collectStats, formatStudentReport, scoreAll, scoreStudent } from "./lib/student-report.mjs";
+import {
+  collectStats,
+  formatStudentReport,
+  parseRoster,
+  rosterLogins,
+  scoreAll,
+  scoreStudent,
+} from "./lib/student-report.mjs";
 
 const teamLabels = ["team-1", "team-2", "team-3", "team-4", "platform", "team-instructor"];
 
@@ -178,5 +185,63 @@ describe("scoreAll and formatStudentReport", () => {
     expect(md).toContain("| `alice` | team-2 | **2** |");
     expect(md).toContain("a \\| b.");
     expect(md.match(/^\| `/gm)).toHaveLength(3);
+  });
+});
+
+describe("roster", () => {
+  const roster = parseRoster(
+    JSON.stringify({
+      instructors: ["ivy"],
+      students: [
+        {
+          login: "alice",
+          name: "Alice Smith",
+          nickname: "Ali",
+          team: "team-3",
+          note: "Worked elsewhere at first.",
+        },
+        { login: "dan", name: "Dan Brown", nickname: "Dan", team: "team-1" },
+        { login: null, name: "Not on GitHub" },
+      ],
+    }),
+  );
+
+  it("parses students with a login and the instructors", () => {
+    expect(rosterLogins(roster)).toEqual(["alice", "dan"]);
+    expect(roster.instructors.has("ivy")).toBe(true);
+  });
+
+  it("rejects a roster with the wrong shape", () => {
+    expect(() => parseRoster("[]")).toThrow(/JSON object/);
+    expect(() => parseRoster('{"instructors": "ivy"}')).toThrow(/instructors/);
+    expect(() => parseRoster('{"students": {}}')).toThrow(/students/);
+  });
+
+  it("takes the team from the roster, skips its instructors and lists students without activity", () => {
+    const list = stats({ prs: [pr({ reviewers: ["ivy"] })], members: rosterLogins(roster) });
+    const rows = scoreAll(list, roster);
+    expect(rows.map((r) => r.login).sort()).toEqual(["alice", "bob", "dan"]);
+    const alice = rows.find((r) => r.login === "alice");
+    expect(alice?.team).toBe("team-3");
+    expect(alice?.justification).toMatch(/Note: Worked elsewhere at first\.$/);
+    expect(rows.find((r) => r.login === "bob")?.team).toBeNull();
+  });
+
+  it("shows the name and nickname, and the roster's instructors as not scored", () => {
+    const rows = scoreAll(stats({ prs: [pr()] }), roster);
+    const md = formatStudentReport(rows, {
+      repo: "o/r",
+      generatedAt: "now",
+      prCount: 1,
+      issueCount: 0,
+      instructors: ["ivy"],
+    });
+    expect(md).toContain("| `alice`<br>Alice Smith (Ali) | team-3 |");
+    expect(md).toContain("`ivy` (instructor, from the roster)");
+  });
+
+  it("works as before without a roster", () => {
+    const rows = scoreAll(stats({ prs: [pr()] }));
+    expect(rows.find((r) => r.login === "alice")?.team).toBe("team-2");
   });
 });
