@@ -17,6 +17,7 @@ import { EXIT, parseArgs } from "../../server/tooling/workflow/lib/args.mjs";
 import { loadTypes } from "../../server/tooling/workflow/lib/types.mjs";
 import {
   collectStats,
+  docsFromReport,
   formatStudentReport,
   parseRoster,
   rosterLogins,
@@ -165,11 +166,7 @@ try {
   );
   process.exit(EXIT.environment);
 }
-const docs = new Map();
-for (const team of prReport.teams) {
-  for (const p of team.passing ?? []) docs.set(p.number, { ok: true, rules: [] });
-  for (const p of team.failing ?? []) docs.set(p.number, { ok: false, rules: p.problems.map((x) => x.rule) });
-}
+const docs = docsFromReport(prReport);
 
 // One login per line: stitching per-page JSON arrays together breaks on an empty page.
 const members = run(

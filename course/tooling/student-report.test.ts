@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   collectStats,
+  docsFromReport,
   formatStudentReport,
   parseRoster,
   rosterLogins,
@@ -243,5 +244,24 @@ describe("roster", () => {
   it("works as before without a roster", () => {
     const rows = scoreAll(stats({ prs: [pr()] }));
     expect(rows.find((r) => r.login === "alice")?.team).toBe("team-2");
+  });
+});
+
+describe("docsFromReport (#183)", () => {
+  it("scores only current problems: a PR with only legacy problems passes", () => {
+    const report = {
+      teams: [
+        {
+          passing: [{ number: 16, problems: [], legacy: [{ rule: "title" }, { rule: "checklist" }] }],
+          failing: [{ number: 31, problems: [{ rule: "checklist" }], legacy: [{ rule: "title" }] }],
+        },
+      ],
+    };
+    const docs = docsFromReport(report);
+    expect(docs.get(16)).toEqual({ ok: true, rules: [] });
+    expect(docs.get(31)).toEqual({ ok: false, rules: ["checklist"] });
+    const s = of(stats({ prs: [pr({ number: 16 }), pr({ number: 31 })], docs }), "alice");
+    expect([s.docPass, s.docFail]).toEqual([1, 1]);
+    expect(s.docProblems).toEqual({ checklist: 1 });
   });
 });
