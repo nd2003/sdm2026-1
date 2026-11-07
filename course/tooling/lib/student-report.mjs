@@ -212,17 +212,63 @@ export function scoreStudent(s) {
   };
 }
 
-/** Scores every user except NOT_SCORED, best first. */
-export function scoreAll(stats) {
+/**
+ * Parses the instructors' roster (`course/teams.json`):
+ * `{ "instructors": ["login", ...], "students": [{ "login", "name", "nickname", "team", "note" }, ...] }`.
+ * Only `login` is required for a student; entries without a login are skipped.
+ * @returns {{instructors: Set<string>, students: Map<string, {name: string|null, nickname: string|null, team: string|null, note: string|null}>}}
+ */
+export function parseRoster(text) {
+  const data = JSON.parse(text);
+  if (!data || typeof data !== "object" || Array.isArray(data))
+    throw new Error("the roster must be a JSON object");
+  const { instructors = [], students = [] } = data;
+  if (!Array.isArray(instructors) || !instructors.every((l) => typeof l === "string"))
+    throw new Error('"instructors" must be a list of GitHub logins');
+  if (!Array.isArray(students)) throw new Error('"students" must be a list');
+  const str = (v) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const map = new Map();
+  for (const s of students) {
+    const login = str(s?.login);
+    if (!login) continue;
+    map.set(login, { name: str(s.name), nickname: str(s.nickname), team: str(s.team), note: str(s.note) });
+  }
+  return { instructors: new Set(instructors), students: map };
+}
+
+/** Logins in the roster that should be listed even without activity. */
+export const rosterLogins = (roster) => (roster ? [...roster.students.keys()] : []);
+
+/**
+ * Scores every user except NOT_SCORED and the roster's instructors, best first. With a roster, the team comes
+ * from it (the label-based guess is the fallback) and its name, nickname and note are added.
+ */
+export function scoreAll(stats, roster = null) {
   return stats
-    .filter((s) => !NOT_SCORED[s.login])
-    .map(scoreStudent)
+    .filter((s) => !NOT_SCORED[s.login] && !roster?.instructors.has(s.login))
+    .map((s) => {
+      const row = scoreStudent(s);
+      const entry = roster?.students.get(s.login);
+      if (!entry) return row;
+      return {
+        ...row,
+        team: entry.team ?? row.team,
+        name: entry.name,
+        nickname: entry.nickname,
+        note: entry.note,
+        justification: entry.note ? `${row.justification} Note: ${entry.note}` : row.justification,
+      };
+    })
     .sort((a, b) => b.score - a.score || b.points - a.points || a.login.localeCompare(b.login));
 }
 
 /** Formats the scored students as a Markdown report. */
 export function formatStudentReport(rows, meta) {
   const cell = (t) => String(t).replace(/\|/g, "\\|");
+  const who = (r) => {
+    const person = [r.name, r.nickname && r.nickname !== r.name ? `(${r.nickname})` : null].filter(Boolean);
+    return person.length ? `\`${r.login}\`<br>${cell(person.join(" "))}` : `\`${r.login}\``;
+  };
   const lines = [
     "# Student activity scores",
     "",
@@ -235,13 +281,18 @@ export function formatStudentReport(rows, meta) {
   for (const r of rows) {
     const s = r.stats;
     lines.push(
-      `| \`${r.login}\` | ${r.team ?? "–"} | **${r.score}** | ${r.points} (${r.delivery}/${r.process}/${r.collaboration}) | ${s.prsMerged} / ${s.prsOpen} | ${s.commits} (${s.commitsWithRefs}) | ${s.docPass}/${s.docPass + s.docFail} | ${s.reviewsGiven} | ${cell(r.justification)} |`,
+      `| ${who(r)} | ${r.team ?? "–"} | **${r.score}** | ${r.points} (${r.delivery}/${r.process}/${r.collaboration}) | ${s.prsMerged} / ${s.prsOpen} | ${s.commits} (${s.commitsWithRefs}) | ${s.docPass}/${s.docPass + s.docFail} | ${s.reviewsGiven} | ${cell(r.justification)} |`,
     );
   }
   lines.push(
     "",
     "Scoring rules and limitations: see *Student activity report* in `course/README.md`.",
-    `Not scored: ${Object.entries(NOT_SCORED)
+    `Not scored: ${[
+      ...Object.entries(NOT_SCORED),
+      ...(meta.instructors ?? [])
+        .filter((l) => !NOT_SCORED[l])
+        .map((l) => [l, "instructor, from the roster"]),
+    ]
       .map(([login, why]) => `\`${login}\` (${why})`)
       .join(", ")}.`,
     "",
