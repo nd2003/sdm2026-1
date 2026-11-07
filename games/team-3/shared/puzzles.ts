@@ -84,6 +84,18 @@ export function partnerSaid(ctx: Ctx, playerId: string, ...words: string[]): boo
   );
 }
 const inputLocked = (p: Player) => p.flags.has("lockedUntil") && p.timeLeft > flag(p, "lockedUntil");
+/** ponytail: name === "admin" cheat; course port moves this behind ?debug. */
+const isAdmin = (p: Player) => p.name.trim().toLowerCase() === "admin";
+/** Wrong casket / leftover vampire id: one bite per loop, no drain for admin. */
+function biteVampire(ctx: Ctx, p: Player, text: string): void {
+  if (flag(p, "vampireBites") > 0) {
+    say(p, "You've already been bitten this loop. Try the other casket.");
+    return;
+  }
+  if (!isAdmin(p)) p.timeLeft = Math.max(1, p.timeLeft - ctx.config.vampireDrain);
+  setFlag(p, "vampireBites", flag(p, "vampireBites") + 1); // the client plays the bite scene
+  say(p, text);
+}
 function askInput(p: Player, forId: string, label: string): void {
   const req = new InputRequest();
   req.for = forId;
@@ -500,9 +512,8 @@ export function click(ctx: Ctx, playerId: string, p: Player, id: string): void {
     case "casket-right": {
       if (flag(p, "casketOpen")) return say(p, "You've already disturbed enough of the dead tonight.");
       if ((id === "casket-left" ? "left" : "right") !== me.casket) {
-        p.timeLeft = Math.max(1, p.timeLeft - ctx.config.vampireDrain);
-        setFlag(p, "vampireBites", flag(p, "vampireBites") + 1); // the client plays the bite scene
-        say(
+        biteVampire(
+          ctx,
           p,
           `The lid slides open. Something in a Meridian Trust badge sits up and drinks the seconds out of you. (-${ctx.config.vampireDrain}s) The other casket, maybe.`,
         );
@@ -654,10 +665,9 @@ export function click(ctx: Ctx, playerId: string, p: Player, id: string): void {
       );
       if (later) remember(p, 'Someone, me, scratched "UNLESS" under THE DOOR OPENS FOR ONE.');
       return;
-    case "vampire": // level 2: it bites
-      p.timeLeft = Math.max(1, p.timeLeft - ctx.config.vampireDrain);
-      setFlag(p, "vampireBites", flag(p, "vampireBites") + 1);
-      return say(
+    case "vampire": // leftover id: same once-per-loop bite as the wrong casket
+      return biteVampire(
+        ctx,
         p,
         `It was closer than you thought. Teeth in your neck, and the seconds pour out of you. (-${ctx.config.vampireDrain}s)`,
       );

@@ -5,10 +5,10 @@ import type { TimeLoopInput } from "./index.ts";
 import { type Answers, answersFor, type Ctx, photoIsRemote } from "./puzzles.ts";
 
 /** A two-player match in the pure simulation: "a" created the room (role A), "b" joined (role B). */
-function match(seed = 7, seconds?: number) {
+function match(seed = 7, seconds?: number, nameA = "Ada", nameB = "Bo") {
   const sim = new Simulation(timeLoopGame, { seed, roomId: "r", sha: "t", startedAt: "x", mode: "live" });
-  sim.join("a", { name: "Ada", seconds });
-  sim.join("b", { name: "Bo" });
+  sim.join("a", { name: nameA, seconds });
+  sim.join("b", { name: nameB });
   const seq: Record<string, number> = { a: 0, b: 0 };
   const ctx = { state: sim.state, config: timeLoopGame.config } as unknown as Ctx;
   const send = (id: "a" | "b", data: TimeLoopInput) => {
@@ -195,16 +195,28 @@ describe("Time Loop Escape room logic", () => {
     expect(m.player("a").message).toMatch(/partner left/i);
   });
 
-  it("the vampire bites on level 2 (-20s, vampireBites), a wrong casket bites too, the zombie only talks", () => {
+  it("the vampire bites once per loop; admin is not drained; the zombie only talks", () => {
     const m = match(14);
     m.sim.applyDebug("a", "skip", ["a"]);
     const t = m.player("a").timeLeft;
     m.click("a", "vampire");
     expect(t - m.player("a").timeLeft).toBeGreaterThanOrEqual(timeLoopGame.config.vampireDrain);
     expect(m.player("a").flags.get("vampireBites")).toBe(1);
+    const afterFirst = m.player("a").timeLeft;
     const me = m.answers("a");
     m.click("a", `casket-${me.casket === "left" ? "right" : "left"}`);
-    expect(m.player("a").flags.get("vampireBites")).toBe(2);
+    expect(m.player("a").flags.get("vampireBites")).toBe(1);
+    expect(m.player("a").timeLeft).toBe(afterFirst);
+    expect(m.player("a").message).toMatch(/already been bitten/i);
+
+    const admin = match(15, 60, "admin", "Bob");
+    admin.sim.applyDebug("a", "skip", ["a"]);
+    const adminTime = admin.player("a").timeLeft;
+    const adminAns = admin.answers("a");
+    admin.click("a", `casket-${adminAns.casket === "left" ? "right" : "left"}`);
+    expect(admin.player("a").flags.get("vampireBites")).toBe(1);
+    expect(admin.player("a").timeLeft).toBe(adminTime);
+
     m.sim.applyDebug("a", "skip", ["a"]);
     const before = JSON.stringify({
       t: m.player("a").timeLeft,
