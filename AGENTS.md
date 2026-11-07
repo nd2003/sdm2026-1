@@ -174,13 +174,13 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 **Names the UI can rely on** (from Abdullah's code, confirmed by Zaid):
 - Functions: `connect(name, code?, seconds?)`, `makeRoomCode()` (4 letters, for the Create button), `sendChat(text)`, `onInput(text|null)`, `puzzleAnswers(role)` (e.g. `.color` to tint the painting), `rand()`.
 - `game.flags.escaped`: **you** are out and waiting (your timer stops). `game.partner.escaped`: your partner is out.
-- Level object ids: level 2 = `casket-left`, `casket-right`, `keypad`. Level 3 = `lift`. Show each one only when `game.stage` matches.
+- Level object ids: level 2 = `casket-left`, `casket-right`, `keypad`. Level 3 = `lift` (prop), `vent` (exit). Show each one only when `game.stage` matches.
 - Story props (#15), buttons `#obj-<id>`, each shown only on its level:
   - Level 1: `phone`, `coat`, `vending`, `scratches`.
   - Level 2: `fusebox` (new step: the keypad is dead until you throw it; flag `powerOn`), `shoes`, `bricked-door`, `candles`.
   - Level 3: `gate` (new step: the lift won't move until it's shut; flag `gateClosed`), `indicator`, `emergency-phone`, `graffiti`.
   - `powerOn` and `gateClosed` reset every loop.
-- **Level 3 lift needs power (added 2026-11-07):** new ids `hatch` (search the roof hatch → `addItem("fuse")`), `lift-breaker` (with the fuse → flag `liftPower`), `lift-panel` (floor buttons, code from the partner's room, via `game.input`). The lift only moves with `liftPower` **and** `gateClosed`, then `lift-panel` solved = escape. `liftPower` resets every loop. Level 3 props stay as above.
+- **Level 3 ends through a vent, not the lift (changed 2026-11-07):** new ids `hatch` (search the roof hatch → `addItem("fuse")`), `lift-breaker` (with the fuse → flag `liftPower`: the shaft lights come on and the vent fan beside the lift stops), `vent` (next to the lift; only with `liftPower`, asks via `game.input` for the screw-lock code from the partner's room → escape). The lift itself never escapes: `lift`, `lift-panel` and `gate` are story props (dead buttons, "OUT OF ORDER"), and `gateClosed` is no longer required. `liftPower` resets every loop.
 - **Loop reset is explained:** after a reset, `resetLoop()` sets `game.message` to a plain line ("Time ran out. The loop reset: your items are gone, your journal stays.") and `game.flags.justReset = true` (cleared on the next click). The UI shows a short overlay while `justReset` is set: what was lost (items) and what was kept (clues count).
 - **Quit:** `quitGame()` in `net.js` sends `{type:"leave"}`, sets `phase = "lobby"` and keeps the name. The partner gets `partner-left` (already in the table). The UI has a **Quit** button in the HUD and in ⚙ settings, with a confirm *inside the game* (no `confirm()`).
 - Progress steps (co-op): 1 note, 2 key, 3 cabinet, 4 computer, 5 level 2, 6 casket, 7 level 3. The race list below is out of date.
