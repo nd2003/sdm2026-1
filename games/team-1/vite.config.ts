@@ -2,11 +2,6 @@ import { networkInterfaces } from "node:os";
 import { defineConfig, type Plugin } from "vite";
 import { pickNetworkAddress } from "./dev/network-address.ts";
 
-/** This computer's address on the local network, skipping virtual adapters (Hyper-V, WSL, VirtualBox). */
-function findNetworkAddress(): string | null {
-  return pickNetworkAddress(networkInterfaces());
-}
-
 /** Dev only: tells the page the network address, so the invite link opens on another laptop. */
 function networkAddress(): Plugin {
   return {
@@ -14,7 +9,7 @@ function networkAddress(): Plugin {
     configureServer(server) {
       server.middlewares.use("/__lan", (_req, res) => {
         res.setHeader("content-type", "application/json");
-        res.end(JSON.stringify({ address: findNetworkAddress() }));
+        res.end(JSON.stringify({ address: pickNetworkAddress(networkInterfaces()) }));
       });
     },
   };
