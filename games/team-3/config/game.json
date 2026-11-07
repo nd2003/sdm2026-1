@@ -1,0 +1,17 @@
+{
+  "version": "1",
+  "tickRate": 10,
+  "patchRate": 10,
+  "maxPlayers": 2,
+  "reconnectSeconds": 30,
+  "loopSeconds": 60,
+  "levelBonus": 60,
+  "wrongCodeLock": 5,
+  "vampireDrain": 20,
+  "hints": { "after": 25, "afterEarly": 15, "earlyLoops": 2 },
+  "painting": { "colors": ["BLUE", "RED", "GREEN", "WHITE", "BLACK"], "minClicks": 3, "maxClicks": 6 },
+  "years": [1950, 1999],
+  "keypadDigits": 3,
+  "ventDigits": 4,
+  "night": "13 October"
+}
