@@ -1,5 +1,6 @@
 // Rules for `node course/tooling/student-report.mjs`: per-student activity, a 1-5 score and a justification.
 // Pure functions only, so they can be unit tested. The criteria follow "Evaluation" in course/README.md.
+import { contributionCells, contributionOf } from "./contribution.mjs";
 import { importOf } from "./pr-report.mjs";
 
 /** Logins that are never scored: instructors, organizer accounts and bots. */
@@ -310,20 +311,32 @@ export function formatStudentReport(rows, meta) {
     `Repository \`${meta.repo}\`, generated ${meta.generatedAt} (${meta.prCount} pull requests, ${meta.issueCount} issues).`,
     "**For instructors only. Don't commit this report: the repository is public.**",
     "",
-    "| Student | Team | Score | Points (D/P/C) | Merged / open PRs | Commits (with `Refs`) | Docs OK | Reviews | Justification |",
-    "|---|---|:-:|:-:|:-:|:-:|:-:|:-:|---|",
   ];
+  // The contribution columns (#348) appear when the rows carry them.
+  const withContribution = rows.some((r) => r.contribution);
+  lines.push(
+    `| Student | Team | Score | Points (D/P/C) | Merged / open PRs | Commits (with \`Refs\`) | Docs OK | Reviews |${withContribution ? " Lines added | Share in team | Feature | Main areas | Merged work |" : ""} Justification |`,
+    `|---|---|:-:|:-:|:-:|:-:|:-:|:-:|${withContribution ? "--:|--:|--:|---|---|" : ""}---|`,
+  );
   for (const r of rows) {
     const s = r.stats;
     // Work imported from a team repository (#310) is shown next to the student's own PRs and commits.
     const merged = `${s.prsMerged}${s.importsMerged ? ` + ${s.importsMerged} import` : ""}`;
     const commits = `${s.commits} (${s.commitsWithRefs})${s.commitsImported ? ` + ${s.commitsImported} imported` : ""}`;
+    const contribution = withContribution
+      ? ` ${contributionCells(r.contribution ?? contributionOf(undefined, 0), cell).join(" | ")} |`
+      : "";
     lines.push(
-      `| ${who(r)} | ${r.team ?? "–"} | **${r.score}** | ${r.points} (${r.delivery}/${r.process}/${r.collaboration}) | ${merged} / ${s.prsOpen} | ${commits} | ${s.docPass}/${s.docPass + s.docFail} | ${s.reviewsGiven} | ${cell(r.justification)} |`,
+      `| ${who(r)} | ${r.team ?? "–"} | **${r.score}** | ${r.points} (${r.delivery}/${r.process}/${r.collaboration}) | ${merged} / ${s.prsOpen} | ${commits} | ${s.docPass}/${s.docPass + s.docFail} | ${s.reviewsGiven} |${contribution} ${cell(r.justification)} |`,
     );
   }
+  lines.push("");
+  if (withContribution)
+    lines.push(
+      `**Contribution columns:** what each student's merged work PRs added. Syncs and integration PRs, which repeat work merged elsewhere, and generated files such as lockfiles are left out; an import from a team repository is split between its authors by the lines of their commits. *Share in team* is the student's part of the team's added lines; *Feature* is the part of their own lines in feature PRs and imports. Lines measure size, not quality: read them with *Merged work*.${meta.repeats?.length ? ` Left out as syncs or integration PRs: ${meta.repeats.map((n) => `#${n}`).join(", ")}.` : ""}${meta.truncated?.length ? ` Only the first 100 files were read of ${meta.truncated.map((n) => `#${n}`).join(", ")}.` : ""}`,
+      "",
+    );
   lines.push(
-    "",
     "Scoring rules and limitations: see *Student activity report* in `course/README.md`.",
     `Not scored: ${[
       ...Object.entries(NOT_SCORED),

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { withContributions } from "./lib/contribution.mjs";
 import {
   collectStats,
   docsFromReport,
@@ -236,6 +237,40 @@ describe("scoreAll and formatStudentReport", () => {
     expect(md).toContain("| `alice` | team-2 | **2** |");
     expect(md).toContain("a \\| b.");
     expect(md.match(/^\| `/gm)).toHaveLength(3);
+  });
+
+  it("adds the contribution columns before Justification when the rows have them (#348)", () => {
+    const people = new Map([
+      [
+        "alice",
+        {
+          lines: 100,
+          featureLines: 100,
+          areas: new Map([["team-2: game client (UI, rendering, input)", 100]]),
+          items: [{ number: 30, title: "add login", type: "feature", lines: 100, share: 1 }],
+        },
+      ],
+    ]);
+    const rows = withContributions(scoreAll(list), people);
+    const md = formatStudentReport(rows, {
+      repo: "o/r",
+      generatedAt: "now",
+      prCount: 1,
+      issueCount: 0,
+      repeats: [33],
+    });
+    expect(md).toContain(
+      "| Reviews | Lines added | Share in team | Feature | Main areas | Merged work | Justification |",
+    );
+    const alice = md.split("\n").find((l) => l.startsWith("| `alice` |")) ?? "";
+    expect(alice).toContain(
+      "| 100 | 100% | 100% | team-2: game client (UI, rendering, input) (100%) | #30 add login (feature, +100) |",
+    );
+    expect(md).toContain("Left out as syncs or integration PRs: #33.");
+    // Every row has the same number of cells as the header.
+    const cells = (l: string) => l.split(/(?<!\\)\|/).length;
+    const table = md.split("\n").filter((l) => l.startsWith("|"));
+    expect(new Set(table.map(cells)).size).toBe(1);
   });
 });
 

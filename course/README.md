@@ -193,6 +193,18 @@ The score uses the criteria above that can be measured per person, from 0 to 10 
 
 Points become the score: 0 → **1**, 1–2 → **2**, 3–4 → **3**, 5–7 → **4**, 8–10 → **5**. Instructors, organizer accounts and AI agents are not scored.
 
+**Contribution columns.** Next to the score, the same table shows what each student's merged work added. They don't change the score; they help judge how much the work was worth:
+
+| Column | What it shows |
+|---|---|
+| **Lines added** | Lines added by the student's merged work PRs. |
+| **Share in team** | The student's part of the lines their team added. |
+| **Feature** | The part of their own lines in feature PRs (`feat`, and imports) rather than fixes, docs, QA or chores. Old `[team-N] …` titles are judged by their first word. |
+| **Main areas** | The three areas with the most added lines, for example the game client, the game server room, the platform core or QA. |
+| **Merged work** | The merged PRs, biggest first, with their type and size: this says *what* the work was. |
+
+Syncs and integration PRs (from `main`, from `feature/team-N`, or bringing `main` into a team branch) repeat work merged elsewhere and are left out, and so are generated files such as lockfiles. An import from a team repository is split between its authors by the lines of their commits. Lines measure size, not quality: a 100-line sound effect and a 500-line game rule are different work, so read the numbers with *Merged work*. Only the first 100 files of a PR are read; the report lists the PRs where that cut anything off.
+
 Keep in mind when you use it:
 
 - Only work visible on GitHub counts. Pair programming, work on a teammate's machine or unpushed work doesn't show up.

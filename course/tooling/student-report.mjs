@@ -15,6 +15,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { EXIT, parseArgs } from "../../server/tooling/workflow/lib/args.mjs";
 import { loadTypes } from "../../server/tooling/workflow/lib/types.mjs";
+import { collectContributions, withContributions } from "./lib/contribution.mjs";
 import {
   collectStats,
   docsFromReport,
@@ -92,16 +93,17 @@ const logins = (conn) => conn.nodes.map((n) => n.author?.login ?? n.login).filte
 const prs = paginate(
   `query($owner: String!, $name: String!, $cursor: String) {
     repository(owner: $owner, name: $name) {
-      pullRequests(first: 50, after: $cursor, orderBy: { field: CREATED_AT, direction: ASC }) {
+      pullRequests(first: 25, after: $cursor, orderBy: { field: CREATED_AT, direction: ASC }) {
         pageInfo { hasNextPage endCursor }
         nodes {
-          number state additions deletions
+          number title headRefName state additions deletions
           author { login }
           mergedBy { login }
           labels(first: 20) { nodes { name } }
           reviews(first: 100) { nodes { author { login } } }
           comments(first: 100) { nodes { author { login } } }
-          commits(first: 100) { nodes { commit { oid message authors(first: 5) { nodes { user { login } } } } } }
+          files(first: 100) { totalCount nodes { path additions } }
+          commits(first: 100) { nodes { commit { oid message additions authors(first: 5) { nodes { user { login } } } } } }
         }
       }
     }
@@ -110,6 +112,8 @@ const prs = paginate(
   (d) => d.repository.pullRequests,
 ).map((p) => ({
   number: p.number,
+  title: p.title,
+  head: p.headRefName,
   state: p.state,
   additions: p.additions,
   deletions: p.deletions,
@@ -118,9 +122,12 @@ const prs = paginate(
   labels: p.labels.nodes.map((l) => l.name),
   reviewers: logins(p.reviews),
   commenters: logins(p.comments),
+  files: p.files.nodes,
+  filesTruncated: p.files.totalCount > p.files.nodes.length,
   commits: p.commits.nodes.map(({ commit: c }) => ({
     oid: c.oid,
     message: c.message,
+    additions: c.additions,
     authors: c.authors.nodes.map((a) => a.user?.login ?? null),
   })),
 }));
@@ -177,15 +184,20 @@ const members = run(
   .split(/\r?\n/)
   .map((l) => l.trim())
   .filter(Boolean);
-const rows = scoreAll(
-  collectStats({
-    prs,
-    issues,
-    docs,
-    teamLabels: config.teamLabels,
-    members: [...members, ...rosterLogins(roster)],
-  }),
-  roster,
+// What each student's merged work added (#348), with the share counted within the team.
+const contributions = collectContributions(prs);
+const rows = withContributions(
+  scoreAll(
+    collectStats({
+      prs,
+      issues,
+      docs,
+      teamLabels: config.teamLabels,
+      members: [...members, ...rosterLogins(roster)],
+    }),
+    roster,
+  ),
+  contributions.people,
 );
 
 if (flags.json === true) {
@@ -199,6 +211,8 @@ if (flags.json === true) {
       prCount: prs.length,
       issueCount: issues.length,
       instructors: roster ? [...roster.instructors] : [],
+      repeats: contributions.repeats,
+      truncated: contributions.truncated,
     }),
   );
 }
