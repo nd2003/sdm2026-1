@@ -100,6 +100,7 @@ const ROOM_TITLES: Record<DifficultyLevel, string> = {
   medium: "ROOM 02 // ROSSO'S SPEAKEASY",
   hard: "ROOM 03 // QUARANTINE COMMAND LAB",
 };
+const TOTAL_CLUES = 5;
 
 export function renderGameScreen(
   container: HTMLElement,
@@ -1610,7 +1611,13 @@ export function renderGameScreen(
           </div>
 
           <!-- HIGH-CONTRAST TOAST & READABLE HINT CARD -->
-          <div class="tle-feedback-toast tle-banner-hidden" id="action-feedback-text"></div>
+          <div
+            class="tle-feedback-toast tle-banner-hidden"
+            id="action-feedback-text"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          ></div>
           <div class="tle-hint-card hidden" id="hint-card" role="dialog" aria-label="Puzzle Hint">
             <div class="tle-hint-top">
               <span class="tle-hint-badge" id="hint-card-badge">💡 HINT</span>
@@ -1636,7 +1643,10 @@ export function renderGameScreen(
             <section class="tle-dock-right tle-panel-matte" id="panel-clues">
               <div class="tle-dock-heading">
                 <span class="tle-dock-title">PERMANENT KNOWLEDGE / CLUES</span>
-                <span class="tle-dock-sub">Neural logs — retained across loops</span>
+                <span class="tle-dock-sub">
+                  Neural logs — retained across loops ·
+                  <span id="clues-progress" aria-live="polite"></span>
+                </span>
               </div>
               <ul class="tle-clues-list" id="clues-list"></ul>
             </section>
@@ -1771,11 +1781,22 @@ export function renderGameScreen(
     }
   }
 
-  function addClue(clue: string): void {
-    if (!state.clues.includes(clue)) {
-      state.clues.push(clue);
-    }
+  function addClue(clue: string): boolean {
+    if (state.clues.includes(clue)) return false;
+    state.clues.push(clue);
     saveActiveProgress();
+    return true;
+  }
+
+  function addClues(clues: string[]): number {
+    const newClueCount = clues.filter(addClue).length;
+    const progress = `${state.clues.length} / ${TOTAL_CLUES} discovered`;
+    flashToast(
+      newClueCount > 0
+        ? `🔍 ${newClueCount} new clue${newClueCount === 1 ? "" : "s"} added — ${progress}`
+        : `📖 These clues are already recorded — ${progress}`,
+    );
+    return newClueCount;
   }
 
   function addItem(item: InventoryItemId): void {
@@ -1940,13 +1961,17 @@ export function renderGameScreen(
 
   function revealRoom1HiddenClue(title: string, locationNote: string): void {
     state.r1ChemSolved = true;
-    addClue("Hidden Reagent Vials: Emerald (GREEN) ➔ Cobalt (BLUE) ➔ Crimson (RED)");
+    const newClueCount = addClues(["Hidden Reagent Vials: Emerald (GREEN) ➔ Cobalt (BLUE) ➔ Crimson (RED)"]);
     saveActiveProgress();
-    openModal(title, (host) => {
+    openModal(newClueCount > 0 ? title : "📖 PREVIOUSLY DISCOVERED CLUE", (host) => {
       host.innerHTML = `
         <div class="tle-puz-box">
           <p class="tle-puz-desc">
-            🔍 <strong>Hidden Clue Uncovered!</strong> ${locationNote}
+            ${
+              newClueCount > 0
+                ? `🔍 <strong>Hidden Clue Uncovered!</strong> ${locationNote}`
+                : "📖 <strong>Already recorded.</strong> Review the clue details below."
+            }
           </p>
           <div class="tle-status-readout" style="text-align:left;font-size:0.96rem">
             🧪 <strong>1st Vial (Top Valve):</strong> 🟢 Emerald Moss (<strong>GREEN</strong>)<br />
@@ -2126,15 +2151,24 @@ export function renderGameScreen(
   function openR2Wine(): void {
     state.r2ChalkSolved = true;
     addItem("Bar Token");
-    addClue("Hidden Bottle Scroll: Vintage Red (WINE) ➔ Golden Hops (ALE) ➔ Juniper (GIN)");
-    addClue("Hidden Eyewitness Sketch: Suspect wore cracked 👓 Glasses");
+    const newClueCount = addClues([
+      "Hidden Bottle Scroll: Vintage Red (WINE) ➔ Golden Hops (ALE) ➔ Juniper (GIN)",
+      "Hidden Eyewitness Sketch: Suspect wore cracked 👓 Glasses",
+    ]);
     saveActiveProgress();
-    openModal("🍷 UNDER-BAR WINE RACK — HOLLOW BOTTLE UNCORKED!", (host) => {
-      host.innerHTML = `
+    openModal(
+      newClueCount > 0
+        ? "🍷 UNDER-BAR WINE RACK — HOLLOW BOTTLE UNCORKED!"
+        : "📖 PREVIOUSLY DISCOVERED CLUES",
+      (host) => {
+        host.innerHTML = `
         <div class="tle-puz-box">
           <p class="tle-puz-desc">
-            🔍 <strong>Hidden Scroll Uncovered!</strong> Inside the hollow Gold-Reserve bottle you
-            find a <strong>Bar Token</strong> and two rolled-up notes:
+            ${
+              newClueCount > 0
+                ? "🔍 <strong>Hidden Scroll Uncovered!</strong> The bottle contains a <strong>Bar Token</strong> and two rolled-up notes:"
+                : "📖 <strong>Already recorded.</strong> Review the clues from the hollow Gold-Reserve bottle:"
+            }
           </p>
           <div class="tle-status-readout" style="text-align:left;font-size:0.95rem">
             📜 <strong>Cellar Pour Note:</strong> 1st <em>Vintage Red</em> (🍷 <strong>WINE</strong>)
@@ -2149,7 +2183,8 @@ export function renderGameScreen(
           </p>
         </div>
       `;
-    });
+      },
+    );
   }
 
   function openR2Taps(): void {
@@ -2331,15 +2366,20 @@ export function renderGameScreen(
   function revealRoom3HiddenClues(title: string): void {
     state.r3CoatSolved = true;
     addItem("Oscilloscope Key");
-    addClue("Hidden Wall Ring: Circled (8) inside benzene ring = 8 Hz");
-    addClue("Hidden Wall Formula: H & S crossed out ➔ Active atoms C · O · N");
+    const newClueCount = addClues([
+      "Hidden Wall Ring: Circled (8) inside benzene ring = 8 Hz",
+      "Hidden Wall Formula: H & S crossed out ➔ Active atoms C · O · N",
+    ]);
     saveActiveProgress();
-    openModal(title, (host) => {
+    openModal(newClueCount > 0 ? title : "📖 PREVIOUSLY DISCOVERED CLUES", (host) => {
       host.innerHTML = `
         <div class="tle-puz-box">
           <p class="tle-puz-desc">
-            🔍 <strong>Hidden Wall Cipher Decoded!</strong> Tracing the scrawled chemical rings on
-            the mustard wall reveals two secret overrides:
+            ${
+              newClueCount > 0
+                ? "🔍 <strong>Hidden Wall Cipher Decoded!</strong> Tracing the scrawled chemical rings on the mustard wall reveals two secret overrides:"
+                : "📖 <strong>Already recorded.</strong> Review the wall cipher clues below:"
+            }
           </p>
           <div class="tle-status-readout" style="text-align:left;font-size:0.95rem">
             1️⃣ <strong>Circled Ring Number:</strong> A bold <strong>(8)</strong> is circled on the
@@ -3488,17 +3528,28 @@ export function renderGameScreen(
 
     // Permanent Clues
     const cluesEl = container.querySelector<HTMLElement>("#clues-list");
+    const cluesProgressEl = container.querySelector<HTMLElement>("#clues-progress");
+    if (cluesProgressEl) {
+      cluesProgressEl.textContent = `${state.clues.length} / ${TOTAL_CLUES} discovered`;
+    }
     if (cluesEl) {
       if (state.clues.length === 0) {
         const tip =
           state.difficulty === "basic"
-            ? "Click the lit Glass Glovebox on the left ledge (1 click grabs key & clue)!"
+            ? "Search the Supply Crate or Chemistry Rack to uncover the hidden clue."
             : state.difficulty === "medium"
-              ? "Click the white Chalk Outline on the floor for both Room 2 clues!"
-              : "Click the draped Lab Coat & Radio at the corner desk for both Room 3 clues!";
+              ? "Open the Wine Rack under the right bar counter to uncover both Room 2 clues."
+              : "Inspect the Wall Formulas or Outbreak Map to uncover both Room 3 clues.";
         cluesEl.innerHTML = `<li class="tle-clue-empty">${tip}</li>`;
       } else {
-        cluesEl.innerHTML = state.clues.map((c) => `<li class="tle-clue-item">${c}</li>`).join("");
+        cluesEl.innerHTML = state.clues
+          .map((clue) => {
+            const separator = clue.indexOf(":");
+            const title = separator < 0 ? "Clue" : clue.slice(0, separator);
+            const description = separator < 0 ? clue : clue.slice(separator + 1).trim();
+            return `<li class="tle-clue-item"><strong>${title}</strong><span class="tle-clue-description">${description}</span></li>`;
+          })
+          .join("");
       }
     }
   }

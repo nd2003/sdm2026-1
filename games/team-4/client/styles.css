@@ -1146,6 +1146,9 @@ body {
 }
 
 .tle-clue-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.4;
@@ -1155,6 +1158,11 @@ body {
   border-left: 3px solid var(--color-secondary);
   border-radius: 4px;
   padding: 6px 9px;
+}
+
+.tle-clue-description {
+  font-size: 0.74rem;
+  font-weight: 400;
 }
 
 .tle-clue-empty {
