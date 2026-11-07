@@ -1,7 +1,7 @@
 ﻿import { z } from "zod";
 
 export const escapeRoomName = "escape";
-export const runSeconds = 180;
+export const runSeconds = 90;
 export const tickMs = 250;
 export const stations = ["note", "painting", "cabinet", "photo", "desk", "exit"] as const;
 export const items = ["knife", "key"] as const;

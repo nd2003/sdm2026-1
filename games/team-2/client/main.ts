@@ -11,11 +11,15 @@ import {
 } from "../shared/escape.ts";
 import { cabinetOpened, playCabinet } from "./cabinet.ts";
 import { canvasSlashed, playCanvasSlash } from "./canvas.ts";
+import { clockTick, playTick } from "./clock.ts";
+import { deathCause, playDeath } from "./death.ts";
 import { playDrawer } from "./drawer.ts";
 import { playFootsteps, unlockAudio, walkers } from "./footsteps.ts";
 import { ghostPresent, setGhostPresence } from "./ghost.ts";
 import { keyUnlockSeconds, playKeyUnlock } from "./key.ts";
 import { knifeTaken, playKnife } from "./knife.ts";
+import { photoRevealed, playPhoto } from "./photo.ts";
+import { escaped, playVictory } from "./victory.ts";
 import "./style.css";
 
 const endpoint =
@@ -214,12 +218,18 @@ function render(state: EscapeSnapshot) {
     setDrawer(false);
   }
   for (const id of walkers(snapshot?.patients, state.patients)) playFootsteps(id === room?.sessionId);
+  if (escaped(snapshot, state)) playVictory();
   if (cabinetOpened(snapshot, state)) {
     playKeyUnlock();
     playCabinet(keyUnlockSeconds);
   }
   if (knifeTaken(snapshot, state)) playKnife();
   if (canvasSlashed(snapshot, state)) playCanvasSlash();
+  if (photoRevealed(snapshot, state)) playPhoto();
+  const tick = clockTick(snapshot, state);
+  if (tick) playTick(tick);
+  const death = deathCause(snapshot, state);
+  if (death) playDeath(death);
   setGhostPresence(ghostPresent(state));
   snapshot = state;
   const encounter = state.ghostSeconds !== null;

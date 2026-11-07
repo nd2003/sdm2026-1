@@ -11,7 +11,7 @@ function advance(game: EscapeRun, count: number) {
 function start() {
   const game = new EscapeRun(new SeededRandom(42));
   game.join("first");
-  expect(game.state).toMatchObject({ phase: "waiting", seconds: 180 });
+  expect(game.state).toMatchObject({ phase: "waiting", seconds: 90 });
   game.join("second");
   return game;
 }
@@ -70,7 +70,7 @@ describe("Ward 04 attempts", () => {
     expect(game.state).toMatchObject({ phase: "failed", ghostSeconds: null });
   });
 
-  it("still ends at three minutes after the ghost is repelled", () => {
+  it("still ends at 90 seconds after the ghost is repelled", () => {
     const game = start();
     let elapsed = 0;
     while (game.state.ghostSeconds === null && game.state.phase === "running") {
