@@ -92,3 +92,12 @@ export function parseLog(out) {
       return { sha: rec.slice(0, i).trim(), message: rec.slice(i + 1) };
     });
 }
+
+/**
+ * Git log arguments for a commit range, optionally excluding commits reachable from a trusted ref.
+ * @param {string[]} range
+ * @param {string | undefined} exclude
+ */
+export function commitRangeArgs(range, exclude) {
+  return ["log", "--no-merges", "--format=%H%x1f%B%x1e", ...range, ...(exclude ? ["--not", exclude] : [])];
+}
