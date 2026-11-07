@@ -158,6 +158,19 @@ function overlay(): HTMLElement {
 type AllActions = ScreenActions & Record<string, () => void>;
 let actionsRef: AllActions | null = null;
 
+/**
+ * Removes every overlay and stops the auto-return countdown. Call it when leaving a room (Main menu,
+ * Play again, Quit, the automatic return): the overlay layer lives on document.body, not in the app.
+ */
+export function clearScreens(): void {
+  if (countdown) clearInterval(countdown);
+  countdown = null;
+  if (layer) layer.innerHTML = "";
+  shownKey = "";
+  quitAsked = false;
+  dismissedResetLoop = 0;
+}
+
 /** Opens the in-game quit confirm (the HUD and ⚙ Quit buttons call this). */
 export function askQuit(): void {
   quitAsked = true;
