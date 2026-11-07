@@ -88,7 +88,8 @@ describe("qa:evidence", () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
-  });
+    // Creates and clones real git repositories, which takes longer than 5 s on Windows.
+  }, 30_000);
 
   it("reports a clear error when no comparison base exists", async () => {
     const git = (args: string[]) => {

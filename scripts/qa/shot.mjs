@@ -1,10 +1,13 @@
 import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { chromium } from "playwright";
 import { ScenarioSchema } from "../../scenarios/schema.ts";
 
 const DEFAULT_BASE_URL = "http://localhost:5173";
+
+/** A relative path with "/" on every OS, so qa-runs.json reads the same on Windows, macOS and Linux. */
+const posixRelative = (from, to) => relative(from, to).split(sep).join("/");
 
 export async function resolveScenario(argument, cwd = process.cwd()) {
   if (!argument) throw new Error("Usage: pnpm qa:shot <scenario>");
@@ -80,9 +83,9 @@ export async function takeScenarioShot({
   }
   const runsPath = resolve(outputDir, "..", "qa-runs.json");
   const runs = existsSync(runsPath) ? JSON.parse(await readFile(runsPath, "utf8")) : [];
-  runs.push({ scenario: scenario.id, screenshot: relative(cwd, outputPath), ranAt: now.toISOString() });
+  runs.push({ scenario: scenario.id, screenshot: posixRelative(cwd, outputPath), ranAt: now.toISOString() });
   await writeFile(runsPath, `${JSON.stringify(runs, null, 2)}\n`);
-  return { path: outputPath, scenario, scenarioPath: relative(cwd, path) };
+  return { path: outputPath, scenario, scenarioPath: posixRelative(cwd, path) };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

@@ -123,7 +123,8 @@ describe("commit-msg hook with an editor", () => {
   });
 });
 
-describe("pre-push hook", () => {
+// Each test pushes to a real repository through the hook, which takes longer than 5 s on Windows.
+describe("pre-push hook", { timeout: 30_000 }, () => {
   // Pushes that need no checks never reach pnpm, so they work in this throwaway repository.
   let remote: string;
   beforeAll(() => {
