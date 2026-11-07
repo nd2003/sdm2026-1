@@ -197,6 +197,107 @@ body {
   }
 }
 
+/* Lyra's Multiplayer Lobby Cards */
+.tle-lyra-lobby-container {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 660px;
+  z-index: 10;
+}
+
+.tle-lyra-lobby-container .multiplayer-lobby {
+  background: rgba(21, 23, 34, 0.94);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 22px 28px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.tle-lyra-lobby-container .tle-multi-title {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+}
+
+.tle-lyra-lobby-container .tle-multi-sub {
+  margin: 0 0 14px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.tle-lyra-lobby-container .room-code {
+  display: inline-block;
+  margin: 0 0 16px;
+  padding: 8px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-panel-raised);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-accent-warm);
+}
+
+.tle-lyra-lobby-container .player-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.tle-lyra-lobby-container .player-card {
+  padding: 14px 18px;
+  text-align: left;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.tle-lyra-lobby-container .player-card h3 {
+  margin: 0 0 6px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.tle-lyra-lobby-container .player-name {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.tle-lyra-lobby-container .player-status {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.tle-lyra-lobby-container .player-card[data-state="ready"] {
+  border-color: var(--color-success);
+}
+
+.tle-lyra-lobby-container .player-card[data-state="ready"] .player-status {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.tle-lyra-lobby-container .player-card[data-state="ready"] .player-status::before {
+  content: "✓ ";
+}
+
+.tle-lyra-lobby-container p[role="status"] {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
 .tle-robot-nameplate {
   position: relative;
   margin-bottom: 12px;
