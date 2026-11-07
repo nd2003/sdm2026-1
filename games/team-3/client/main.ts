@@ -28,6 +28,7 @@ import {
 import { timeLoopGame } from "../shared/game.ts";
 import type { TimeLoopInput, TimeLoopState } from "../shared/index.ts";
 import { OBJECT_IDS } from "../shared/puzzles.ts";
+import { askQuit, renderLobby, syncScreens } from "./screens.ts";
 
 /** In local dev the server runs on :2567; deployed builds are served by the server itself. */
 export const SERVER_URL: string =
@@ -68,7 +69,7 @@ async function tryReconnect(): Promise<Room<TimeLoopState> | null> {
   }
 }
 
-async function joinByCode(raw: string): Promise<Room<TimeLoopState>> {
+async function joinByCode(raw: string, name = params.name ?? "player"): Promise<Room<TimeLoopState>> {
   const code = normalizeRoomCode(raw);
   if (!code) throw new Error("A room code is four letters.");
   const res = await fetch(`${SERVER_URL}${Routes.joinByCode}`, {
@@ -78,26 +79,32 @@ async function joinByCode(raw: string): Promise<Room<TimeLoopState>> {
   });
   if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? `HTTP ${res.status}`);
   const { roomId } = JoinByCodeResponseSchema.parse(await res.json());
-  return client.joinById<TimeLoopState>(roomId, { name: params.name ?? "player" });
+  return client.joinById<TimeLoopState>(roomId, { name });
 }
 
+/** The last name and loop length used, so Main menu / Play again keep them. */
+let lastName = params.name ?? "";
+let lastSeconds: 60 | 90 | 120 = 60;
+
 function showLobby(health: BuildInfo, error?: string): void {
-  app.innerHTML = `
-    <h1>Time Loop Escape</h1>
-    <div>env ${health.env} · ${health.sha.slice(0, 7)}</div>
-    <p><button id="create">Create room</button></p>
-    <p><input id="code" maxlength="4" placeholder="CODE" size="6" /> <button id="join">Join by code</button></p>
-    <p class="bad" id="error">${error ?? ""}</p>`;
   const fail = (err: unknown) => showLobby(health, err instanceof Error ? err.message : String(err));
-  app.querySelector("#create")?.addEventListener("click", () => {
-    client
-      .create<TimeLoopState>(ROOM_NAME, { private: true, name: params.name ?? "player" })
-      .then((room) => play(room, health), fail);
-  });
-  app.querySelector("#join")?.addEventListener("click", () => {
-    const input = app.querySelector<HTMLInputElement>("#code");
-    joinByCode(input?.value ?? "").then((room) => play(room, health), fail);
-  });
+  renderLobby(
+    app,
+    { name: lastName, code: params.room ?? "", error, build: `${health.env} · ${health.sha.slice(0, 7)}` },
+    {
+      create(name, seconds) {
+        lastName = name;
+        lastSeconds = seconds;
+        client
+          .create<TimeLoopState>(ROOM_NAME, { private: true, name, seconds })
+          .then((room) => play(room, health), fail);
+      },
+      join(name, code) {
+        lastName = name;
+        joinByCode(code, name).then((room) => play(room, health), fail);
+      },
+    },
+  );
 }
 
 function play(room: Room<TimeLoopState>, health: BuildInfo): void {
@@ -154,7 +161,7 @@ function play(room: Room<TimeLoopState>, health: BuildInfo): void {
     const target = e.target as HTMLElement;
     if (target.dataset.obj) send({ kind: "click", id: target.dataset.obj });
     if (target.dataset.cancel) send({ kind: "input", text: null });
-    if (target.dataset.leave) send({ kind: "leave" });
+    if (target.dataset.leave) askQuit();
   });
   view.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -165,12 +172,37 @@ function play(room: Room<TimeLoopState>, health: BuildInfo): void {
     field.value = "";
   });
 
+  // Leaving the room ends this view; the lobby keeps the name (and Play again the loop length).
+  const backToLobby = () => {
+    left = true;
+    safeSession(() => sessionStorage.removeItem(TOKEN_KEY));
+    safeSession(() => sessionStorage.removeItem(CODE_KEY));
+    room.leave(true).catch(() => {});
+    showLobby(health);
+  };
+  const screenActions = {
+    quit: () => {
+      send({ kind: "leave" });
+      backToLobby();
+    },
+    mainMenu: backToLobby,
+    playAgain: () => {
+      backToLobby();
+      client
+        .create<TimeLoopState>(ROOM_NAME, { private: true, name: lastName || "player", seconds: lastSeconds })
+        .then(
+          (next) => play(next, health),
+          (err) => showLobby(health, String(err)),
+        );
+    },
+  };
   const esc = (t: string) => t.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
   let lastHtml = "";
   const meter = createFrameMeter(performance.now());
   const frame = (now: number) => {
     const state = room.state;
     if (state.code) safeSession(() => sessionStorage.setItem(CODE_KEY, state.code));
+    if (state.players) syncScreens(state, room.sessionId, screenActions);
     const me = state.players?.get(room.sessionId);
     const partner = [...(state.players?.entries() ?? [])].find(([id]) => id !== room.sessionId)?.[1];
     const ids = OBJECT_IDS.slice(...(me?.stage === 2 ? [13, 20] : me?.stage === 3 ? [20] : [0, 13]));

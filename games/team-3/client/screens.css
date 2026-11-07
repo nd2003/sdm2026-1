@@ -1,0 +1,217 @@
+/* Time Loop Escape screens (owner: Abdullah). Colours and fonts come from Baasanjav's tokens; the
+   fallbacks match the current game so the screens look right before his variables land. */
+.tle-screen,
+.tle-overlays {
+  --bg: var(--tle-bg, #0d0b08);
+  --card: var(--tle-card, #1a1610);
+  --ink: var(--tle-ink, #e8dcc0);
+  --muted: var(--tle-muted, #9c917a);
+  --accent: var(--tle-accent, #c9b458);
+  --blood: var(--tle-blood, #8c1a15);
+  --font: var(--tle-font, "Special Elite", "Courier New", monospace);
+  font-family: var(--font);
+  color: var(--ink);
+}
+
+.tle-screen {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: radial-gradient(circle at 50% 30%, #2a2215, var(--bg) 70%);
+  text-align: center;
+}
+.tle-title {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 3.6rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 18px #c9b45855;
+}
+.tle-sub,
+.tle-build,
+.tle-small {
+  color: var(--muted);
+  margin: 0;
+}
+.tle-card {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px;
+  border: 1px solid #c9b45855;
+  border-radius: 6px;
+  background: var(--card);
+  box-shadow:
+    0 12px 40px #000c,
+    inset 0 0 40px #0008;
+  text-align: left;
+}
+.tle-card h2 {
+  margin: 0 0 12px;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+.tle-field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.tle-field input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid #5a4e38;
+  border-radius: 4px;
+  background: #0f0d09;
+  color: var(--ink);
+}
+
+/* Loop-length picker: real radio inputs (keyboard + screen readers), drawn as stamped tags. */
+.tle-loops {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+.tle-loops legend {
+  margin-bottom: 6px;
+  color: var(--muted);
+}
+.tle-loop {
+  position: relative;
+  flex: 1;
+}
+.tle-loop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0; /* still focusable and clickable: not display:none */
+  margin: 0;
+  cursor: pointer;
+}
+.tle-tag {
+  display: block;
+  padding: 10px 0;
+  border: 2px dashed #5a4e38;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 1.4rem;
+  color: var(--muted);
+  transform: rotate(-2deg);
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.tle-loop:nth-child(3) .tle-tag {
+  transform: rotate(2deg);
+}
+.tle-loop input:checked + .tle-tag {
+  color: var(--accent);
+  border-style: solid;
+  border-color: var(--accent);
+  box-shadow:
+    0 0 14px #c9b45866,
+    inset 0 0 10px #c9b45833;
+}
+.tle-loop input:focus-visible + .tle-tag,
+.tle-btn:focus-visible,
+.tle-field input:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+.tle-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.tle-btn {
+  font: inherit;
+  font-weight: bold;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #111;
+  cursor: pointer;
+}
+.tle-btn-quiet {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid #5a4e38;
+}
+.tle-btn-blood {
+  background: var(--blood);
+  color: #fff;
+}
+.tle-or {
+  margin: 12px 0;
+  text-align: center;
+  color: var(--muted);
+}
+.tle-error {
+  color: #ff8a80;
+}
+.tle-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+/* Overlays above the game: reset, end, quit confirm, how co-op works. */
+.tle-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #000c;
+  animation: tle-fade 0.4s ease-out;
+}
+.tle-pass {
+  /* "You're out, waiting": a banner that leaves the chat usable */
+  inset: auto 0 0;
+  background: none;
+  pointer-events: none;
+}
+.tle-pass .tle-card {
+  pointer-events: auto;
+}
+.tle-reset h2,
+.tle-left h2 {
+  color: #ff6b5b;
+}
+.tle-reset s {
+  color: var(--muted);
+}
+.tle-won {
+  border-color: var(--accent);
+  box-shadow: 0 0 60px #c9b45844;
+}
+@keyframes tle-fade {
+  from {
+    opacity: 0;
+  }
+}
+.tle-no-motion .tle-scrim {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tle-scrim {
+    animation: none;
+  }
+  .tle-tag {
+    transition: none;
+  }
+}
+@media (max-width: 480px) {
+  .tle-loops {
+    gap: 6px;
+  }
+}
