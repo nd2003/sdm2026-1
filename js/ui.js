@@ -187,8 +187,11 @@ function render() {
 
 // Blood on the screen at the peak of a bite: a few splats in new places each time, then they run and fade
 function splatter() {
-  const box = document.getElementById("blood");
-  if (!box) return;
+  let box = document.getElementById("blood");
+  if (!box) {  // buildRoom() redraws #room, so the layer is made when it is first needed
+    document.getElementById("room").insertAdjacentHTML("beforeend", '<div id="blood" aria-hidden="true"></div>');
+    box = document.getElementById("blood");
+  }
   const shapes = [
     "M50 10c8 0 10 14 18 16s16-6 20 2-8 14-4 22 16 10 10 18-18 0-22 8 4 18-6 20-10-14-18-12-12 14-20 8 4-16-4-22-20 0-20-10 14-10 14-18-12-16-6-22 16 4 22-2-2-20 6-24z",
     "M50 22c14-6 30 2 32 16 2 12-10 16-6 26s-6 22-20 18-14 8-26 2-6-18-14-24-10-20 2-26 18-4 32-12z",
@@ -216,7 +219,6 @@ function splatter() {
     <form id="game-input" hidden><label id="game-input-label" for="game-input-text"></label>
       <input id="game-input-text" autocomplete="off" spellcheck="false">
       <div class="row"><button>Enter</button><button type="button" id="game-input-cancel">Step back</button></div></form>`);
-  $("room").insertAdjacentHTML("beforeend", '<div id="blood" aria-hidden="true"></div>');
   $("room").addEventListener("click", (e) => { const o = e.target.closest?.(".obj"); if (o) $("room")._last = o.id.slice(4); }, true);  // where a bite came from
   $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span><span id="drain" aria-hidden="true">-20s</span>');
 
