@@ -243,32 +243,6 @@ function buildRoom() {
     <path d="M0 0L730 420M1600 0L870 420M0 1000L730 520M1600 1000L870 520" stroke="#07090a" stroke-width="6"/>
     <rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)" opacity=".8"/>
     ${drip(180, 90, 18, 420)}${drip(420, 220, 14, 300)}${drip(1180, 220, 18, 320)}${drip(1420, 110, 22, 400)}
-    <g class="watchers">${[[800, 518, .34, ""], [470, 600, .52, "peek"], [1012, 612, .6, ""], [585, 655, .74, "later-only"], [1180, 700, .86, "later-only"], [1255, 770, 1, "peek"]].map(([x, y, s, cls]) => `
-      <g class="w ${cls}" transform="translate(${x} ${y}) scale(${s})">
-        <ellipse cx="0" cy="2" rx="22" ry="5" fill="#000" opacity=".55"/>
-        <path d="M-12 -86Q-21 -40-15 0H15Q21-40 12-86z" fill="#040303"/>
-        <path d="M-11 -78C-24 -56 -30 -30 -27 -6M11 -78C24 -56 30 -30 27 -6" fill="none" stroke="#040303" stroke-width="4" stroke-linecap="round"/>
-        <circle cx="0" cy="-100" r="15" fill="#040303"/>
-        <g class="eyes"><circle cx="-5.5" cy="-102" r="2.3" fill="#e8e2cf"/><circle cx="5.5" cy="-102" r="2.3" fill="#e8e2cf"/><circle cx="0" cy="-102" r="9" fill="#e8e2cf" opacity=".08"/></g>
-      </g>`).join("")}</g>
-    <g class="peekers">${[[255, 335, "L", ""], [430, 490, "R", ""], [560, 605, "L", "later-only"], [650, 682, "R", ""], [50, 165, "R", "later-only"]].map(([a, b, side, cls], n) => {
-      const top = (x) => 420 * x / 730, bottom = (x) => 1000 - 480 * x / 730, y = (x) => top(x) + (bottom(x) - top(x)) * .22;
-      const X = (x) => (side === "R" ? 1600 - x : x), dir = side === "R" ? -1 : 1, h = bottom(a) - y(a), r = h * .08;
-      const door = `M${X(a)} ${y(a)}L${X(b)} ${y(b)}V${bottom(b)}L${X(a)} ${bottom(a)}z`;
-      const hx = X(a) + dir * r * .45, hy = y(a) + h * .27, ex = hx - dir * r * .3;
-      const fingers = [0, 1, 2, 3].map((i) => { const fy = hy + r * (2.2 + i * .34); return `<path d="M${X(a) + dir * r * .5} ${fy}q${-dir * r * .7} ${-r * .25} ${-dir * r * .95} ${r * .3}" fill="none" stroke="#8d887a" stroke-width="${r * .13}" stroke-linecap="round"/>`; }).join("");
-      return `<clipPath id="doorway${n}"><path d="${door}"/></clipPath><path d="${door}" fill="#020203" stroke="#0a0c0e" stroke-width="7"/>
-        <g class="peeker ${cls}" style="--p:${(X(a) / 1600).toFixed(3)}">
-          <g clip-path="url(#doorway${n})"><g transform="rotate(${dir * -16} ${hx} ${hy})">
-            <path d="M${hx} ${hy - r * 1.5}c${r * 1.1} 0 ${r * 1.15} ${r * 1.3} ${r * .8} ${r * 2.2}c${-r * .3} ${r * .7} ${-r * 1.3} ${r * .7} ${-r * 1.6} 0c${-r * .35} ${-r * .9} ${-r * .3} ${-r * 2.2} ${r * .8} ${-r * 2.2}z" fill="#a39d8a"/>
-            <path d="M${hx + dir * r * .15} ${hy - r * 1.5}c${dir * r * .9} 0 ${dir * r * 1} ${r * 1.3} ${dir * r * .65} ${r * 2.2}c${-dir * r * .2} ${r * .5} ${-dir * r * .6} ${r * .6} ${-dir * r * .9} ${r * .4}z" fill="#030304" opacity=".85"/>
-            <g class="eyes"><ellipse cx="${ex}" cy="${hy - r * .25}" rx="${r * .3}" ry="${r * .22}" fill="#e8e2cf"/><circle cx="${ex + dir * r * .08}" cy="${hy - r * .25}" r="${r * .06}" fill="#000"/></g>
-            <path d="M${ex - dir * r * .35} ${hy - r * .6}l${dir * r * .6} ${r * .12}" stroke="#2c271c" stroke-width="${r * .08}"/>
-            <ellipse cx="${ex + dir * r * .05}" cy="${hy + r * .5}" rx="${r * .1}" ry="${r * .28}" fill="#120302"/>
-          </g></g>
-          ${fingers}
-        </g>`;
-    }).join("")}</g>
     <g fill="#08090a" stroke="#000" stroke-width="2"><path d="M630 660c20-8 40-8 50 2l-4 12h-46zM690 664c20-8 40-8 50 2l-4 12h-46z"/><path d="M930 640c14-6 28-6 36 1l-3 9h-33zM974 642c14-6 28-6 36 1l-3 9h-33z"/><path d="M822 575c9-4 18-4 24 1l-2 6h-22zM852 577c9-4 18-4 24 1l-2 6h-22z"/></g>
     <path d="M770 690c30-18 80-24 118-8 18 10 10 34-14 34h-94c-20 0-26-16-10-26z" fill="#1c2024" stroke="#000" stroke-width="2"/><path d="M820 676l6 40M852 682l-4 34" stroke="#0a0c0e" stroke-width="3"/>
   </svg>
