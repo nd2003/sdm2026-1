@@ -203,6 +203,7 @@ function play(room: Room<TimeLoopState>, health: BuildInfo): void {
   let lastHtml = "";
   const meter = createFrameMeter(performance.now());
   const frame = (now: number) => {
+    if (left) return; // left the room: one more frame would redraw the end card over the lobby
     const state = room.state;
     if (state.code) safeSession(() => sessionStorage.setItem(CODE_KEY, state.code));
     if (state.players) syncScreens(state, room.sessionId, screenActions);
