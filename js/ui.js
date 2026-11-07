@@ -73,10 +73,10 @@ function render() {
     if (target && !typing) setTimeout(() => target.focus({ preventScroll: true }));
   }
   data("stage", stage);
-  // A bite (the vampire, or a wrong casket) plays the scare where it came from
+  // A bite (the wrong casket) plays the scare at that casket
   const bites = (game.flags && game.flags.vampireBites) || 0;
   if (stage === 2 && phase === "playing" && bites > ($("room")._bites ?? bites)) {
-    $("room").dataset.scare = $("room")._last === "vampire" ? "vampire" : "casket";
+    $("room").dataset.scare = "casket";  // the vampire only lives in the wrong casket
     replay($("room"), "vamp");
     if (!(game.playerName && String(game.playerName).toLowerCase() === "admin")) replay($("drain"), "show");
     splatter();

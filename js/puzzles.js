@@ -214,6 +214,7 @@ function onObjectClick(id) {
       if (game.stage !== 2) { say("A casket. The lid is nailed down from the inside."); break; }
       if (f.casketOpen) { say("You've already disturbed enough of the dead tonight."); break; }
       if (side !== me.casket && !isAdmin()) {
+        if (f.vampireBites) { say("The lid won't lift again. Something under it is still swallowing. The other casket."); break; }  // one bite per loop: a gamble, not a drain
         game.timeLeft = Math.max(1, game.timeLeft - CONFIG.vampireDrain);
         setFlag("vampireBites", (f.vampireBites || 0) + 1);  // the UI plays the bite scene on every new bite
         say(`The lid slides open. Something in a Meridian Trust badge sits up and drinks the seconds out of you. (-${CONFIG.vampireDrain}s) The other casket, maybe.`);
@@ -350,13 +351,6 @@ function onObjectClick(id) {
       if (later) remember('Someone, me, scratched "UNLESS" under THE DOOR OPENS FOR ONE.');
       break;
 
-    case "vampire":  // level 2: it bites (admin loses nothing)
-      if (game.stage !== 2) break;
-      if (!isAdmin()) game.timeLeft = Math.max(1, game.timeLeft - CONFIG.vampireDrain);
-      setFlag("vampireBites", (f.vampireBites || 0) + 1);
-      say(isAdmin() ? "The vampire lunges, then stops an inch from your throat. It doesn't want you. Yet."
-        : `It was closer than you thought. Teeth in your neck, and the seconds pour out of you. (-${CONFIG.vampireDrain}s)`);
-      break;
     case "zombie":  // level 3: a story prop behind the lift gate, no penalty
       if (game.stage !== 3) break;
       say(atLoop(["It slams against the lift gate. The bars bend. Its jaw hangs open, still chewing on nothing.",

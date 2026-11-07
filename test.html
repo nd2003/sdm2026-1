@@ -143,6 +143,7 @@
     // Level 2
     check("keypad needs the casket clue first", () => { click("keypad"); return game.input === null; });
     check("wrong casket costs 20s and stays shut", () => { const t = game.timeLeft; click("casket-" + (a.casket === "left" ? "right" : "left")); return game.timeLeft === t - 20 && !game.flags.casketOpen; });
+    check("wrong casket bites only once per loop", () => { const t = game.timeLeft; click("casket-" + (a.casket === "left" ? "right" : "left")); return game.timeLeft === t && game.flags.vampireBites === 1 && !document.getElementById("obj-vampire"); });
     check("right casket gives the keypad code", () => { click("casket-" + a.casket); return game.flags.casketOpen === true && game.clues.includes("The keypad code is " + a.keypad); });
     check("keypad is dead until the fuse box is thrown", () => { click("keypad"); return game.input === null; });
     check("fuse box turns the power on", () => { click("fusebox"); return game.flags.powerOn === true; });

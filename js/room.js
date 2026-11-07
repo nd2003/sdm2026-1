@@ -127,25 +127,6 @@ function buildRoom() {
       <g class="candles"><circle cx="44" cy="44" r="58" fill="url(#candle)"/><g fill="#f4d98a"><path d="M26 48c-4-7 0-12 0-17 3 6 5 11 0 17zM50 38c-4-8 0-14 0-20 3 7 6 13 0 20zM68 54c-3-6 0-10 0-14 3 5 4 9 0 14z"/></g></g>
       <g fill="#c9c2a8" stroke="#3b3323"><rect x="20" y="48" width="12" height="28"/><rect x="44" y="38" width="13" height="40"/><rect x="62" y="54" width="11" height="22"/></g>
       <path d="M14 78c20 6 50 6 64 0-2-6-12-6-14-2-10 2-30 2-36 0-4-4-12-2-14 2z" fill="#a79f8a" stroke="#3b3323"/></svg>`, 2],
-["vampire", "Vampire in a coffin", `<svg viewBox="-16 -22 150 232" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
-      <path d="M40 -18L88 14 75 206H5L-8 14z" fill="#24140c" stroke="#070504" stroke-width="3"/><path d="M40 -10L80 17 68 200H12L0 17z" fill="#3c0a0c"/>
-      <g stroke="#250608" stroke-width="1.4">${[20, 46, 72, 98, 124, 150, 176].map((y) => `<path d="M${6 + y * .03} ${y}L${74 - y * .03} ${y}"/>`).join("")}<path d="M40 -10V200M22 2l-6 196M58 2l6 196"/></g>
-      <g class="v-lid" transform="rotate(9 128 206)"><path d="M104 -10L144 16 133 206H75L64 16z" fill="#2e1a10" stroke="#070504" stroke-width="3"/><path d="M104 22v78M88 46h32" stroke="#160c06" stroke-width="6"/><path d="M104 0L136 21 127 196H81L72 21z" fill="none" stroke="#1a0f08" stroke-width="2"/></g>
-      <ellipse cx="40" cy="196" rx="30" ry="5" fill="#000" opacity=".6"/>
-      <path d="M40 40c-14 2-22 10-26 22L4 196h72L66 62c-4-12-12-20-26-22z" fill="#060506"/>
-      <path d="M14 62C10 44 14 26 22 18l8 22zM66 62c4-18 0-36-8-44l-8 22z" fill="#1a0507" stroke="#050304" stroke-width="1.2"/>
-      <path d="M22 18l8 22-10 2zM58 18l-8 22 10 2z" fill="#4a0c10"/>
-      <path d="M40 6c-9 0-14 8-14 20 0 10 3 20 7 25 2 3 5 4 7 4s5-1 7-4c4-5 7-15 7-25 0-12-5-20-14-20z" fill="url(#vflesh)"/>
-      <path d="M26 20c4-10 24-10 28 0-6-4-22-4-28 0z" fill="#050304"/><path d="M40 6c-2 4-3 8-3 12M40 6c2 4 3 8 3 12" stroke="#050304" stroke-width="2"/>
-      <path d="M31 25c2-2 6-2 7 1-2 2-5 2-7-1zM42 26c1-3 5-3 7-1-2 3-5 3-7 1z" fill="#050304"/>
-      <circle class="v-eye" cx="34.5" cy="25.6" r="1.6" fill="#ff3b2a"/><circle class="v-eye" cx="45.5" cy="25.6" r="1.6" fill="#ff3b2a"/>
-      <path d="M35 42c3 2 7 2 10 0l-1 3c-2 1-6 1-8 0z" fill="#1c0403"/><path d="M36.5 42.6l1 3.2 1-3M43.5 42.6l-1 3.2-1-3" fill="#e8e2cf"/>
-      <path d="M44 46c0 6 1 10 2 10s1-4 0-10z" fill="#6e0d08"/>
-      <g fill="none" stroke="#8d8874" stroke-width="1.6" stroke-linecap="round"><path d="M10 112c-2 8-6 14-8 22M10 112c0 8-2 16-2 24M10 112c2 8 2 16 4 22M10 112c4 6 6 12 8 18"/><path d="M70 112c2 8 6 14 8 22M70 112c0 8 2 16 2 24M70 112c-2 8-2 16-4 22M70 112c-4 6-6 12-8 18"/></g>
-      <path d="M12 104c-4 4-4 8-2 10M68 104c4 4 4 8 2 10" stroke="#8d8874" stroke-width="5" stroke-linecap="round"/>
-      <rect x="0" y="0" width="80" height="200" fill="url(#vshade)" pointer-events="none"/>
-      <path d="M-8 14L5 206H75L88 14" fill="none" stroke="#070504" stroke-width="5"/>
-    </svg>`, 2],
     ["keypad", "Keypad", S("0 0 60 84", `
       <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle class="led" cx="46" cy="15" r="2.5"/>
       <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`), 2],
@@ -281,7 +262,17 @@ function buildRoom() {
     return `
     <g class="far-fade"><path d="M640 470L960 470 1060 600H540z" fill="url(#farfade)"/></g>
     <g clip-path="url(#farEnd)"><g class="far-shadow"><path d="M700 520c0-30 4-46 10-52 2-6 2-14 8-14s6 8 8 14c6 6 10 22 10 52z" fill="#000"/></g></g>
-    ${[[700, 512, .3, -4], [748, 508, .26, 3], [902, 510, .28, 5], [430, 642, .62, 7], [1188, 640, .6, -6], [338, 700, .5, -11]].map(([x, y, k, lean]) => `<g transform="translate(${x} ${y}) rotate(${lean}) scale(${k})" opacity="${.45 + k * .6}">
+    <g class="barricade" transform="translate(800 540) scale(1.5) translate(-800 -540)">${[  // the far end is blocked: coffins piled across it, lying and standing, boards nailed over them
+      [800, 528, .32, 90], [800, 504, .3, 90], [770, 482, .26, 84], [834, 484, .25, 96],
+      [736, 526, .34, -8], [866, 526, .34, 9], [712, 524, .3, -16], [890, 524, .3, 15], [800, 462, .22, 2]
+    ].map(([x, y, k, r]) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${k})"><path d="M0 -190L56 -152 42 0H-42L-56 -152z" fill="#1d130c" stroke="#060403" stroke-width="7"/><path d="M0 -150v84M-20 -124h40" stroke="#3a281a" stroke-width="7"/></g>`).join("")}
+      <path d="M708 470L892 500M712 506L888 478" stroke="#3b2a1a" stroke-width="9"/><path d="M708 470L892 500M712 506L888 478" stroke="#120b06" stroke-width="2" stroke-dasharray="3 22"/>
+      <g transform="translate(762 452) rotate(-6)"><rect width="76" height="18" fill="#6e5a3a" stroke="#120b06" stroke-width="2"/><text x="38" y="14" text-anchor="middle" font-family="Special Elite, monospace" font-size="13" fill="#5a0c08">NO EXIT</text></g>
+      ${[[742, 540], [786, 546], [846, 542], [868, 548]].map(([x, y], i) => `<g transform="translate(${x} ${y}) scale(${.5 + i % 2 * .15})"><ellipse cx="0" cy="0" rx="9" ry="8" fill="#cfc6ad" stroke="#2a251a"/><circle cx="-3" cy="-1" r="2.2" fill="#1a1510"/><circle cx="3" cy="-1" r="2.2" fill="#1a1510"/><path d="M-12 8l24 4M-11 12l22 -5" stroke="#cfc6ad" stroke-width="3" stroke-linecap="round"/></g>`).join("")}
+      <path d="M700 540c30-6 170-6 200 0" stroke="#000" stroke-width="10" opacity=".5"/></g>
+    <g class="webs" fill="none" stroke="#b8b4a4" stroke-width="1.4" opacity=".35">${[[0, 1], [1600, -1]].map(([x, d]) => `<path d="M${x} 0l${d * 220} 0M${x} 0l${d * 180} 70M${x} 0l${d * 120} 120M${x} 0l${d * 50} 160M${x} 0l0 170"/>${[40, 80, 120].map((r) => `<path d="M${x + d * r * 1.3} 0Q${x + d * r} ${r * .3} ${x + d * r * .95} ${r * .5}Q${x + d * r * .7} ${r * .8} ${x + d * r * .3} ${r * 1.15}Q${x + d * r * .1} ${r * 1.2} ${x} ${r * 1.4}"/>`).join("")}`).join("")}</g>
+    <g class="wreaths">${[[300, 600, -14], [1300, 600, 14]].map(([x, y, sk]) => `<g transform="translate(${x} ${y}) skewY(${sk})"><circle r="26" fill="none" stroke="#1f2a17" stroke-width="12"/><circle r="26" fill="none" stroke="#2f3d22" stroke-width="4" stroke-dasharray="4 6"/>${[0, 72, 144, 216, 288].map((a) => `<circle cx="${26 * Math.cos(a * Math.PI / 180)}" cy="${26 * Math.sin(a * Math.PI / 180)}" r="4" fill="#5a0c0a"/>`).join("")}<path d="M-8 26l-6 26M8 26l6 26" stroke="#3a0806" stroke-width="5"/></g>`).join("")}</g>
+    ${[[430, 642, .62, 7], [1188, 640, .6, -6], [338, 700, .5, -11]].map(([x, y, k, lean]) => `<g transform="translate(${x} ${y}) rotate(${lean}) scale(${k})" opacity="${.45 + k * .6}">
       <path d="M0 -190L56 -152 42 0H-42L-56 -152z" fill="#1a110b" stroke="#060403" stroke-width="6"/><path d="M0 -176L44 -146 32 -10H-32L-44 -146z" fill="none" stroke="#2c1d12" stroke-width="4"/>
       <path d="M0 -150v84M-20 -124h40" stroke="#3a281a" stroke-width="7"/></g>`).join("")}
     ${door([255, 335], "L", "1408")}${door([560, 605], "L", "1413")}${door([430, 490], "R", "1411", true)}${door([650, 682], "R", "1416")}

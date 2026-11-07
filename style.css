@@ -248,7 +248,7 @@ body.hurry .figure { opacity: 1; }
 /* Labels stay out of the view until you look at something. Touch screens have no hover, so they always show there. */
 .obj .label { opacity: 0; transition: opacity .15s; }
 .obj:hover .label, .obj:focus-visible .label { opacity: 1; }
-@media (hover: none) { .obj .label { opacity: 0; } :is(#obj-note, #obj-painting, #obj-cabinet, #obj-photo, #obj-computer, #obj-door, #obj-casket-left, #obj-casket-right, #obj-keypad, #obj-fusebox, #obj-hatch, #obj-lift-breaker, #obj-vent, #obj-vampire) .label { opacity: 1; } }
+@media (hover: none) { .obj .label { opacity: 0; } :is(#obj-note, #obj-painting, #obj-cabinet, #obj-photo, #obj-computer, #obj-door, #obj-casket-left, #obj-casket-right, #obj-keypad, #obj-fusebox, #obj-hatch, #obj-lift-breaker, #obj-vent) .label { opacity: 1; } }
 
 /* Your flashlight. Outside the beam the room stays faintly visible, so nothing is impossible to find. */
 #room { --beam: 34cqw; }
@@ -726,11 +726,7 @@ body.no-flicker :is(.puddle, .far-shadow) { animation: none; }
 @media (prefers-reduced-motion: reduce) { :is(.chandelier, .chain, .pupils, .drop, .puddle, .fog-a, .fog-b, .far-shadow) { animation: none !important; transition: none !important; } .drop { opacity: 0; } }
 
 /* Level 2: the vampire lurks; a bite plays the scare where it came from */
-#obj-vampire { left: 59%; bottom: 29%; --w: 6.5cqw; }
-#obj-vampire .v-eye { animation: veye 5s steps(1) infinite; }
 @keyframes veye { 0%, 46%, 50%, 100% { opacity: 1; } 47%, 49% { opacity: 0; } }
-#room[data-scare="vampire"] .vampire { left: 59%; }
-#room.vamp #obj-vampire { opacity: 0; transition: opacity .1s; }
 #blood { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
 #blood .splat { position: absolute; height: auto; opacity: 0; }
 #blood.show .splat { animation: splat 2.6s 1.55s ease-out both; }
@@ -819,7 +815,6 @@ body.no-flicker :is(.scene.jolt-big, .scene.jolt-small, #flashfx.show, .obj.beck
 #room { --beam: calc(38cqw - var(--tension) * 8cqw); }
 body.hurry #room { --beam: 24cqw; }
 
-#obj-vampire { --w: 12cqw; }  /* the coffin around it is wider than the old figure */
 
 /* Print-style chrome around the room (Zaid, 2026-11-07): engraved serif type and framed HUD boxes, same colours as before */
 :root { --print: "IM Fell English", Georgia, serif; --print-sc: "IM Fell English SC", "IM Fell English", Georgia, serif; }
