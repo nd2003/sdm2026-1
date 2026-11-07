@@ -7,6 +7,7 @@ const CONFIG = {
   wrongCodeLock: 5,       // seconds an input stays locked after a wrong code
   vampireDrain: 20,       // seconds the wrong casket takes
   hintAfter: 25,          // seconds stuck on the same step before a whisper hints at it (0 = no hints)
+  demoSkip: false,        // ?debug in the URL turns it on (main.js): a red "Skip level" button for any player, plus Shift+N
   night: "13 October",    // the night that repeats every year
   painting: { colors: ["BLUE", "RED", "GREEN", "WHITE", "BLACK"], minClicks: 3, maxClicks: 6 },
   years: [1950, 1999],    // computer passwords are picked from this range
