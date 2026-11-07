@@ -818,3 +818,31 @@ body.no-flicker :is(.scene.jolt-big, .scene.jolt-small, #flashfx.show, .obj.beck
 #room::after { animation-duration: calc(9s - var(--tension) * 4s); }
 #room { --beam: calc(38cqw - var(--tension) * 8cqw); }
 body.hurry #room { --beam: 24cqw; }
+
+/* ===== Art direction v2: engraved woodcut horror print (Zaid, 2026-11-07) =====
+   The room is printed: #engrave (room.js) turns every layer into ink hatching on bone paper, and only strong reds survive (blood).
+   The chrome around it is ink-black paper with bone type and a blood-red accent. Old fonts stay as fallbacks. */
+:root {
+  --bg: #0c0a08; --panel: #17130f; --panel-deep: #0a0807; --wall: #e6dcc3; --text: #e6dcc3; --text-dim: #9d9384;
+  --gold: #e6dcc3; --gold-hi: #fff4d6; --danger: #9e1b14; --danger-hi: #d8473c; --clue: #b9c9a4; --clue-hi: #d3e0c0;
+  --ink: #15110c; --paper: #e6dcc3;
+  --print: "IM Fell English", Georgia, serif; --print-sc: "IM Fell English SC", "IM Fell English", Georgia, serif;
+}
+body { font-family: var(--print); color: var(--text); background: radial-gradient(circle at 50% 0, #221c16, var(--bg) 70%); }
+h1, h2, #timer, #loop-count, #hud::before { font-family: var(--print-sc); letter-spacing: .02em; }
+.scene > svg, .scene .obj .art { filter: url(#engrave) !important; }  /* art only: labels and focus rings stay crisp */
+#obj-vampire { --w: 12cqw; }
+#chat { background: var(--panel); color: var(--text); box-shadow: inset 0 0 0 1px #3a3128, 0 3px 10px #000a; font-family: var(--print); }
+#chat h2, #chat em, #chat i { color: var(--text-dim); }
+#inventory, #opponent { background: var(--panel); color: var(--text); box-shadow: inset 0 0 0 1px #3a3128; }
+#opponent :is(h2, b, strong, span, small, p) { color: var(--text); }
+#room { background: var(--paper); box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 1px #3a3128, 0 10px 30px #000c; border-radius: 2px; }
+.obj:hover { filter: drop-shadow(0 0 .6cqw var(--danger-hi)); }
+.obj:focus-visible { outline: 2px solid var(--danger-hi); outline-offset: 4px; }
+.obj .label { font-family: var(--print); background: var(--paper); color: var(--ink); border: 1px solid var(--ink); border-radius: 0; }
+#timer, #loop-count { background: none; border: 1px solid #5a4e40; border-radius: 0; box-shadow: inset 0 0 0 3px var(--bg), inset 0 0 0 4px #3a3128; }
+#timer.low { background: var(--danger); color: var(--paper); }
+#journal { font-family: var(--print); font-style: italic; }
+#journal h2 { color: var(--danger); font-style: normal; }
+#lobby h1 { font-family: var(--print-sc); color: var(--paper); text-shadow: 0 0 1px var(--paper), 3px 3px 0 var(--danger), 0 0 30px #9e1b1444; }
+button { font-family: var(--print); }

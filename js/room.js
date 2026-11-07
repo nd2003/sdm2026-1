@@ -127,7 +127,10 @@ function buildRoom() {
       <g class="candles"><circle cx="44" cy="44" r="58" fill="url(#candle)"/><g fill="#f4d98a"><path d="M26 48c-4-7 0-12 0-17 3 6 5 11 0 17zM50 38c-4-8 0-14 0-20 3 7 6 13 0 20zM68 54c-3-6 0-10 0-14 3 5 4 9 0 14z"/></g></g>
       <g fill="#c9c2a8" stroke="#3b3323"><rect x="20" y="48" width="12" height="28"/><rect x="44" y="38" width="13" height="40"/><rect x="62" y="54" width="11" height="22"/></g>
       <path d="M14 78c20 6 50 6 64 0-2-6-12-6-14-2-10 2-30 2-36 0-4-4-12-2-14 2z" fill="#a79f8a" stroke="#3b3323"/></svg>`, 2],
-["vampire", "Vampire in the corridor", `<svg viewBox="0 0 80 200" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+["vampire", "Vampire in a coffin", `<svg viewBox="-16 -22 150 232" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <path d="M40 -18L88 14 75 206H5L-8 14z" fill="#24140c" stroke="#070504" stroke-width="3"/><path d="M40 -10L80 17 68 200H12L0 17z" fill="#3c0a0c"/>
+      <g stroke="#250608" stroke-width="1.4">${[20, 46, 72, 98, 124, 150, 176].map((y) => `<path d="M${6 + y * .03} ${y}L${74 - y * .03} ${y}"/>`).join("")}<path d="M40 -10V200M22 2l-6 196M58 2l6 196"/></g>
+      <g class="v-lid" transform="rotate(9 128 206)"><path d="M104 -10L144 16 133 206H75L64 16z" fill="#2e1a10" stroke="#070504" stroke-width="3"/><path d="M104 22v78M88 46h32" stroke="#160c06" stroke-width="6"/><path d="M104 0L136 21 127 196H81L72 21z" fill="none" stroke="#1a0f08" stroke-width="2"/></g>
       <ellipse cx="40" cy="196" rx="30" ry="5" fill="#000" opacity=".6"/>
       <path d="M40 40c-14 2-22 10-26 22L4 196h72L66 62c-4-12-12-20-26-22z" fill="#060506"/>
       <path d="M14 62C10 44 14 26 22 18l8 22zM66 62c4-18 0-36-8-44l-8 22z" fill="#1a0507" stroke="#050304" stroke-width="1.2"/>
@@ -141,6 +144,7 @@ function buildRoom() {
       <g fill="none" stroke="#8d8874" stroke-width="1.6" stroke-linecap="round"><path d="M10 112c-2 8-6 14-8 22M10 112c0 8-2 16-2 24M10 112c2 8 2 16 4 22M10 112c4 6 6 12 8 18"/><path d="M70 112c2 8 6 14 8 22M70 112c0 8 2 16 2 24M70 112c-2 8-2 16-4 22M70 112c-4 6-6 12-8 18"/></g>
       <path d="M12 104c-4 4-4 8-2 10M68 104c4 4 4 8 2 10" stroke="#8d8874" stroke-width="5" stroke-linecap="round"/>
       <rect x="0" y="0" width="80" height="200" fill="url(#vshade)" pointer-events="none"/>
+      <path d="M-8 14L5 206H75L88 14" fill="none" stroke="#070504" stroke-width="5"/>
     </svg>`, 2],
     ["keypad", "Keypad", S("0 0 60 84", `
       <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle class="led" cx="46" cy="15" r="2.5"/>
@@ -277,6 +281,9 @@ function buildRoom() {
     return `
     <g class="far-fade"><path d="M640 470L960 470 1060 600H540z" fill="url(#farfade)"/></g>
     <g clip-path="url(#farEnd)"><g class="far-shadow"><path d="M700 520c0-30 4-46 10-52 2-6 2-14 8-14s6 8 8 14c6 6 10 22 10 52z" fill="#000"/></g></g>
+    ${[[700, 512, .3, -4], [748, 508, .26, 3], [902, 510, .28, 5], [430, 642, .62, 7], [1188, 640, .6, -6], [338, 700, .5, -11]].map(([x, y, k, lean]) => `<g transform="translate(${x} ${y}) rotate(${lean}) scale(${k})" opacity="${.45 + k * .6}">
+      <path d="M0 -190L56 -152 42 0H-42L-56 -152z" fill="#1a110b" stroke="#060403" stroke-width="6"/><path d="M0 -176L44 -146 32 -10H-32L-44 -146z" fill="none" stroke="#2c1d12" stroke-width="4"/>
+      <path d="M0 -150v84M-20 -124h40" stroke="#3a281a" stroke-width="7"/></g>`).join("")}
     ${door([255, 335], "L", "1408")}${door([560, 605], "L", "1413")}${door([430, 490], "R", "1411", true)}${door([650, 682], "R", "1416")}
     ${portrait(186, 270, 52, 70, 6)}${portrait(1186, 330, 58, 78, -8)}
     <path d="M1600 70L880 336" stroke="#1a1d1e" stroke-width="18"/><path d="M1600 64L880 330" stroke="#4a5052" stroke-width="3" opacity=".6"/>
@@ -296,7 +303,23 @@ function buildRoom() {
     <g transform="translate(700 632) rotate(-8) skewX(-20)"><rect width="46" height="34" fill="#3a2614" stroke="#120b06" stroke-width="3"/><rect x="5" y="5" width="36" height="24" fill="#4a4a44"/><path d="M5 5l36 24M30 5l-12 24" stroke="#c9c2a8" stroke-width="1" opacity=".5"/></g>
     <g class="fog"><ellipse class="fog-a" cx="500" cy="860" rx="520" ry="70" fill="url(#fog)"/><ellipse class="fog-b" cx="1150" cy="900" rx="560" ry="80" fill="url(#fog)"/><ellipse class="fog-a" cx="800" cy="640" rx="380" ry="40" fill="url(#fog)" opacity=".6"/></g>`;
   })();
-  room.innerHTML = `<div class="scene"><svg class="walls" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true"><defs>
+  // ponytail: one filter gives the whole game its woodcut look; redraw objects in ink only if a piece reads badly
+  const engrave = `<svg class="fx-defs" width="0" height="0" aria-hidden="true"><filter id="engrave" color-interpolation-filters="sRGB" x="0" y="0" width="1" height="1">
+    <feColorMatrix in="SourceGraphic" type="matrix" values=".3 .59 .11 0 0  .3 .59 .11 0 0  .3 .59 .11 0 0  0 0 0 1 0"/>
+    <feComponentTransfer result="lum"><feFuncR type="gamma" amplitude="1.15" exponent=".55"/><feFuncG type="gamma" amplitude="1.15" exponent=".55"/><feFuncB type="gamma" amplitude="1.15" exponent=".55"/></feComponentTransfer>
+    <feImage href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5'%3E%3ClinearGradient id='g' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23000'/%3E%3Cstop offset='.5' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3Crect width='5' height='5' fill='url(%23g)'/%3E%3C/svg%3E" x="0" y="0" width="5" height="5" preserveAspectRatio="none"/><feTile result="h"/>
+    <feImage href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5'%3E%3ClinearGradient id='g' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%23000'/%3E%3Cstop offset='.5' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3Crect width='5' height='5' fill='url(%23g)'/%3E%3C/svg%3E" x="0" y="0" width="7" height="7" preserveAspectRatio="none"/><feTile result="v"/>
+    <feComposite in="lum" in2="h" operator="arithmetic" k2="1" k3="-1" k4=".5"/>
+    <feComponentTransfer result="t1"><feFuncR type="linear" slope="7" intercept="-3"/><feFuncG type="linear" slope="7" intercept="-3"/><feFuncB type="linear" slope="7" intercept="-3"/><feFuncA type="discrete" tableValues="1"/></feComponentTransfer>
+    <feComposite in="lum" in2="v" operator="arithmetic" k2="2.2" k3="-1" k4=".42"/>
+    <feComponentTransfer result="t2"><feFuncR type="linear" slope="7" intercept="-3"/><feFuncG type="linear" slope="7" intercept="-3"/><feFuncB type="linear" slope="7" intercept="-3"/><feFuncA type="discrete" tableValues="1"/></feComponentTransfer>
+    <feComposite in="t1" in2="t2" operator="arithmetic" k1="1"/>
+    <feComponentTransfer><feFuncR type="linear" slope=".82" intercept=".08"/><feFuncG type="linear" slope=".8" intercept=".067"/><feFuncB type="linear" slope=".72" intercept=".047"/></feComponentTransfer>
+    <feComposite in2="SourceAlpha" operator="in" result="print"/>
+    <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 .62  0 0 0 0 .07  0 0 0 0 .05  3.2 -3.4 0 0 -.18" result="blood"/>
+    <feMerge><feMergeNode in="print"/><feMergeNode in="blood"/></feMerge>
+  </filter></svg>`;
+  room.innerHTML = engrave + `<div class="scene"><svg class="walls" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true"><defs>
     <pattern id="carpet" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#4a4326"/><path d="M0 0l14 14M14 0L0 14" stroke="#231f10" stroke-width="2"/></pattern>
     <pattern id="bricks" width="44" height="26" patternUnits="userSpaceOnUse"><rect width="44" height="26" fill="#3a3f42"/><path d="M0 0h44M0 13h44M0 0v13M22 13v13" stroke="#14171a" stroke-width="3"/></pattern>
     <filter id="grime" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
