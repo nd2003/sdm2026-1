@@ -19,6 +19,7 @@ import { ghostPresent, setGhostPresence } from "./ghost.ts";
 import { keyUnlockSeconds, playKeyUnlock } from "./key.ts";
 import { knifeTaken, playKnife } from "./knife.ts";
 import { photoRevealed, playPhoto } from "./photo.ts";
+import { escaped, playVictory } from "./victory.ts";
 import "./style.css";
 
 const endpoint =
@@ -217,6 +218,7 @@ function render(state: EscapeSnapshot) {
     setDrawer(false);
   }
   for (const id of walkers(snapshot?.patients, state.patients)) playFootsteps(id === room?.sessionId);
+  if (escaped(snapshot, state)) playVictory();
   if (cabinetOpened(snapshot, state)) {
     playKeyUnlock();
     playCabinet(keyUnlockSeconds);
