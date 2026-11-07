@@ -135,10 +135,40 @@ function buildRoom() {
       <rect x="14" y="12" width="32" height="12" fill="#090806" stroke="#6f5a30"/><circle class="lift-lamp" cx="30" cy="18" r="3.500" fill="#3a1511"/>
       <g fill="#c7a650" stroke="#231a08" stroke-width="1.2">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].flatMap((r) => [0, 1].map((c) => `<circle cx="${21 + c * 18}" cy="${34 + r * 12}" r="4"/>`)).join("")}</g>
       <path d="M12 164l10-5M40 160l14 4" stroke="#6b3e20" stroke-width="2"/>`), 3],
-    ["gate", "Lift gate", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg"><g class="folds">
-      <g stroke="#7a6530" stroke-width="3" fill="none"><path d="M3 2H117V188H3z"/>${[3, 17, 31, 45, 59, 73, 87, 101, 117].map((x) => `<path d="M${x} 2v186"/>`).join("")}</g>
-      <g stroke="#57461f" stroke-width="2.200">${[3, 31, 59, 87].map((x) => `<path d="M${x} 20l28 40M${x + 28} 20l-28 40M${x} 76l28 40M${x + 28} 76l-28 40M${x} 132l28 40M${x + 28} 132l-28 40"/>`).join("")}</g>
-      <rect x="104" y="86" width="13" height="18" fill="#c7a650" stroke="#231a08"/></g></svg>`, 3],
+    ["gate", "Lift gate", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><g class="rattle">
+      <rect x="2" y="2" width="116" height="186" fill="#020202" opacity=".6"/>
+      <g class="zombie"><g class="zlunge">
+        <path d="M24 190c-2-46 2-84 18-98 12-9 30-9 40 0 16 14 18 52 16 98z" fill="#121410"/>
+        <path d="M40 98l20 30 22-30-4 92H42z" fill="#2b2a23"/><path d="M48 120l6 10-8 6M70 140l8-6 2 14" stroke="#141310" stroke-width="2" fill="none"/>
+        <rect x="64" y="104" width="13" height="9" fill="#a89c7c" stroke="#090806"/><path d="M66 106l9 5M75 106l-9 5" stroke="#5a120d" stroke-width="1"/>
+        <path d="M52 76c0 10 2 16 8 18 6-2 8-8 8-18z" fill="#262a20"/>
+        <path d="M42 38c0-20 8-30 18-30s18 10 18 30c0 16-4 28-8 36-4 8-16 8-20 0-4-8-8-20-8-36z" fill="url(#zskin)"/>
+        <ellipse cx="50" cy="26" rx="6" ry="4" fill="#232a1c" opacity=".8"/><ellipse cx="72" cy="56" rx="4" ry="6" fill="#232a1c" opacity=".7"/>
+        <path d="M43 30c-4 10-4 26 0 40M77 30c4 10 4 26 0 40M46 14c-2 12-6 20-6 30M74 14c2 12 6 20 6 30M58 8c-2 10-4 14-8 18" stroke="#0b0a07" stroke-width="1.6" fill="none"/>
+        <ellipse cx="53" cy="38" rx="5.5" ry="4.5" fill="#020202"/><ellipse cx="68" cy="38" rx="5.5" ry="4.5" fill="#020202"/>
+        <circle cx="53.5" cy="38.5" r="1" fill="#e8e2cf"/><circle cx="67.5" cy="38.5" r="1" fill="#e8e2cf"/>
+        <path d="M58 44l-1 5h2zM62 44l1 5h-2z" fill="#0b0a07"/>
+        <path d="M52 54c4 3 12 3 16 0l-2 24c-3 4-9 4-12 0z" fill="#0e0201"/>
+        <path d="M53 55l1.5 3 1.5-3 1.5 3 1.5-3 1.5 3 1.5-3 1.5 3 1.5-3 1.5 3 1.5-3M55 77l1.5-3 1.5 3 1.5-3 1.5 3 1.5-3 1.5 3 1.5-3" fill="#bdb393" stroke="#5c5440" stroke-width=".4"/>
+        <path d="M63 78c0 8 1 14 2 14s1-6 0-14z" fill="#6e0d08"/><path d="M48 60c-2 6-2 10 0 14" stroke="#6e0d08" stroke-width="1.5" fill="none"/>
+        <rect x="0" y="0" width="120" height="190" fill="url(#zdark)"/>
+      </g></g>
+      <g class="folds">
+        <g stroke="#7a6530" stroke-width="3" fill="none"><path d="M3 2H117V188H3z"/>${[3, 17, 31, 45, 59, 73, 87, 101, 117].map((x) => `<path d="M${x} 2v186"/>`).join("")}</g>
+        <g stroke="#57461f" stroke-width="2.2">${[3, 31, 59, 87].map((x) => `<path d="M${x} 20l28 40M${x + 28} 20l-28 40M${x} 76l28 40M${x + 28} 76l-28 40M${x} 132l28 40M${x + 28} 132l-28 40"/>`).join("")}</g>
+        <rect x="104" y="86" width="13" height="18" fill="#c7a650" stroke="#231a08"/>
+        <g class="grip" fill="none" stroke="#3a4031" stroke-width="2.3" stroke-linecap="round"><path d="M41 70c3-2 6-1 7 2M41 76c3-2 6-1 7 2M41 82c3-2 6-1 7 2M41 88c3-2 6-1 7 2"/><path d="M77 66c-3-2-6-1-7 2M77 72c-3-2-6-1-7 2M77 78c-3-2-6-1-7 2M77 84c-3-2-6-1-7 2"/></g>
+        <g fill="#2d2416"><path d="M48 70l1.5 1M48 76l1.5 1M48 82l1.5 1M48 88l1.5 1M70 66l-1.5 1M70 72l-1.5 1M70 78l-1.5 1M70 84l-1.5 1" stroke="#1a140b" stroke-width="1.6"/></g>
+      </g>
+      <g class="zarms">
+        <path d="M94 98l14 18 12 22" fill="none" stroke="#1d2119" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M95 99l13 17 11 21" fill="none" stroke="#454b3c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>
+        <circle cx="108" cy="116" r="3.6" fill="#2a2f24"/><path d="M101 106l2 3M113 126l1.5 3" stroke="#5a120d" stroke-width="1.6"/>
+        <path d="M116 134c4-2 9 0 10 5 1 4-2 8-6 9-4 0-7-3-7-7 0-3 1-5 3-7z" fill="#2f3428"/>
+        <g fill="none" stroke="#2f3428" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M125 136l7-4 5 2"/><path d="M127 141l9-1 4 4"/><path d="M125 146l7 5 1 6"/><path d="M119 148l2 8-2 5"/><path d="M114 143l-5 4-1 5"/></g>
+        <g fill="#0b0906"><circle cx="137" cy="134" r="1.1"/><circle cx="140" cy="144" r="1.1"/><circle cx="133" cy="157" r="1.1"/><circle cx="119" cy="161" r="1.1"/><circle cx="108" cy="152" r="1.1"/></g>
+      </g>
+    </g></svg>`, 3],
     ["indicator", "Floor dial", S("0 0 150 80", `
       <path d="M4 76a71 71 0 0 1 142 0z" fill="#3a3019" ${ink}/><path d="M16 76a59 59 0 0 1 118 0z" fill="#a89c7c" stroke="#231a08" stroke-width="2"/>
       <g stroke="#231a08" stroke-width="2"><path d="M26 66l8 3M38 44l7 6M58 27l4 8M92 27l-4 8M112 44l-7 6M124 66l-8 3"/></g>
@@ -175,6 +205,8 @@ function buildRoom() {
       <feColorMatrix values="0 0 0 0 .16  0 0 0 0 .12  0 0 0 0 .04  2.6 0 0 0 -1.05"/>
     </filter>
     <radialGradient id="candle"><stop offset="0" stop-color="#f4d98a" stop-opacity=".55"/><stop offset="1" stop-color="#f4d98a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="zskin" cx=".45" cy=".35" r=".7"><stop offset="0" stop-color="#6a6f5c"/><stop offset=".55" stop-color="#3a3f33"/><stop offset="1" stop-color="#121410"/></radialGradient>
+    <linearGradient id="zdark" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".35" stop-color="#000" stop-opacity="0"/><stop offset=".6" stop-color="#000" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity=".85"/></linearGradient>
     <radialGradient id="roachShell" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#8a4f1e"/><stop offset=".55" stop-color="#5a2f10"/><stop offset="1" stop-color="#230f04"/></radialGradient>
     <linearGradient id="wax"><stop offset="0" stop-color="#b5ab8a"/><stop offset=".45" stop-color="#e6dcbc"/><stop offset="1" stop-color="#8f8668"/></linearGradient>
     <radialGradient id="blob"><stop offset=".35" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
@@ -307,34 +339,6 @@ function buildRoom() {
     <path d="M494 760h432M494 830h432" stroke="#1d190c" stroke-width="5"/><path d="M520 200v630M900 200v630" stroke="#1d190c" stroke-width="10"/>
     <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".45"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
     ${drip(1000, 150, 22, 360)}${drip(1110, 150, 14, 260)}${drip(420, 150, 18, 300)}
-    ${(() => {
-      const P = (u, v) => { const x = 60 + 240 * u, t = 150 * x / 410, b = 1000 - 210 * x / 410; return [x, t + (b - t) * v]; };
-      const [ox, oy] = P(0, .2), [ax, ay] = P(1, .2), [, by] = P(0, .95);
-      return `<g transform="matrix(${(ax - ox) / 100} ${(ay - oy) / 100} 0 ${(by - oy) / 200} ${ox} ${oy})">
-        <rect x="-6" y="-14" width="112" height="216" fill="#16150f" stroke="#050403" stroke-width="3"/>
-        <text x="50" y="-3" font-family="monospace" font-size="8" font-weight="bold" text-anchor="middle" fill="#8c1a15">SERVICE</text>
-        <rect x="38" y="0" width="24" height="200" fill="#000"/>
-        <g class="zombie"><g class="zlunge">
-          <path d="M34 200c2-50 4-90 16-112 12 22 14 62 16 112z" fill="#2a3324"/>
-          <path d="M44 96l6 14 6-14" fill="none" stroke="#a89c7c" stroke-width="1.5"/>
-          <path d="M40 58c0-12 4-16 10-16s10 4 10 16c0 14-4 24-10 24s-10-10-10-24z" fill="#4f5a44"/><path d="M50 42c6 0 10 4 10 16 0 14-4 24-10 24z" fill="#1a1f16" opacity=".7"/><path d="M41 52c4-3 14-3 18 0" stroke="#2a3324" stroke-width="2" fill="none"/>
-          <path d="M41 61c2-6 8-6 9 0-2 5-7 5-9 0zM51 61c2-6 8-6 9 0-2 5-7 5-9 0z" fill="#030302"/>
-          <circle cx="45.5" cy="60" r="1" fill="#e0463a"/><circle cx="54.5" cy="60" r="1" fill="#e0463a"/>
-          <path d="M44 70c4 2 8 2 12 0l-2 9c-3 2-6 2-8 0z" fill="#120302"/><path d="M46 71l1 3 1-3M50 71.5l1 3 1-3M54 71l-1 3-1-3" fill="#c9c2a8"/>
-          <path d="M52 76c0 6 1 10 2 10s1-4 0-10z" fill="#6e0d08"/>
-        </g></g>
-        <g class="zdoor-l"><rect x="0" y="0" width="40" height="200" fill="#22221c" stroke="#050403" stroke-width="2"/><path d="M6 12h28M6 188h28" stroke="#25241e" stroke-width="3"/><path d="M8 140c8 4 14 14 12 30" fill="none" stroke="#6e0d08" stroke-width="3" opacity=".8"/></g>
-        <g class="zdoor-r"><rect x="60" y="0" width="40" height="200" fill="#22221c" stroke="#050403" stroke-width="2"/><path d="M66 12h28M66 188h28" stroke="#25241e" stroke-width="3"/><path d="M70 30l22 30M74 80l18-6" stroke="#0d0c08" stroke-width="2"/></g>
-        <path class="zchain" d="M18 128C34 136 66 136 82 128" fill="none" stroke="#8d7433" stroke-width="4" stroke-dasharray="5 2"/><rect x="45" y="128" width="10" height="11" fill="#6f5a30" stroke="#090806"/>
-        <g class="zarms">
-          <g fill="none" stroke-linecap="round"><path d="M50 98c14-4 30-12 52-12 8 0 12-2 16 0" stroke="#3d4636" stroke-width="7"/><path d="M50 114c18 2 36 8 56 8 8 0 12-2 17-2" stroke="#3d4636" stroke-width="7"/><path d="M50 98c14-4 30-12 52-12" stroke="#5a6650" stroke-width="2" opacity=".6"/></g>
-          <path d="M80 92l3 4M96 118l2 4" stroke="#6e0d08" stroke-width="2"/>
-          <g fill="none" stroke="#6f7c62" stroke-width="2" stroke-linecap="round"><path d="M117 86l10-6M118 87l11-1M117 89l10 5M116 90l6 8"/><path d="M122 119l10-7M123 120l11 0M122 122l9 6M120 123l4 9"/></g>
-          <g fill="none" stroke="#6f7c62" stroke-width="2.4" stroke-linecap="round"><path d="M58 34c5-1 8 0 8 4M58 40c5-1 8 0 8 4M58 46c5-1 8 0 8 4"/></g>
-        </g>
-        <text x="4" y="168" font-family="Special Elite, monospace" font-size="10" fill="#8c1a15" transform="rotate(-6 4 168)">DON'T LET</text><text x="64" y="176" font-family="Special Elite, monospace" font-size="10" fill="#8c1a15" transform="rotate(-6 64 176)">IT OUT</text>
-      </g>`;
-    })()}
     <path d="M980 880l80 14-20 30-90-12z" fill="#7a7259" stroke="#0a0805" stroke-width="2"/>
   </svg></div>
   <div class="redlight"></div>
