@@ -63,15 +63,22 @@ function render() {
   set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
   if (stage > Number(document.body.dataset.stage || stage)) { replay($("bonus"), "show"); replay($("room"), "entering"); }  // +1:00 and the doors sliding apart
   data("stage", stage);
-  if (stage === 2 && phase === "playing" && t <= ($("timer")._t ?? t) - 15) {
+  // A bite (the vampire, or a wrong casket) plays the scare where it came from
+  const bites = (game.flags && game.flags.vampireBites) || 0;
+  if (stage === 2 && phase === "playing" && bites > ($("room")._bites ?? bites)) {
+    $("room").dataset.scare = $("room")._last === "vampire" ? "vampire" : "casket";
     replay($("room"), "vamp");
-    replay($("drain"), "show");
+    if (!(game.playerName && String(game.playerName).toLowerCase() === "admin")) replay($("drain"), "show");
+    splatter();
+    document.dispatchEvent(new Event("tle-bite"));
     document.dispatchEvent(new Event("tle-scare"));
   }
-  $("timer")._t = t;
+  $("room")._bites = bites;
   $("room").classList.toggle("casket-open", !!(game.flags && game.flags.casketOpen));
   $("room").classList.toggle("power-on", !!(game.flags && game.flags.powerOn));
   $("room").classList.toggle("gate-closed", !!(game.flags && game.flags.gateClosed));
+  $("room").classList.toggle("lift-power", !!(game.flags && game.flags.liftPower));
+  $("room").classList.toggle("vent-out", stage === 3 && out);
   $("room").classList.toggle("later", game.loop >= 2);
   const scrawl = $("room").querySelector(".scrawl-name");
   if (scrawl) set(scrawl, "textContent", (game.partner ? game.partner.name : "them").toUpperCase().slice(0, 10));
@@ -178,6 +185,25 @@ function render() {
   }
 }
 
+// Blood on the screen at the peak of a bite: a few splats in new places each time, then they run and fade
+function splatter() {
+  const box = document.getElementById("blood");
+  if (!box) return;
+  const shapes = [
+    "M50 10c8 0 10 14 18 16s16-6 20 2-8 14-4 22 16 10 10 18-18 0-22 8 4 18-6 20-10-14-18-12-12 14-20 8 4-16-4-22-20 0-20-10 14-10 14-18-12-16-6-22 16 4 22-2-2-20 6-24z",
+    "M50 22c14-6 30 2 32 16 2 12-10 16-6 26s-6 22-20 18-14 8-26 2-6-18-14-24-10-20 2-26 18-4 32-12z",
+    "M30 40c6-16 30-24 44-12 10 8 2 18 14 26s0 20-14 18-16 10-30 4-6-14-16-20-4-10 2-16z",
+  ];
+  box.innerHTML = Array.from({ length: 4 }, (_, i) => {
+    const x = 8 + Math.random() * 74, y = 6 + Math.random() * 48, s = 9 + Math.random() * 12, d = shapes[i % shapes.length];  // looks only, not game logic
+    const drops = [0, 1, 2].map((k) => `<rect class="trickle" x="${30 + k * 18 + Math.random() * 8}" y="60" width="4" height="40" rx="2" fill="#7a0905" style="animation-delay:${(1.7 + k * .15).toFixed(2)}s"/>`).join("");
+    return `<svg class="splat" viewBox="0 0 100 140" style="left:${x}%;top:${y}%;width:${s}%"><path d="${d}" fill="#8c0d08"/><circle cx="${10 + Math.random() * 80}" cy="${10 + Math.random() * 40}" r="3" fill="#8c0d08"/><circle cx="${10 + Math.random() * 80}" cy="${50 + Math.random() * 20}" r="2" fill="#8c0d08"/>${drops}</svg>`;
+  }).join("");
+  box.classList.remove("show");
+  void box.offsetWidth;
+  box.classList.add("show");
+}
+
 // Co-op panels that live for the whole page: chat, the in-game input and the +1:00 flash. Created once, filled by render().
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -190,6 +216,8 @@ function render() {
     <form id="game-input" hidden><label id="game-input-label" for="game-input-text"></label>
       <input id="game-input-text" autocomplete="off" spellcheck="false">
       <div class="row"><button>Enter</button><button type="button" id="game-input-cancel">Step back</button></div></form>`);
+  $("room").insertAdjacentHTML("beforeend", '<div id="blood" aria-hidden="true"></div>');
+  $("room").addEventListener("click", (e) => { const o = e.target.closest?.(".obj"); if (o) $("room")._last = o.id.slice(4); }, true);  // where a bite came from
   $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span><span id="drain" aria-hidden="true">-20s</span>');
 
   $("chat-form").addEventListener("submit", (e) => {
@@ -343,6 +371,13 @@ const updateSound = (() => {
     reset: () => { hiss(.5, 1.1, 2400); blip("sawtooth", 880, 55, .16, .9); },
     level: () => { blip("sine", 60, 34, .7, .5); hiss(.2, .5, 700); },
     win: () => { [220, 261.63, 329.63, 440].forEach((f, i) => blip("sine", f, f, .16, 3, i * .22)); },
+    bite: () => { hiss(.45, .5, 3400); blip("sawtooth", 190, 80, .22, .45); hiss(.3, .2, 700, .25); },
+    groan: (loud) => { const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+      o.type = "sawtooth"; o.frequency.setValueAtTime(92, t); o.frequency.linearRampToValueAtTime(66, t + 1.6); f.type = "lowpass"; f.frequency.value = 520;
+      lfo.frequency.value = 7; lg.gain.value = 9; lfo.connect(lg).connect(o.frequency);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(loud ? .32 : .18, t + .25); g.gain.exponentialRampToValueAtTime(.001, t + 1.8);
+      o.connect(f).connect(g).connect(sfxBus); o.start(t); lfo.start(t); o.stop(t + 1.9); lfo.stop(t + 1.9); hiss(loud ? .12 : .07, 1.4, 380); },
+    growl: () => { SFX.groan(true); blip("sawtooth", 140, 60, .25, .7); hiss(.25, .6, 260); },
     bang: () => { blip("sine", 70, 40, .55, .3); hiss(.3, .25, 900); blip("square", 140, 90, .08, .2, .05); },
     hit: () => { for (const [type, f, peak] of [["sine", 38, .8], ["sawtooth", 233.08, .12], ["sawtooth", 246.94, .12], ["sawtooth", 261.63, .12]]) blip(type, f, f, peak, 1.8); },
   };
@@ -408,7 +443,18 @@ const updateSound = (() => {
     } catch { ctx = null; }  // no sound is better than a broken game
   };
   document.addEventListener("tle-scare", () => { if (ctx) SFX.hit(); });
-  document.addEventListener("animationiteration", (e) => { if (ctx && e.animationName === "zlunge" && game.stage === 3 && game.phase === "playing") setTimeout(SFX.bang, 3200); });  // lands with the slam at 70% of the cycle
+  document.addEventListener("tle-bite", () => { if (ctx) SFX.bite(); });
+  // The zombie on level 3 groans every few seconds, more often and louder in the last 10 seconds; clicking it makes it lunge
+  let groanAt = 0;
+  setInterval(() => {
+    if (!ctx || game.stage !== 3 || game.phase !== "playing" || (game.flags && game.flags.escaped)) return;
+    const hurry = game.timeLeft <= 10, now = performance.now();
+    if (now < groanAt) return;
+    SFX.groan(hurry);
+    groanAt = now + (hurry ? 2200 : 4200) + Math.random() * 3000;  // sound only, not game logic
+  }, 500);
+  addEventListener("click", (e) => { if (ctx && e.target.closest?.("#obj-zombie")) { SFX.growl(); setTimeout(SFX.bang, 150); } });
+  document.addEventListener("animationiteration", (e) => { if (ctx && e.animationName === "zlunge" && game.stage === 3 && game.phase === "playing") SFX.bang(); });  // lands with the slam at 70% of the cycle
   addEventListener("click", (e) => { if (ctx && e.target.closest?.(".obj, #game-input button, #lobby button, #chat-form button, #settings-panel button")) SFX.click(); });
   // Browsers only allow sound after the player does something.
   for (const type of ["pointerdown", "keydown"]) addEventListener(type, start, { capture: true });
