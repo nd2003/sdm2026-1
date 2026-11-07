@@ -674,3 +674,23 @@ body.no-flicker :is(.zbody, .zhead, .zjaw, .zarms, .rattle, .emergency) { animat
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @media (max-width: 560px) { .ways { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .way, .tile, .loop-line { transition: none; } .way:hover, .way:focus-within { transform: none; } }
+
+/* Level 2 set dressing */
+.chandelier { transform-box: view-box; transform-origin: 800px 0; animation: swing 6s ease-in-out infinite alternate; }
+@keyframes swing { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+.chain { transform-box: view-box; animation: swing 7.5s ease-in-out infinite alternate; }
+.chain-a { transform-origin: 470px 268px; }
+.chain-b { transform-origin: 1130px 268px; animation-delay: -3s; }
+.pupils { transform: translate(calc((var(--nx, .5) - .5) * 5px), calc((var(--ny, .45) - .45) * 4px)); transition: transform .4s; }
+.drop { animation: drop 2.6s ease-in infinite; }
+@keyframes drop { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: .9; } 70% { opacity: .9; } 100% { transform: translateY(260px); opacity: 0; } }
+.puddle { animation: puddle 7s steps(1) infinite; }
+@keyframes puddle { 0%, 41%, 45%, 47%, 83%, 86%, 100% { opacity: 1; } 42%, 46% { opacity: .35; } 84% { opacity: .6; } }
+.fog-a { animation: fogA 22s ease-in-out infinite alternate; }
+.fog-b { animation: fogB 28s ease-in-out infinite alternate; }
+@keyframes fogA { to { transform: translateX(120px); } }
+@keyframes fogB { to { transform: translateX(-140px); } }
+.far-shadow { animation: farShadow 14s linear infinite; }
+@keyframes farShadow { 0%, 78% { transform: translateX(-80px); } 90%, 100% { transform: translateX(260px); } }
+body.no-flicker :is(.puddle, .far-shadow) { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.chandelier, .chain, .pupils, .drop, .puddle, .fog-a, .fog-b, .far-shadow) { animation: none !important; transition: none !important; } .drop { opacity: 0; } }

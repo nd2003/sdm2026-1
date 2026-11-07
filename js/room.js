@@ -228,6 +228,51 @@ function buildRoom() {
   const range = (a, b, n) => Array.from({ length: n }, (_, i) => a + (b - a) * i / (n - 1));
   const blob = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#blob)"/>`;
   const drip = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#drip)"/>`;
+
+  // Level 2 set dressing: open doors, a chandelier, portraits, chains, clutter, fog and a shadow at the far end
+  const corridor = (() => {
+    const top = (x) => 420 * x / 730, bottom = (x) => 1000 - 480 * x / 730, doorTop = (x) => top(x) + (bottom(x) - top(x)) * .22;
+    const door = ([a, b], side, num, hand) => {
+      const X = (x) => (side === "R" ? 1600 - x : x), leafB = a + (b - a) * .62;
+      const frame = `M${X(a)} ${doorTop(a)}L${X(b)} ${doorTop(b)}V${bottom(b)}L${X(a)} ${bottom(a)}z`;
+      const leaf = `M${X(a)} ${doorTop(a)}L${X(leafB)} ${doorTop(leafB) + 6}V${bottom(leafB) - 4}L${X(a)} ${bottom(a)}z`;
+      const mx = X(a + (b - a) * .3), my = doorTop(a) + (bottom(a) - doorTop(a)) * .14, k = (b - a) / 110;
+      return `<path d="${frame}" fill="#010101" stroke="#0a0c0e" stroke-width="7"/>
+        <path d="${leaf}" fill="#30373b" stroke="#0a0c0e" stroke-width="3"/>
+        <path d="M${X(a + (b - a) * .1)} ${doorTop(a) + 40}l${(side === "R" ? -1 : 1) * 10 * k} 30 ${(side === "R" ? 1 : -1) * 4 * k} 50M${X(a + (b - a) * .4)} ${bottom(a) - 120}l${(side === "R" ? -1 : 1) * 8 * k} 40" stroke="#4d565a" stroke-width="${3 * k}" fill="none" opacity=".7"/>
+        <g transform="translate(${mx} ${my}) skewY(${side === "R" ? -24 : 24}) scale(${k})"><rect x="-18" y="-10" width="36" height="16" fill="#8d7433" stroke="#231a08"/><text x="0" y="3" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle" fill="#231a08">${num}</text></g>
+        ${hand ? `<g transform="translate(${X(a + (b - a) * .35)} ${doorTop(a) + (bottom(a) - doorTop(a)) * .45}) skewY(${side === "R" ? -20 : 20}) scale(${k * 1.3})" fill="#7a0e09" opacity=".85"><path d="M-10 8c-2-8 0-14 6-16l2-18c0-3 4-3 4 0l1 14 2-20c0-3 4-3 4 0l0 20 3-17c1-3 5-2 4 1l-2 19 4-10c1-3 5-2 4 1l-5 18c-2 10-8 14-16 12-5-1-7-2-11-4z"/><path d="M-4 16c0 14 1 24 2 30M6 18c0 10 1 16 2 22" stroke="#7a0e09" stroke-width="2.4"/></g>` : ""}`;
+    };
+    const portrait = (x, y, w, h, skew) => `<g transform="translate(${x} ${y}) skewY(${skew})">
+      <rect x="-6" y="-6" width="${w + 12}" height="${h + 12}" fill="#3a2614" stroke="#120b06" stroke-width="3"/><rect width="${w}" height="${h}" fill="#1a1712"/>
+      <path d="M${w * .2} ${h}c0-${h * .3} ${w * .1}-${h * .42} ${w * .3}-${h * .46}c${w * .2} ${h * .04} ${w * .3} ${h * .16} ${w * .3} ${h * .46}z" fill="#0d0c09"/>
+      <ellipse cx="${w * .5}" cy="${h * .36}" rx="${w * .2}" ry="${h * .22}" fill="#5f594a"/><ellipse cx="${w * .5}" cy="${h * .3}" rx="${w * .22}" ry="${h * .12}" fill="#1a1712" opacity=".8"/>
+      <g class="eyes-follow"><ellipse cx="${w * .42}" cy="${h * .36}" rx="${w * .055}" ry="${h * .03}" fill="#d8d2bd"/><ellipse cx="${w * .58}" cy="${h * .36}" rx="${w * .055}" ry="${h * .03}" fill="#d8d2bd"/>
+      <g class="pupils"><circle cx="${w * .42}" cy="${h * .36}" r="${w * .025}" fill="#050403"/><circle cx="${w * .58}" cy="${h * .36}" r="${w * .025}" fill="#050403"/></g></g>
+      <path d="M${w * .44} ${h * .5}h${w * .12}" stroke="#2a0806" stroke-width="2"/><path d="M${w * .7} 0l-${w * .2} ${h * .4}" stroke="#0a0805" stroke-width="2"/></g>`;
+    const candle = (x, y) => `<rect x="${x - 4}" y="${y - 26}" width="8" height="26" fill="url(#wax)"/><g transform="translate(${x} ${y - 28})"><g class="flame"><circle r="34" fill="url(#candle)"/><path d="M0 -14c-3 5-4 8-4 11 0 3 2 5 4 5s4-2 4-5c0-3-1-6-4-11z" fill="#f6c45a"/></g></g>`;
+    return `
+    <g class="far-fade"><path d="M640 470L960 470 1060 600H540z" fill="url(#farfade)"/></g>
+    <g clip-path="url(#farEnd)"><g class="far-shadow"><path d="M700 520c0-30 4-46 10-52 2-6 2-14 8-14s6 8 8 14c6 6 10 22 10 52z" fill="#000"/></g></g>
+    ${door([255, 335], "L", "1408")}${door([560, 605], "L", "1413")}${door([430, 490], "R", "1411", true)}${door([650, 682], "R", "1416")}
+    ${portrait(186, 270, 52, 70, 6)}${portrait(1186, 330, 58, 78, -8)}
+    <path d="M1600 70L880 336" stroke="#1a1d1e" stroke-width="18"/><path d="M1600 64L880 330" stroke="#4a5052" stroke-width="3" opacity=".6"/>
+    ${[[1360, 162, 0], [1120, 250, 1.3], [960, 309, 2.4]].map(([x, y, d]) => `<path d="M${x - 6} ${y}h12" stroke="#2a2d2e" stroke-width="10"/><circle class="drop" cx="${x}" cy="${y + 8}" r="3.2" fill="#9fb3b8" style="animation-delay:${d}s"/>`).join("")}
+    <g class="chains" fill="none" stroke="#2c2c28" stroke-width="5" stroke-dasharray="7 3"><path class="chain chain-a" d="M470 268V420"/><path class="chain chain-b" d="M1130 268V400"/><path d="M465 420a6 6 0 1 0 10 0M1125 400a6 6 0 1 0 10 0"/></g>
+    <g class="chandelier"><path d="M800 0V140" stroke="#151510" stroke-width="5" stroke-dasharray="8 3"/>
+      <ellipse cx="800" cy="172" rx="80" ry="15" fill="none" stroke="#151510" stroke-width="7"/><path d="M800 140l-60 30M800 140l60 30M800 140l-22 32M800 140l22 32" stroke="#151510" stroke-width="3"/>
+      ${[-72, -36, 0, 36, 72].map((dx) => `<path d="M${800 + dx} ${172 + (Math.abs(dx) > 50 ? -6 : 10)}v-6" stroke="#151510" stroke-width="5"/>${candle(800 + dx, 172 + (Math.abs(dx) > 50 ? -12 : 4))}`).join("")}
+      <path d="M760 182c0 10 1 16 2 22M840 182c0 8 1 12 0 18" stroke="#e8dfc0" stroke-width="2" fill="none"/></g>
+    <g transform="translate(372 336) skewY(-4)" font-family="Special Elite, monospace" fill="#6a0c08"><text font-size="34" opacity=".9">ONLY ONE LEAVES</text>
+      <path d="M14 6c0 18 2 30 2 40M70 6c0 12 1 20 1 26M150 8c0 22 2 34 1 46M222 6c0 14 2 22 1 30" stroke="#6a0c08" stroke-width="3"/></g>
+    <g stroke="#0c0e0f" stroke-width="3" fill="none"><path d="M1268 520l18 50M1280 516l18 52M1292 520l14 44"/></g>
+    <ellipse class="puddle" cx="640" cy="705" rx="70" ry="10" fill="url(#puddle)"/><ellipse class="puddle" cx="990" cy="770" rx="90" ry="12" fill="url(#puddle)"/>
+    <g transform="translate(520 560)"><path d="M0 22h130l10-6H10z" fill="#4f5355" stroke="#0a0c0e" stroke-width="2"/><path d="M8 22v22M128 22v22M20 44h12M118 44h12" stroke="#2c3033" stroke-width="4"/><path d="M14 16c20-8 60-10 100-6l12 6" fill="#8f897a" stroke="#0a0c0e" stroke-width="2"/><path d="M60 12c6 4 14 4 20 0" stroke="#5a120d" stroke-width="3" fill="none"/><circle cx="14" cy="48" r="5" fill="#0a0c0e"/><circle cx="124" cy="48" r="5" fill="#0a0c0e"/></g>
+    <g transform="translate(905 600) rotate(-78)"><circle cx="0" cy="0" r="28" fill="none" stroke="#3a3f42" stroke-width="5"/><path d="M-28 0h56M0 -28v56M-20 -20l40 40M20 -20l-40 40" stroke="#2c3033" stroke-width="2"/><path d="M-6 -30l-10 -40h44l6 40" fill="#3e2e2a" stroke="#0a0c0e" stroke-width="2"/><path d="M-16 -70l-6 -30" stroke="#3a3f42" stroke-width="5"/><circle cx="40" cy="-6" r="8" fill="none" stroke="#3a3f42" stroke-width="4"/></g>
+    ${[[690, 640, -12], [740, 670, 18], [600, 760, 6], [1040, 690, -24], [860, 800, 30], [430, 700, 14]].map(([x, y, a]) => `<path d="M${x} ${y}l26 -4 4 18 -26 4z" fill="#8f8664" stroke="#2c271c" stroke-width="1" transform="rotate(${a} ${x} ${y})"/>`).join("")}
+    <g transform="translate(700 632) rotate(-8) skewX(-20)"><rect width="46" height="34" fill="#3a2614" stroke="#120b06" stroke-width="3"/><rect x="5" y="5" width="36" height="24" fill="#4a4a44"/><path d="M5 5l36 24M30 5l-12 24" stroke="#c9c2a8" stroke-width="1" opacity=".5"/></g>
+    <g class="fog"><ellipse class="fog-a" cx="500" cy="860" rx="520" ry="70" fill="url(#fog)"/><ellipse class="fog-b" cx="1150" cy="900" rx="560" ry="80" fill="url(#fog)"/><ellipse class="fog-a" cx="800" cy="640" rx="380" ry="40" fill="url(#fog)" opacity=".6"/></g>`;
+  })();
   room.innerHTML = `<div class="scene"><svg class="walls" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true"><defs>
     <pattern id="carpet" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#4a4326"/><path d="M0 0l14 14M14 0L0 14" stroke="#231f10" stroke-width="2"/></pattern>
     <pattern id="bricks" width="44" height="26" patternUnits="userSpaceOnUse"><rect width="44" height="26" fill="#3a3f42"/><path d="M0 0h44M0 13h44M0 0v13M22 13v13" stroke="#14171a" stroke-width="3"/></pattern>
@@ -248,6 +293,10 @@ function buildRoom() {
     <radialGradient id="candle"><stop offset="0" stop-color="#f4d98a" stop-opacity=".55"/><stop offset="1" stop-color="#f4d98a" stop-opacity="0"/></radialGradient>
     <radialGradient id="zskin" cx=".45" cy=".35" r=".7"><stop offset="0" stop-color="#6a6f5c"/><stop offset=".55" stop-color="#3a3f33"/><stop offset="1" stop-color="#121410"/></radialGradient>
     <linearGradient id="zdark" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".35" stop-color="#000" stop-opacity="0"/><stop offset=".6" stop-color="#000" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity=".85"/></linearGradient>
+    <linearGradient id="farfade" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".9"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
+    <radialGradient id="puddle"><stop offset="0" stop-color="#9fb3b8" stop-opacity=".35"/><stop offset=".7" stop-color="#3a4448" stop-opacity=".5"/><stop offset="1" stop-color="#14181a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="fog"><stop offset="0" stop-color="#b8c4c8" stop-opacity=".14"/><stop offset="1" stop-color="#b8c4c8" stop-opacity="0"/></radialGradient>
+    <clipPath id="farEnd"><rect x="730" y="420" width="140" height="100"/></clipPath>
     <radialGradient id="roachShell" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#8a4f1e"/><stop offset=".55" stop-color="#5a2f10"/><stop offset="1" stop-color="#230f04"/></radialGradient>
     <linearGradient id="wax"><stop offset="0" stop-color="#b5ab8a"/><stop offset=".45" stop-color="#e6dcbc"/><stop offset="1" stop-color="#8f8668"/></linearGradient>
     <radialGradient id="blob"><stop offset=".35" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
@@ -317,7 +366,7 @@ function buildRoom() {
     }).join("")}
     <path d="M0 0L730 420M1600 0L870 420M0 1000L730 520M1600 1000L870 520" stroke="#07090a" stroke-width="6"/>
     <rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)" opacity=".8"/>
-    ${drip(180, 90, 18, 420)}${drip(420, 220, 14, 300)}${drip(1180, 220, 18, 320)}${drip(1420, 110, 22, 400)}
+    ${drip(180, 90, 18, 420)}${drip(420, 220, 14, 300)}${drip(1180, 220, 18, 320)}${drip(1420, 110, 22, 400)}${corridor}
     <g transform="translate(690 830) rotate(-12) scale(1.40)"><g class="roach roach-a">
         <g class="legs" fill="none" stroke="#1f1007" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M7 -4l5 -7 7 -2M7 4l5 7 7 2"/><path d="M1 -6l1 -9 -3 -6M1 6l1 9 -3 6"/><path d="M-6 -6l-6 -8 -9 -3M-6 6l-6 8 -9 3"/>
