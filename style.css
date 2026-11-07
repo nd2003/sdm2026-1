@@ -567,3 +567,14 @@ body.asking #message { display: none; }  /* no stale message above an open input
 #admin-skip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 body.is-admin #hud { padding-right: 262px; }  /* room for the Skip button beside Settings */
 @media (max-width: 700px) { body.is-admin #loop-count { font-size: .8rem; } }
+
+/* Level 2: small figures that watch you. More of them stand in the corridor from loop 2. */
+.watchers .later-only { display: none; }
+#room.later .watchers .later-only { display: inline; }
+.watchers .eyes { animation: watch 5.5s steps(1) infinite; }
+.watchers .w:nth-child(2) .eyes { animation-delay: -1.7s; }
+.watchers .w:nth-child(3) .eyes { animation-delay: -3.1s; }
+.watchers .w:nth-child(4) .eyes { animation-delay: -.9s; }
+.watchers .w:nth-child(5) .eyes { animation-delay: -4.2s; }
+.watchers .w:nth-child(6) .eyes { animation-delay: -2.4s; }
+@keyframes watch { 0%, 61%, 64%, 100% { opacity: 1; } 62%, 63% { opacity: 0; } }
