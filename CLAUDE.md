@@ -32,7 +32,7 @@ Everyone uses the same stack. Don't introduce alternatives without an issue that
 |--------|---------|------------|-----------------------------|
 | `prod` | Release: what is live | Railway production | `main` |
 | `main` | The cutting edge: finished work from all teams | Railway dev | `feature/team-N`, `platform/*` branches |
-| `feature/team-N` | Team N's integration branch | not deployed | Team N's work branches (`team-N/<issue>-…`) |
+| `feature/team-N` | Team N's integration branch | Railway teams environment (a preview of the team's game) | Team N's work branches (`team-N/<issue>-…`) |
 
 ```
 team-N/<issue>-<description>  →  feature/team-N  →  main  →  prod
@@ -56,7 +56,7 @@ Railway is where the game is hosted. **Nothing is deployed until the go-live che
 
 ### Rules
 
-1. **Deploy only through the pipeline.** What runs on Railway is what was merged: `main` deploys to the development environment and `prod` to production (see [Branches](#branches)). Nobody deploys from a laptop (`railway up`), from a work branch, or by editing a service in the Railway dashboard. No workflow, bot or script may push or merge into `prod`, auto-merge stays off, and Railway's production environment follows the `prod` branch, never `main`.
+1. **Deploy only through the pipeline.** What runs on Railway is what was merged: `main` deploys to the development environment, `prod` to production, and each team's `feature/team-N` to that team's own service in the teams environment, a preview that never reaches `main` or production by itself (see [Branches](#branches)). Nobody deploys from a laptop (`railway up`), from a work branch, or by editing a service in the Railway dashboard. No workflow, bot or script may push or merge into `prod`, auto-merge stays off, and Railway's production environment follows the `prod` branch, never `main`.
 2. **Gate before `main`.** A change reaches `main` only when CI and the Workflow checks are green and someone other than the author approved the PR. Railway services use Wait for CI (`checkSuites` in `.railway/railway.ts`), so a commit with a red check is never deployed.
 3. **Gate before `prod`.** A release PR (`main` into `prod`) goes ahead only when all of this is true:
    - CI is green on `main`.
@@ -67,7 +67,7 @@ Railway is where the game is hosted. **Nothing is deployed until the go-live che
    The `release gate` check verifies the first three automatically on every PR into `prod`.
 4. **Infrastructure is code.** Services, domains, variables and replicas are defined in `.railway/railway.ts` and changed through a reviewed PR that includes the `railway config plan` output. Don't use `railway.json` or `railway.toml`: Railway deprecated them and stops reading them on 2026-12-01. Anything missing from the file is deleted on apply, so every new service must be added there.
 5. **Secrets stay out of the repository.** Keys, tokens and passwords live in Railway variables (sealed, for secrets) or GitHub Actions secrets. Never commit them, paste them into an issue, PR or chat, or print them in logs. Only `.env.example` (names, no values) is committed.
-6. **Environments are separate.** Development and production use different variables, databases and domains. Never point development at production data, or the reverse. `APP_ENV` says where the code runs, and `/health` returns it together with the deployed SHA.
+6. **Environments are separate.** Development, the teams environment and production use different variables, databases and domains. Never point development or a team's preview at production data, or the reverse. `APP_ENV` says where the code runs, and `/health` returns it together with the deployed SHA.
 7. **Every service has a `/health` endpoint.** It is Railway's health check. A deploy that is not healthy is not fixed by restarting it by hand: investigate, or roll back. Keep the endpoint fast and free of dependencies.
 8. **Keep it small.** One replica per service. No new service, database or paid add-on without an issue that says why and who pays for it.
 9. **Roll back first, then fix.** If production breaks, redeploy the last good deployment in Railway (or revert the release PR on `prod`) and tell the team. Then fix on `main` and release again. Don't debug on production.

@@ -62,14 +62,15 @@ Each game adds its own contract in `games/team-N/shared/`: Colyseus state schema
 
 ## Environments (Railway)
 
-Defined in [`.railway/railway.ts`](../.railway/railway.ts): one project `sdm2026-1`, one service per game, one replica each in `europe-west4`.
+Defined in [`.railway/railway.ts`](../.railway/railway.ts): one project `sdm2026-1`, three environments, one service per game, one replica each in `europe-west4`.
 
 | Environment | Deploys | `APP_ENV` |
 |---|---|---|
 | development | `main`, after CI passed on the commit (Wait for CI) | `development` |
 | production | `prod`, after CI passed on the commit, via a release PR from `main` | `production` |
+| teams | each team's own `feature/team-N`, after CI passed on the commit: one service per team in `TEAM_GAMES`, a preview of the team's game | `development` |
 
 - Watch paths: a service redeploys only when its game folder or the platform it runs on changes; Markdown and test files never redeploy.
 - Build `pnpm --filter <game> build`, start `node --import tsx <game>/server.ts`, health check `/health`, 15 s draining after SIGTERM, never sleeps.
-- Change the file in a platform PR with the `railway config plan` output for both environments, then apply from an up-to-date `main`: `railway link`, then `railway config plan` and `railway config apply`. Anything missing from the file is deleted on apply.
-- Add a team's game to `GAMES` once its package is on `main`. Domains: `railway domain --service <game> --port 8080` per environment.
+- Change the file in a platform PR with the `railway config plan` output for every environment it touches, then apply from an up-to-date `main`: `railway link`, then `railway config plan` and `railway config apply`. Anything missing from the file is deleted on apply.
+- Add a team's game to `GAMES` once its package is on `main`, and to `TEAM_GAMES` (with its `feature/team-N` branch) as soon as its package is on its feature branch. Team-1 and team-3 have no game package yet. The `teams` environment has to exist in Railway first (`railway environment new teams`); services in it deploy different branches, so each team sees its game without waiting for `main`. Domains: `railway domain --service <game> --port 8080` per environment. Railway gives every service its own address; a single address with a path per team (`<url>/team-N`) is not set up and needs a gateway service in front of the team services plus base-path support in the clients.

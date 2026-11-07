@@ -1,8 +1,9 @@
 /**
- * Railway infrastructure for sdm2026-1: one project, two environments, one service per game.
+ * Railway infrastructure for sdm2026-1: one project, three environments, one service per game.
  *
  *   production   deploys `prod` (release PRs from main only)
  *   development  deploys `main`
+ *   teams        deploys each team's own `feature/team-N` branch, one service per team (TEAM_GAMES)
  *
  * Change it through a reviewed platform PR that includes the `railway config plan` output for both
  * environments, then apply from an up-to-date `main` (see "Railway" in server/ARCHITECTURE.md).
@@ -31,6 +32,12 @@ export const ENVIRONMENTS = {
 
 export type EnvironmentName = keyof typeof ENVIRONMENTS;
 
+/**
+ * The teams environment: not one branch but one per service, so each team sees its game on its own
+ * integration branch before it reaches `main`. Same `APP_ENV` as development.
+ */
+export const TEAMS_ENVIRONMENT = { name: "teams", appEnv: "development" } as const;
+
 interface Game {
   /** Railway service name. */
   service: string;
@@ -40,12 +47,29 @@ interface Game {
   package: string;
 }
 
+/** A game in the teams environment, with the branch that service deploys. */
+interface TeamGame extends Game {
+  branch: `feature/team-${1 | 2 | 3 | 4}`;
+}
+
 /**
  * One service per game. Add a team's game here, in a platform PR, once its package is on `main`
  * (e.g. `{ service: "team-2", dir: "games/team-2", package: "@team-2/game" }`).
  */
 export const GAMES: readonly Game[] = [
   { service: "template", dir: "server/template", package: "@sdm/template" },
+];
+
+/**
+ * The teams' games, deployed from their own `feature/team-N` branch in the teams environment. Add a team
+ * here, in a platform PR, once its game package (`package.json` + `server.ts`) is on its branch; team-1 and
+ * team-3 have none yet. The package only exists on that branch, not on `main` where this file is applied,
+ * so unlike GAMES it is not checked here: a missing package shows up as a failed build in Railway.
+ */
+export const TEAM_GAMES: readonly TeamGame[] = [
+  { service: "team-2", dir: "games/team-2", package: "@team-2/game", branch: "feature/team-2" },
+  // team-4's package is named @sdm/team-4 on its branch, not the @team-N/game of server/CLAUDE.md.
+  { service: "team-4", dir: "games/team-4", package: "@sdm/team-4", branch: "feature/team-4" },
 ];
 
 /** Platform files every game runs on: a change here redeploys every game. */
@@ -83,10 +107,10 @@ function checkGame(game: Game): Game {
   return game;
 }
 
-function gameService(game: Game, env: (typeof ENVIRONMENTS)[EnvironmentName]) {
+function gameService(game: Game, branch: string, appEnv: string) {
   return service(game.service, {
     // Wait for CI: a commit deploys only after every GitHub check suite on it has passed.
-    source: github(REPO, { branch: env.branch, checkSuites: true }),
+    source: github(REPO, { branch, checkSuites: true }),
     build: {
       builder: "RAILPACK",
       // Railpack runs `pnpm install --frozen-lockfile` first (dev dependencies included, so tsx is there).
@@ -109,7 +133,7 @@ function gameService(game: Game, env: (typeof ENVIRONMENTS)[EnvironmentName]) {
       sleepApplication: false,
     },
     env: {
-      APP_ENV: env.appEnv,
+      APP_ENV: appEnv,
       PORT,
       LOG_LEVEL: "info",
     },
@@ -118,12 +142,18 @@ function gameService(game: Game, env: (typeof ENVIRONMENTS)[EnvironmentName]) {
 
 export default defineRailway((ctx) => {
   const name = ctx.environment ?? "";
+  if (name === TEAMS_ENVIRONMENT.name) {
+    const { appEnv } = TEAMS_ENVIRONMENT;
+    return project(PROJECT, { resources: TEAM_GAMES.map((game) => gameService(game, game.branch, appEnv)) });
+  }
   if (!Object.hasOwn(ENVIRONMENTS, name)) {
     throw new Error(
-      `This file manages the environments ${Object.keys(ENVIRONMENTS).join(" and ")}, not "${name}". ` +
+      `This file manages the environments ${[...Object.keys(ENVIRONMENTS), TEAMS_ENVIRONMENT.name].join(", ")}, not "${name}". ` +
         "Link one of them with `railway link` or pass `--environment`.",
     );
   }
   const env = ENVIRONMENTS[name as EnvironmentName];
-  return project(PROJECT, { resources: GAMES.map((game) => gameService(checkGame(game), env)) });
+  return project(PROJECT, {
+    resources: GAMES.map((game) => gameService(checkGame(game), env.branch, env.appEnv)),
+  });
 });
