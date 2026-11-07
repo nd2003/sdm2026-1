@@ -4,6 +4,8 @@ import {
   auditPr,
   formatReport,
   groupByTeam,
+  IMPORTS,
+  importOf,
   isLegacy,
   linkedIssue,
   RULE_ERAS,
@@ -349,5 +351,37 @@ describe("title rule by date", () => {
   it("requires the Conventional title on PRs opened after it", () => {
     expect(titleProblems({ createdAt: "2026-11-06T15:00:00Z" })).not.toEqual([]);
     expect(titleProblems({ createdAt: null })).not.toEqual([]);
+  });
+});
+
+describe("commits that weren't written for the PR (#310)", () => {
+  const missingRefs = [
+    ...good,
+    { oid: "a1", message: "Add the lobby" },
+    { oid: "b2", message: "Fix the timer" },
+  ];
+
+  it("lists the team repository imports", () => {
+    expect(IMPORTS.map((i) => i.pr)).toEqual([138, 280]);
+    expect(importOf(138)?.from).toBe("zaid-akroush/timeloop-escape");
+    expect(importOf(30)).toBeNull();
+  });
+
+  it("does not check the commits of an import PR, and says so", () => {
+    const r = audit({ pr: { ...pr, number: 138 }, commits: missingRefs });
+    expect(rules(r)).not.toContain("commit-refs");
+    expect(r.warnings.join(" ")).toMatch(/2 commit\(s\) were imported from zaid-akroush\/timeloop-escape/);
+  });
+
+  it("does not check commits that an earlier merged PR already has", () => {
+    const r = audit({ commits: missingRefs, judgedElsewhere: new Set(["a1", "b2"]) });
+    expect(rules(r)).not.toContain("commit-refs");
+    expect(r.warnings.join(" ")).toMatch(/2 commit\(s\) already belong to an earlier merged PR/);
+  });
+
+  it("still fails the PR's own commits without a reference", () => {
+    const r = audit({ commits: missingRefs, judgedElsewhere: new Set(["a1"]) });
+    expect(rules(r)).toEqual(["commit-refs"]);
+    expect(r.problems[0].message).toMatch(/^1 of 2 commit/);
   });
 });

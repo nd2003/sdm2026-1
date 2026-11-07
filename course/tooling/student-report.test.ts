@@ -65,6 +65,26 @@ describe("collectStats", () => {
     expect(s.commitsWithRefs).toBe(2);
   });
 
+  it("counts commits imported from a team repository separately, outside the Refs rule (#310)", () => {
+    const list = stats({
+      prs: [
+        pr({
+          number: 138,
+          author: "carol",
+          commits: [commit("i1", ["alice"], false), commit("i2", ["dave"], false), commit("i3", ["carol"])],
+        }),
+      ],
+    });
+    const alice = of(list, "alice");
+    expect([alice.commits, alice.commitsWithRefs, alice.commitsImported]).toEqual([0, 0, 1]);
+    // A commit with a reference in the import PR was written here and counts as usual.
+    expect([of(list, "carol").commits, of(list, "carol").commitsWithRefs]).toEqual([1, 1]);
+    const r = scoreStudent(alice);
+    expect(r.justification).toMatch(/1 commit imported from the team's own repository/);
+    expect(r.justification).not.toMatch(/no visible activity/);
+    expect(r.justification).not.toMatch(/reference an issue/);
+  });
+
   it("counts a commit once when it appears in several PRs", () => {
     const list = stats({
       prs: [
