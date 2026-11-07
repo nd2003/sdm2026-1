@@ -66,11 +66,18 @@
     check("starts in the lobby, timer not running, 60s default", () => game.phase === "lobby" && game.timeLeft === 60 && game.loopSeconds === 60 && game.stage === 1);
     check("title screen says Time Loop Escape", () => /time loop escape/i.test(document.querySelector("#lobby h1").textContent));
     check("lobby has name, 60/90/120 loop length, create, join, solo", () => {
-      const secs = [...document.querySelectorAll("#loop-seconds option")].map((o) => o.value).join();
+      const secs = [...document.querySelectorAll("#lobby input[name=loop]")].filter((i) => !i.closest("[hidden]")).map((o) => o.value).join();
       return need(document.getElementById("player-name"), "#player-name") && need(secs === "60,90,120", "loop options " + secs)
         && need(document.querySelector('#lobby button[value=create]') && document.querySelector('#lobby button[value=join]') && document.querySelector('#lobby button[value=solo]'), "buttons");
     });
     check("makeRoomCode() gives 4 letters A-Z", () => [1, 2, 3, 4, 5].every(() => need(/^[A-Z]{4}$/.test(realMakeRoomCode()), "bad code")));
+    check("10 min loop only for admin", () => {
+      const ten = document.querySelector("#lobby input[name=loop][value='600']"), n = document.getElementById("player-name"), was = n.value;
+      n.value = "Sam"; n.dispatchEvent(new Event("input", { bubbles: true })); const hidden = !!ten.closest("[hidden]");
+      n.value = "admin"; n.dispatchEvent(new Event("input", { bubbles: true })); const shown = !ten.closest("[hidden]");
+      n.value = was; n.dispatchEvent(new Event("input", { bubbles: true }));
+      return need(hidden, "non-admin sees 10 min") && need(shown, "admin doesn't see 10 min");
+    });
     check("room has all objects for levels 1-3", () => ["note", "painting", "cabinet", "photo", "computer", "door", "casket-left", "casket-right", "keypad", "lift", "fusebox", "gate", "hatch", "lift-breaker", "lift-panel", "vent", "phone", "coat", "vending", "scratches", "shoes", "bricked-door", "candles", "indicator", "emergency-phone", "graffiti"]
       .every((id) => need(document.getElementById("obj-" + id), "#obj-" + id + " missing")));
 
@@ -190,7 +197,7 @@
     await checkAsync("two tabs: create (90s) + join with the same code pair up as A/B", async () => {
       A = await frame(""); B = await frame(`?room=${code}&name=Bo`);
       const $a = (id) => A.document.getElementById(id), $b = (id) => B.document.getElementById(id);
-      $a("player-name").value = "Ada"; $a("loop-seconds").value = "90";
+      $a("player-name").value = "Ada"; A.document.querySelector("#lobby input[name=loop][value='90']").checked = true;
       A.eval(`makeRoomCode = () => ${JSON.stringify(code)}`);
       $a("lobby").querySelector("button[value=create]").click();
       need($b("player-name").value === "Bo" && $b("room-code").value === code, "?room=&name= not filled in");
