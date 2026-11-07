@@ -118,7 +118,7 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 
 **Flags** (`game.flags`, all reset every loop): `paintingClicks` (number), `paintingMoved`, `cabinetOpen`, `doorUnlocked`, `casketOpen`, `powerOn`, `gateClosed`, `escaped` (booleans), `lockedUntil` (a `timeLeft` value: the input is locked while `timeLeft > lockedUntil`). `render()` uses these to show visual states, for example adding the class `open` to `#obj-cabinet`.
 
-**Items**: `key`.
+**Items**: `key`, `fuse` (level 3).
 
 **DOM ids**: `#timer`, `#loop-count`, `#room`, `#inventory`, `#journal`, `#message`, `#lobby`, `#opponent` (all in `index.html`). Each object element gets the id `obj-<id>`, for example `#obj-painting`.
 
@@ -166,21 +166,28 @@ If the task seems to need a change in someone else's file, don't make it. Stop a
 | both ways | `{type:"chat", text}` | Chat line → `game.chat` |
 | client → server | `{type:"escaped", loop}` | I'm out → `partner.escaped` on the other side |
 | server → client | `{type:"won"}` | Both escaped → `phase = "over"`, win screen |
+| client → server | `{type:"leave"}` | I quit → partner gets `partner-left` |
 | server → client | `{type:"partner-left"}` | → `phase = "over"`, "Your partner left" |
 
 **Loop length:** when you create a room you choose **60 / 90 / 120 s** (default 60). It's stored as `game.loopSeconds`, the creator sends it in `join` as `seconds`, and the server passes it on in `start`, so both players get the same value. `startLoop()` uses `game.loopSeconds` instead of the fixed 60.
+- **Admin 10-minute loop (testing only, 2026-11-07):** when the name is exactly `admin` (any case), the picker shows a fourth option, **10 min** (`seconds: 600`). Nobody else sees it, and the server/`connect()` only accepts 600 from an admin creator; a value outside 60/90/120 (or 600 from a non-admin) falls back to 60. Same `isAdmin()` check and `// ponytail:` mark as the admin skip. In the course port it moves behind `?debug`.
+- **Picker underline:** the loop-length picker has a yellow underline (the accent token) under the selected option. It slides to the option you pick and spans its full width.
 
 **Names the UI can rely on** (from Abdullah's code, confirmed by Zaid):
 - Functions: `connect(name, code?, seconds?)`, `makeRoomCode()` (4 letters, for the Create button), `sendChat(text)`, `onInput(text|null)`, `puzzleAnswers(role)` (e.g. `.color` to tint the painting), `rand()`.
 - `game.flags.escaped`: **you** are out and waiting (your timer stops). `game.partner.escaped`: your partner is out.
-- Level object ids: level 2 = `casket-left`, `casket-right`, `keypad`. Level 3 = `lift`. Show each one only when `game.stage` matches.
+- Level object ids: level 2 = `casket-left`, `casket-right`, `keypad`. Level 3 = `lift` (prop), `vent` (exit). Show each one only when `game.stage` matches.
 - Story props (#15), buttons `#obj-<id>`, each shown only on its level:
   - Level 1: `phone`, `coat`, `vending`, `scratches`.
   - Level 2: `fusebox` (new step: the keypad is dead until you throw it; flag `powerOn`), `shoes`, `bricked-door`, `candles`.
   - Level 3: `gate` (new step: the lift won't move until it's shut; flag `gateClosed`), `indicator`, `emergency-phone`, `graffiti`.
   - `powerOn` and `gateClosed` reset every loop.
+- **Level 3 ends through a vent, not the lift (changed 2026-11-07):** new ids `hatch` (search the roof hatch → `addItem("fuse")`), `lift-breaker` (with the fuse → flag `liftPower`: the shaft lights come on and the vent fan beside the lift stops), `vent` (next to the lift; only with `liftPower`, asks via `game.input` for the screw-lock code from the partner's room → escape). The lift itself never escapes: `lift`, `lift-panel` and `gate` are story props (dead buttons, "OUT OF ORDER"), and `gateClosed` is no longer required. `liftPower` resets every loop.
+- **Loop reset is explained:** after a reset, `resetLoop()` sets `game.message` to a plain line ("Time ran out. The loop reset: your items are gone, your journal stays.") and `game.flags.justReset = true` (cleared on the next click). The UI shows a short overlay while `justReset` is set: what was lost (items) and what was kept (clues count).
+- **Quit:** `quitGame()` in `net.js` sends `{type:"leave"}`, sets `phase = "lobby"` and keeps the name. The partner gets `partner-left` (already in the table). The UI has a **Quit** button in the HUD and in ⚙ settings, with a confirm *inside the game* (no `confirm()`).
 - Progress steps (co-op): 1 note, 2 key, 3 cabinet, 4 computer, 5 level 2, 6 casket, 7 level 3. The race list below is out of date.
 - Two tabs from disk (`file://`): `BroadcastChannel` can't connect them, so `net.js` falls back to `localStorage` storage events (same messages).
+- **Vampire and zombie (2026-11-07):** new object `vampire` on level 2: a vampire lurking in the corridor. Clicking it bites: `timeLeft -= CONFIG.vampireDrain` (min 1, same as the wrong casket, nothing for admin). Every bite (vampire click **or** wrong casket) increments the new flag `vampireBites` (number, resets every loop). The UI plays the vampire scene + bite sound + `-20s` when `vampireBites` goes up, not by guessing from a time jump. New object `zombie` on level 3 (the one behind the lift gate): a story prop, clicking it only `say()`s something and the UI plays a growl. Neither one ever blocks a clickable puzzle object.
 
 **Admin skip (testing only):** if the player's name is exactly `admin` (any case), the HUD shows a **Skip level** button. It calls `adminSkip()` in `puzzles.js`, which moves on as if the current level's exit were solved: level 1 → 2 → 3 (with the usual +60s), and on level 3 it escapes. It sends the same `progress`/`escaped` messages as normal play. **Admin also plays without solving anything:** every gate passes (no clue or partner chat needed, the painting opens on the first click), any typed code is accepted (empty included), there are no locks or vampire time drains, and the timer doesn't run out (no reset). One helper, `isAdmin()`, is checked in those few places only. `// ponytail:` mark it. It's a cheat anyone can type, so in the course port it becomes a `?debug` debug command, which is rejected in production.
 
@@ -241,7 +248,8 @@ The course grades how the work is spread across members, using commits, issues a
 
 - Work only on the branch named in your brief. Commit often and push it: `git push -u origin <your-branch>`.
 - Never push, merge, rebase or force-push onto `main`, and never touch anyone else's branch.
-- Don't open pull requests or merge anything. Zaid pulls your branch, combines it with the other half, tests the result and pushes it to `main`.
+- In **this** repo, don't open pull requests or merge anything. Zaid pulls your branch, combines it with the other half, tests the result and pushes it to `main`.
+- **Port phase (from 2026-11-07):** in the **course repo** (nd2003/sdm2026-1) you *do* open your own issues and PRs into `feature/team-3`, following its `CLAUDE.md` (run `pnpm preflight` first). Review your teammate's PRs there. **Port file split:** Abdullah owns the room/shared/config/tests **and** `client/screens.ts` (lobby with the loop picker, reset overlay, end card, quit confirm, "How co-op works" card). Baasanjav owns the rest of `client/` (room art, HUD, item tray, partner panel, chat, styles, assets). Shared CSS tokens (colours, fonts) are Baasanjav's; Abdullah uses them. Never merge your own PR, and never push to `feature/team-3`, `main` or `prod`.
 - To pick up changes that landed on `main`, run `git pull origin main` while on your branch. If it conflicts outside your own files, stop and tell your human.
 - When your "Done when" checklist is complete, push your branch and tell Zaid it's ready.
 - Before finishing, open `index.html` in a browser and check that the console has no errors.

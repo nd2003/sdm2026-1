@@ -57,8 +57,6 @@ function render() {
   set($("timer"), "textContent", "" + t + "s");
   $("timer").classList.toggle("low", t <= 10 && !out);
   document.body.classList.toggle("hurry", t <= 10 && !out && !game.won && phase === "playing");  // whole room goes red in the last 10s
-  $("admin-skip").hidden = !(phase === "playing" && !out && String(game.playerName).toLowerCase() === "admin");
-  document.body.classList.toggle("is-admin", !$("admin-skip").hidden);
   cssVar($("hud"), "--time", Math.min(1, t / (game.loopSeconds || 60)));  // drives the shrinking time bar
   set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
   if (stage > Number(document.body.dataset.stage || stage)) { replay($("bonus"), "show"); replay($("room"), "entering"); }  // +1:00 and the doors sliding apart
@@ -172,8 +170,9 @@ function render() {
       + (game.won ? `<table class="ledger"><caption>Meridian Trust, floor 14. Visitor log, 13 October</caption><tr><th>Name</th><th>In</th><th>Out</th></tr>`
         + `<tr class="gone"><td>━━━━━━</td><td>23:59</td><td></td></tr><tr class="gone"><td>━━━━━━</td><td>23:59</td><td></td></tr>`
         + `<tr class="us"><td>${esc(game.playerName)}</td><td>23:59</td><td>signed out</td></tr><tr class="us"><td>${who}</td><td>23:59</td><td>signed out</td></tr></table><p class="clock-stopped">Behind you, the clock stops.</p>` : "")
-      + `<button type="button" onclick="location.reload()">Play again</button></div>`);
-    if (over && !win._focused) { win._focused = true; setTimeout(() => win.querySelector("button")?.focus()); }  // keyboard users land on "Play again"
+      + `<button type="button" onclick="toMainMenu()">Main menu</button>${game.won ? '<p class="auto">Back to the main menu in a few seconds…</p>' : ""}</div>`);
+    if (over && !win._focused) { win._focused = true; setTimeout(() => win.querySelector("button")?.focus()); }  // keyboard users land on "Main menu"
+    if (over && game.won && !win._auto) win._auto = setTimeout(toMainMenu, 10000);  // a win returns to the menu by itself
   }
 }
 
@@ -189,8 +188,7 @@ function render() {
     <form id="game-input" hidden><label id="game-input-label" for="game-input-text"></label>
       <input id="game-input-text" autocomplete="off" spellcheck="false">
       <div class="row"><button>Enter</button><button type="button" id="game-input-cancel">Step back</button></div></form>`);
-  $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span><span id="drain" aria-hidden="true">-20s</span><button id="admin-skip" type="button" hidden>Skip level</button>');
-  $("admin-skip").addEventListener("click", () => adminSkip());  // ponytail: testing cheat, becomes a ?debug command in the course port
+  $("hud").insertAdjacentHTML("beforeend", '<span id="bonus" aria-hidden="true">+1:00</span><span id="drain" aria-hidden="true">-20s</span>');
 
   $("chat-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -420,3 +418,6 @@ const updateSound = (() => {
   apply();
   return update;
 })();
+
+// Back to the lobby. Drops ?room=&name= so a reload doesn't rejoin the room you just finished.
+function toMainMenu() { location.href = location.pathname; }
