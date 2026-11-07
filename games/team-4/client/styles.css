@@ -1,540 +1,1497 @@
-* {
+/* ==========================================================================
+   TIME LOOP ESCAPE — TEAM 4 COMPLETE EDITION
+   - Lobby: Neon Violet/Cyan Chrono-Lab + Saif & Drek Robots + Bottom-Left Start
+   - Room 1: Outbreak Bio-Bunker (Fun, intuitive chemistry/glovebox/map puzzles)
+   - Corridor: Vaulted Industrial Bulkhead Passageway + Real-Time Door Zoom
+   - Room 2: Rosso's Crimson Speakeasy Investigation Parlor
+   - Room 3: Split Blue/Red Bio-Containment Lab + Zoom-In Raptor Sub-Room
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0b0f14;
-  color: #ffffff;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: #070913;
+  color: #f8fafc;
 }
 
-/* Main Game Screen UI Layout */
-.game-screen-layout {
+.hidden {
+  display: none !important;
+}
+
+.tle-root {
+  position: relative;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  box-sizing: border-box;
-  background: #0b0f14;
-  color: #d6dde4;
+  width: 100%;
+  min-height: 680px;
+  background: #070913;
+  color: #f8fafc;
+  user-select: none;
   overflow: hidden;
 }
 
-.game-hud {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 18px;
-  background: #141b23;
-  border-bottom: 1px solid #24303d;
-  min-height: 58px;
-  flex-shrink: 0;
-}
-
-.hud-group {
+/* ================= FULL-SCREEN LOBBY SCENE (IMAGE 1) ================= */
+.tle-lobby-scene {
+  position: relative;
+  width: 100%;
+  min-height: 680px;
+  flex: 1;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a103c 0%, #24134a 52%, #0d1b36 100%);
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
-.hud-pill {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #93c5fd;
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 999px;
+.tle-lobby-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
-.hud-center {
+/* Two Robots Standing in the Center of the Lobby */
+.tle-robots-stage {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 54px;
+  margin-top: 90px;
+}
+
+.tle-robot-actor {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
-  min-width: 240px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: default;
+  animation: tle-bot-bob 2.8s ease-in-out infinite;
 }
 
-.hud-timer-row {
+.tle-robot-actor.tle-bot-drek {
+  animation-delay: -1.3s;
+}
+
+.tle-robot-actor:hover {
+  filter: drop-shadow(0 0 18px rgba(78, 244, 255, 0.75));
+}
+
+@keyframes tle-bot-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.tle-robot-nameplate {
+  position: relative;
+  margin-bottom: 10px;
+  min-width: 136px;
+  padding: 9px 30px 11px 18px;
+  border-radius: 8px;
+  background: rgba(10, 14, 34, 0.94);
+  border: 2px solid #4ef4ff;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75), 0 0 14px rgba(78, 244, 255, 0.4);
+  white-space: nowrap;
+}
+
+.tle-bot-drek .tle-robot-nameplate {
+  border-color: #f472b6;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75), 0 0 14px rgba(244, 114, 182, 0.4);
+}
+
+.tle-robot-nameplate.tle-nameplate-ready {
+  border-color: #4ade80;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75), 0 0 16px rgba(74, 222, 128, 0.55);
+}
+
+/* Green check / tick inside the bottom-right corner of the Name Box */
+.tle-name-ready-tick {
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(22, 163, 74, 0.28);
+  border: 1.5px solid #22c55e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.75);
+}
+
+.tle-robot-svg {
+  width: 128px;
+  height: 185px;
+  filter: drop-shadow(0 16px 20px rgba(0, 0, 0, 0.75));
+}
+
+.tle-lobby-title-pill {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  padding: 8px 24px;
+  border-radius: 999px;
+  background: rgba(15, 10, 38, 0.88);
+  border: 1.5px solid rgba(232, 121, 249, 0.65);
+  color: #fae8ff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.7), 0 0 22px rgba(217, 70, 239, 0.35);
+}
+
+/* Perspective Switcher (Switch between Saif [Host] & Drek [Opponent] views) */
+.tle-perspective-bar {
+  position: fixed;
+  top: 14px;
+  right: 18px;
+  z-index: 140;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(9, 15, 32, 0.94);
+  border: 1.5px solid rgba(103, 232, 249, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+}
+
+.tle-perspective-bar.tle-persp-in-game {
+  top: auto;
+  bottom: 14px;
+  right: 18px;
+}
+
+.tle-role-pill {
+  border: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  background: transparent;
+  color: #94a3b8;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.tle-role-pill.tle-role-active {
+  background: linear-gradient(135deg, #0891b2, #2563eb);
+  color: #ffffff;
+}
+
+.tle-persp-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #67e8f9;
+  padding: 0 6px 0 8px;
+  white-space: nowrap;
+}
+
+.tle-you-chip {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 900;
+  background: rgba(56, 189, 248, 0.22);
+  border: 1px solid rgba(103, 232, 249, 0.55);
+  color: #bae6fd;
+  vertical-align: middle;
+}
+
+/* In-Lobby Chatbox + Optional Lobby Microphone Panel (Bottom-Right) */
+.tle-lobby-comms {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  z-index: 18;
+  width: min(330px, calc(100% - 48px));
+  background: rgba(10, 15, 34, 0.92);
+  border: 1.5px solid rgba(103, 232, 249, 0.48);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.82);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tle-lobby-comms-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  padding-bottom: 6px;
+}
+
+.tle-lobby-comms-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #67e8f9;
+}
+
+.tle-lobby-mic-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.8px solid rgba(248, 113, 113, 0.8);
+  color: #f87171;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.tle-lobby-mic-btn:hover {
+  transform: scale(1.06);
+}
+
+.tle-lobby-mic-btn.tle-mic-live {
+  border-color: #4ade80;
+  background: rgba(6, 46, 30, 0.92);
+  color: #4ade80;
+  animation: tle-mic-pulse 1.5s ease-in-out infinite;
+}
+
+.tle-lobby-chat-log {
+  height: 112px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(5, 9, 22, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  user-select: text;
+}
+
+.tle-chat-msg {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #e2e8f0;
+  word-break: break-word;
+}
+
+.tle-chat-sender-p1 {
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.tle-chat-sender-p2 {
+  font-weight: 800;
+  color: #f472b6;
+}
+
+.tle-lobby-chat-form {
+  display: flex;
+  gap: 6px;
+}
+
+.tle-lobby-chat-input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  border-radius: 7px;
+  border: 1px solid rgba(103, 232, 249, 0.4);
+  background: rgba(15, 23, 42, 0.95);
+  color: #f8fafc;
+  font-size: 0.82rem;
+  padding: 0 10px;
+  outline: none;
+}
+
+.tle-lobby-chat-input:focus {
+  border-color: #38efef;
+}
+
+.tle-lobby-chat-send {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid #38efef;
+  background: linear-gradient(135deg, #0891b2, #2563eb);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Bottom-Left Lobby Ready / Waiting / Start Controls */
+.tle-lobby-action-row {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+  z-index: 15;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.hud-loop-badge {
-  background: #312e81;
-  border: 1px solid #4f46e5;
-  color: #e0e7ff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-  letter-spacing: 0.06em;
-}
-
-.hud-timer {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #5cff7a;
-  letter-spacing: 0.05em;
-}
-
-.hud-timer.timer-urgent {
-  color: #ff6a55;
-}
-
-.hud-timer-track {
-  width: 180px;
-  height: 5px;
-  background: #1f2937;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.hud-timer-fill {
-  height: 100%;
-  width: 100%;
-  background: #22c55e;
-  transition: width 0.3s linear, background-color 0.2s ease;
-}
-
-.hud-timer-fill.timer-fill-urgent {
-  background: #ef4444;
-}
-
-.hud-status {
-  font-size: 0.72rem;
-  color: #8b9bb4;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.hud-badge {
-  background: #2563eb;
-  color: #fff;
-  font-weight: bold;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-
-.hud-btn {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #d6dde4;
-  padding: 6px 12px;
-  border-radius: 4px;
+.tle-lobby-start-btn {
+  min-width: 210px;
+  padding: 14px 32px;
+  border-radius: 12px;
+  border: 2px solid #94a3b8;
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  color: #f8fafc;
+  font-size: 1.12rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
   cursor: pointer;
-  font-family: inherit;
-  font-size: 0.85rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.75);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
-.hud-btn:hover {
-  background: #334155;
+.tle-lobby-start-btn:hover {
+  transform: translateY(-2px);
 }
 
-.hud-btn-primary {
-  background: #2563eb;
-  border-color: #3b82f6;
+.tle-lobby-start-btn.tle-lobby-btn-green {
+  border-color: #86efac;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: #ffffff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 24px rgba(34, 197, 94, 0.65);
 }
 
-.hud-btn-primary:hover {
-  background: #1d4ed8;
+.tle-lobby-start-btn.tle-lobby-btn-gray {
+  border-color: #94a3b8;
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  color: #e2e8f0;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.72);
 }
 
-.game-body {
+.tle-lobby-start-btn.tle-lobby-btn-waiting {
+  border-color: #64748b;
+  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+  color: #cbd5e1;
+}
+
+.tle-lobby-cancel-ready {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(148, 163, 184, 0.5);
+  background: rgba(30, 41, 59, 0.92);
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ================= GAMEPLAY TOP HEADER BAR ================= */
+.tle-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 70px;
+  padding: 8px 16px;
+  background: linear-gradient(180deg, #08111a 0%, #0d1b28 100%);
+  border-bottom: 1px solid rgba(78, 244, 255, 0.28);
+  z-index: 30;
+  flex-wrap: wrap;
+}
+
+.tle-header-left,
+.tle-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tle-corner-loop-badge {
+  font-family: "Courier New", monospace;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #4ef4ff;
+  background: rgba(8, 36, 48, 0.95);
+  border: 1.5px solid #4ef4ff;
+  border-radius: 7px;
+  padding: 6px 13px;
+  box-shadow: 0 0 14px rgba(78, 244, 255, 0.25);
+}
+
+.tle-lobby-corner-btn,
+.tle-icon-btn {
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(15, 32, 46, 0.95);
+  border: 1.5px solid rgba(103, 232, 249, 0.45);
+  color: #f0fdfa;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.tle-icon-btn-hint {
+  border-color: #fbbf24;
+  background: rgba(120, 53, 15, 0.55);
+  color: #fef3c7;
+}
+
+.tle-diff-group {
+  display: inline-flex;
+  background: rgba(6, 14, 22, 0.92);
+  border: 1px solid rgba(94, 231, 255, 0.3);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.tle-diff-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 5px 9px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.tle-diff-btn.tle-diff-active {
+  background: rgba(34, 211, 238, 0.24);
+  color: #67e8f9;
+}
+
+.tle-diff-btn.tle-diff-locked {
+  opacity: 0.48;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.tle-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tle-top-timer-display {
+  font-family: "Courier New", monospace;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #ff4455;
+  text-shadow: 0 0 16px rgba(255, 68, 85, 0.85);
+}
+
+.tle-timer-progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 200px;
+}
+
+.tle-prog-bound {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.tle-prog-track {
   flex: 1;
+  height: 7px;
+  background: #09131d;
+  border: 1px solid rgba(255, 82, 99, 0.45);
+  border-radius: 4px;
   overflow: hidden;
 }
 
-.game-viewport-wrapper {
+.tle-prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+  transition: width 0.35s linear;
+}
+
+.tle-player-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(10, 25, 38, 0.94);
+  border: 1px solid rgba(74, 222, 128, 0.55);
+  color: #dcfce7;
+  cursor: pointer;
+}
+
+.tle-p-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.tle-ctrl-btn {
+  padding: 6px 11px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(18, 32, 46, 0.92);
+}
+
+.tle-ctrl-btn:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.tle-ctrl-start {
+  background: #0f766e;
+  border-color: #2dd4bf;
+}
+
+.tle-ctrl-stop {
+  background: #7f1d1d;
+  border-color: #f87171;
+}
+
+.tle-ctrl-restart {
+  background: #78350f;
+  border-color: #fbbf24;
+}
+
+/* ================= MAIN 2-COLUMN GAMEPLAY CONSOLE ================= */
+.tle-stage-wrapper {
   flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(235px, 26%, 300px);
+  gap: 14px;
+  padding: 12px 16px 16px;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .tle-stage-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tle-room-stage {
+  position: relative;
+  width: 100%;
+  height: 575px;
+  min-height: 520px;
+  background: #090d14;
+  border: 2px solid rgba(148, 212, 232, 0.45);
+  border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+
+/* ================= REAL-TIME DOOR WALK-THROUGH ZOOM ================= */
+.tle-room-blur-target {
+  position: absolute;
+  inset: 0;
+  transition:
+    transform 0.92s cubic-bezier(0.32, 0, 0.15, 1),
+    opacity 0.85s ease,
+    filter 0.25s ease;
+}
+
+.tle-room-blurred {
+  filter: blur(7px) brightness(0.55);
+  pointer-events: none;
+}
+
+.tle-zoom-walkthrough {
+  transform: scale(3.2) !important;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.tle-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tle-scene-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Interactive Hotspots & Clear World Tags */
+.tle-hotspot {
+  position: absolute;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.tle-hotspot:hover {
+  transform: translateY(-3px) scale(1.03);
+  filter: drop-shadow(0 0 14px rgba(251, 191, 36, 0.85));
+}
+
+.tle-obj-tag {
+  position: absolute;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(8, 15, 26, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #f8fafc;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 18;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+}
+
+.tle-obj-tag.tle-tag-solved {
+  border-color: #4ade80;
+  color: #bbf7d0;
+}
+
+/* 3D Swinging Doors across Rooms */
+.tle-door-3d-wrap {
+  position: absolute;
+  perspective: 800px;
+}
+
+.tle-door-leaf-3d {
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tle-door-open .tle-door-leaf-3d {
+  transform: rotateY(-82deg);
+}
+
+.tle-r1-door-leaf {
+  position: absolute;
+  inset: 6px;
+  background: linear-gradient(90deg, #475569, #334155);
+  border: 3px solid #1e293b;
+}
+
+.tle-r1-door-sign {
+  position: absolute;
+  top: 22%;
+  left: 14%;
+  right: 14%;
+  background: #1e293b;
+  color: #f8fafc;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px;
+  text-align: center;
+}
+
+.tle-r1-door-handle {
+  position: absolute;
+  right: 14%;
+  top: 50%;
+  width: 12px;
+  height: 28px;
+  background: #fbbf24;
+  border-radius: 3px;
+}
+
+.tle-r2-door-frame {
+  position: absolute;
+  inset: 0;
+  background: #0f2932;
+  border: 4px solid #29150e;
+}
+
+.tle-r2-door-leaf {
+  position: absolute;
+  inset: 4px;
+  background: #3f1911;
+  border: 2px solid #220c07;
+}
+
+.tle-r2-door-sign {
+  margin: 12px auto;
+  width: 72%;
+  height: 42%;
+  background: #f5f5f4;
+  color: #451a03;
+  font-size: 0.62rem;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  background: #070a0e;
 }
 
-.game-viewport {
-  width: 100%;
-  max-width: 1100px;
-  aspect-ratio: 16 / 9;
-  background: #111822;
-  border: 1px solid #1f2c3a;
+/* Room 3 Raised Distressed Olive-Ochre Paneled Exit Door (Matches Photo) */
+.tle-r3-door-frame {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, #fef9c3 0%, #38bdf8 45%, #0c2438 100%);
+  border: 6px solid #4a4024;
+  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.75);
+}
+
+.tle-r3-door-leaf {
+  position: absolute;
+  inset: 5px;
+  background: linear-gradient(
+    100deg,
+    #4c4625 0%,
+    #7d6522 35%,
+    #927424 58%,
+    #4a4120 88%,
+    #2f2b16 100%
+  );
+  border: 3px solid #2e2914;
+  box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.65);
+}
+
+.tle-r3-door-panel-top {
+  position: absolute;
+  top: 7%;
+  left: 15%;
+  right: 15%;
+  height: 44%;
+  border: 4px solid #352e15;
+  background: linear-gradient(180deg, rgba(35, 31, 14, 0.45), rgba(146, 116, 36, 0.25));
+  box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.65);
+}
+
+.tle-r3-door-panel-bot {
+  position: absolute;
+  top: 57%;
+  left: 15%;
+  right: 15%;
+  height: 33%;
+  border: 4px solid #352e15;
+  background: linear-gradient(180deg, rgba(120, 94, 28, 0.25), rgba(30, 26, 12, 0.55));
+  box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.65);
+}
+
+.tle-r3-door-handle {
+  position: absolute;
+  right: 8%;
+  top: 43%;
+  width: 11px;
+  height: 42px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #f8fafc, #94a3b8);
+  border: 1px solid #475569;
+  box-shadow: -6px 8px 0 -3px #e2e8f0, 0 3px 6px rgba(0, 0, 0, 0.7);
+}
+
+/* Corridor Turbine Spin */
+@keyframes tle-turbine-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tle-turbine-fast {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tle-turbine-spin 1.4s linear infinite;
+}
+
+.tle-turbine-slow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tle-turbine-spin 9s linear infinite;
+}
+
+/* VHS Glitch Rewind Layer */
+.tle-vhs-rewind-layer {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 16, 28, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 70;
+}
+
+.tle-vhs-text {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ffffff;
+  background: #091524;
+  border: 2px solid #4ef4ff;
   border-radius: 8px;
+  padding: 12px 24px;
+}
+
+/* ================= RIGHT SIDEBAR: TASKS, INVENTORY & CLUES ================= */
+.tle-right-dock {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  background: #08131f;
+  border: 1px solid rgba(94, 231, 255, 0.25);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.tle-dock-sec-header {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  display: flex;
   justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  position: relative;
-  overflow: hidden;
 }
 
-/* Loop Reset Banner */
-.loop-reset-banner {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(220, 38, 38, 0.92);
-  border: 1px solid #f87171;
-  color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 0.85rem;
+.tle-tasks-box {
+  background: #0c1c2c;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.tle-task-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
   font-weight: 600;
-  z-index: 20;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  color: #e2e8f0;
 }
 
-/* Interactive Escape Room Scene */
-.escape-room-scene {
-  position: relative;
-  flex: 1;
-  width: 100%;
-  background: linear-gradient(180deg, #131c29 0%, #192536 72%, #0f1620 72%, #0b1018 100%);
-  overflow: hidden;
+.tle-task-row.tle-task-done {
+  color: #86efac;
 }
 
-.room-wall-backdrop {
-  position: absolute;
-  inset: 0 0 28% 0;
-  border-bottom: 2px solid #26354a;
-  pointer-events: none;
+.tle-inventory-panel {
+  border: 1.5px solid #f59e0b;
+  border-radius: 9px;
+  padding: 10px;
+  background: rgba(30, 20, 8, 0.5);
 }
 
-.room-ceiling-trim {
-  padding: 10px 16px;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  color: #64748b;
-  text-transform: uppercase;
+.tle-panel-title-amber {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fcd34d;
 }
 
-.room-floor-area {
-  position: absolute;
-  inset: 72% 0 0 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.02) 0px,
-    rgba(255, 255, 255, 0.02) 48px,
-    transparent 48px,
-    transparent 96px
-  );
-  pointer-events: none;
+.tle-panel-sub {
+  display: block;
+  font-size: 0.74rem;
+  color: #94a3b8;
+  margin: 2px 0 8px;
 }
 
-/* Placed Interactive Objects */
-.room-object {
-  position: absolute;
+.tle-inv-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tle-inv-slot {
+  min-height: 68px;
+  border-radius: 7px;
+  border: 1.5px solid rgba(56, 189, 248, 0.3);
+  background: #091b29;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 10px 14px;
-  min-width: 118px;
-  background: rgba(20, 29, 41, 0.92);
-  border: 1px solid #334155;
-  border-radius: 8px;
-  color: #e2e8f0;
-  cursor: pointer;
-  font-family: inherit;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 6px 4px;
+  text-align: center;
 }
 
-.room-object:hover {
-  transform: translateY(-2px);
-  border-color: #60a5fa;
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+.tle-inv-slot.tle-slot-filled {
+  border-color: #38efef;
+  background: #0f3146;
 }
 
-.room-object.object-selected {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
-}
-
-.room-object-blue {
-  background: rgba(30, 58, 138, 0.85);
-  border-color: #3b82f6;
-}
-
-.room-object-blue.painting-shifted {
-  transform: translateX(-28px) rotate(-4deg);
-  opacity: 0.85;
-}
-
-.room-object-gold {
-  background: rgba(120, 53, 15, 0.9);
-  border-color: #f59e0b;
-}
-
-.room-object-door {
-  min-width: 140px;
-  min-height: 150px;
-  background: rgba(17, 24, 39, 0.95);
-  border: 2px solid #ef4444;
-}
-
-.room-object-door.door-unlocked {
-  border-color: #22c55e;
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
-}
-
-.door-light {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ef4444;
-  margin-bottom: 4px;
-}
-
-.room-object-door.door-unlocked .door-light {
-  background: #22c55e;
-}
-
-.obj-icon {
-  font-size: 1.65rem;
-}
-
-.obj-title {
-  font-size: 0.82rem;
+.tle-slot-name {
+  font-size: 0.68rem;
   font-weight: 700;
+  color: #e0f2fe;
 }
 
-.obj-state {
-  font-size: 0.7rem;
-  color: #94a3b8;
-  background: rgba(15, 23, 42, 0.75);
-  padding: 2px 6px;
-  border-radius: 4px;
+.tle-slot-empty {
+  font-size: 0.68rem;
+  color: rgba(148, 163, 184, 0.5);
 }
 
-/* Coordinates for Room Object Placement */
-.pos-note {
-  top: 22%;
-  left: 7%;
-}
-
-.pos-painting {
-  top: 14%;
-  left: 24%;
-}
-
-.pos-key {
-  top: 16%;
-  left: 36%;
-}
-
-.pos-door {
-  top: 24%;
-  left: 45%;
-}
-
-.pos-photo {
-  top: 18%;
-  right: 12%;
-}
-
-.pos-computer {
-  bottom: 14%;
-  left: 22%;
-}
-
-.pos-cabinet {
-  bottom: 14%;
-  right: 14%;
-}
-
-/* Bottom Room Action & Control Bar */
-.room-action-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 10px 16px;
-  background: #141b23;
-  border-top: 1px solid #24303d;
-  min-height: 56px;
-}
-
-.action-feedback-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.tle-clues-panel {
   flex: 1;
-  min-width: 0;
-}
-
-.selected-object-pill {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #38bdf8;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.action-feedback-text {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #d6dde4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.action-buttons-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.terminal-code-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.terminal-code-input {
-  width: 115px;
-  padding: 5px 8px;
-  border-radius: 4px;
-  border: 1px solid #3b82f6;
-  background: #0f172a;
-  color: #f8fafc;
-  font-family: inherit;
-  font-size: 0.82rem;
-}
-
-/* Sidebar Dock */
-.game-sidebar-dock {
-  width: 320px;
-  background: #10161f;
-  border-left: 1px solid #202b38;
+  border: 1.5px solid #22d3ee;
+  border-radius: 9px;
+  padding: 10px;
+  background: rgba(6, 30, 44, 0.6);
   display: flex;
   flex-direction: column;
 }
 
-.dock-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid #202b38;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dock-tag {
-  font-size: 0.7rem;
-  background: #1e293b;
-  color: #94a3b8;
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.dock-section {
-  padding: 14px 16px;
-  border-bottom: 1px solid #1b2532;
-}
-
-.dock-section-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.tle-panel-title-cyan {
   font-size: 0.82rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: #cbd5e1;
+  font-weight: 800;
+  color: #67e8f9;
 }
 
-.dock-badge-keep {
-  font-size: 0.68rem;
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.dock-badge-reset {
-  font-size: 0.68rem;
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.dock-list {
+.tle-clues-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
+  max-height: 220px;
+  overflow-y: auto;
 }
 
-.dock-item {
-  padding: 8px 10px;
+.tle-clue-item {
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #ffffff;
+  background: #0d2740;
+  border: 1px solid rgba(103, 232, 249, 0.6);
+  border-left: 4px solid #38efef;
   border-radius: 6px;
-  font-size: 0.8rem;
-  line-height: 1.35;
+  padding: 9px 11px;
 }
 
-.dock-item-clue {
-  background: #172130;
-  border: 1px solid #2b3d54;
-  color: #e2e8f0;
+.tle-clue-empty {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: #cbd5e1;
+  padding: 4px 2px;
 }
 
-.dock-item-inv {
-  background: #1f2421;
-  border: 1px solid #3b4d3e;
+/* ================= HIGH-CONTRAST TOASTS & HINT CARD ================= */
+.tle-feedback-toast {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 88%;
+  background: #071624;
+  border: 2px solid #4ef4ff;
+  color: #ffffff;
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.9);
+  z-index: 95;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.tle-banner-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tle-hint-card {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(530px, 92%);
+  background: #081726;
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.95);
+  z-index: 96;
+  color: #ffffff;
+}
+
+.tle-hint-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.tle-hint-badge {
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid #fbbf24;
   color: #fde68a;
-}
-
-.dock-empty {
   font-size: 0.8rem;
-  color: #64748b;
-  font-style: italic;
+  font-weight: 800;
+  padding: 3px 11px;
+  border-radius: 999px;
 }
 
-/* Modal */
-.game-modal-overlay {
+.tle-hint-target {
+  margin: 0 0 6px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #67e8f9;
+}
+
+.tle-hint-body {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: #f8fafc;
+}
+
+.tle-hint-gotit {
+  background: #fbbf24;
+  border: none;
+  color: #09131c;
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 6px 13px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+/* ================= MODALS & INTERACTIVE PUZZLE WIDGETS ================= */
+.tle-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(4, 8, 16, 0.8);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  padding: 16px;
+  z-index: 100;
 }
 
-.game-modal-card {
-  background: #161f2c;
-  border: 1px solid #2d3b4d;
-  padding: 24px;
+.tle-modal-card {
+  width: 100%;
+  max-width: 580px;
+  background: #0a1929;
+  border: 2px solid #38efef;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95);
+  color: #f8fafc;
+}
+
+.tle-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(78, 244, 255, 0.25);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+.tle-modal-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #67e8f9;
+}
+
+.tle-close-btn {
+  background: #7f1d1d;
+  border: 1px solid #f87171;
+  color: #ffffff;
+  border-radius: 7px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tle-puz-box {
+  background: #06111c;
+  border: 1px solid rgba(103, 232, 249, 0.3);
+  border-radius: 9px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.tle-puz-desc {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #f1f5f9;
+}
+
+.tle-puz-btn {
+  padding: 9px 14px;
+  border-radius: 7px;
+  border: 1.5px solid #38efef;
+  background: #0f384c;
+  color: #ffffff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tle-puz-btn.tle-active {
+  background: #f59e0b;
+  border-color: #fde68a;
+  color: #09111a;
+}
+
+.tle-puz-btn-primary {
+  width: 100%;
+  padding: 11px 16px;
+  background: linear-gradient(135deg, #0891b2, #0e7490);
+  border: 1.5px solid #67e8f9;
+  font-size: 0.94rem;
+  font-weight: 800;
+}
+
+.tle-status-readout {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.45;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: #0c2236;
+  border: 1px solid rgba(103, 232, 249, 0.5);
+  color: #ffffff;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.tle-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.tle-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.tle-suspect-card {
+  background: #10243a;
+  border: 1.5px solid rgba(148, 163, 184, 0.4);
   border-radius: 8px;
-  max-width: 380px;
+  padding: 8px 6px;
+  text-align: center;
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.tle-suspect-card.tle-selected {
+  border-color: #fbbf24;
+  background: #3b2508;
+}
+
+.tle-dial-cell {
+  background: #0b1e30;
+  border: 1.5px solid rgba(251, 191, 36, 0.55);
+  border-radius: 8px;
+  padding: 10px 6px;
   text-align: center;
 }
 
-.game-modal-card h3 {
-  margin-top: 0;
+.tle-dial-val {
+  display: block;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #fcd34d;
+  margin: 4px 0 8px;
 }
 
-.modal-actions {
-  margin-top: 20px;
+.tle-lobby-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.tle-lobby-slot {
+  padding: 14px;
+  border-radius: 9px;
+  background: #0d2134;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  text-align: center;
+}
+
+.tle-lobby-slot.tle-ready-on {
+  border-color: #4ade80;
+  background: rgba(6, 52, 34, 0.65);
+}
+
+.tle-countdown-num {
+  font-size: 4.8rem;
+  font-weight: 900;
+  color: #4ef4ff;
+  text-shadow: 0 0 32px #4ef4ff;
+}
+
+.tle-modal-card.tle-score-card-wide {
+  max-width: 650px;
+}
+
+.tle-winner-banner {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1.5px solid rgba(251, 191, 36, 0.65);
+  color: #fef08a;
+  font-size: 0.94rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.tle-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+@media (max-width: 560px) {
+  .tle-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tle-stat-card {
+  background: #071320;
+  border: 1.5px solid rgba(56, 239, 239, 0.45);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.tle-stat-card.tle-stat-opp {
+  border-color: rgba(244, 114, 182, 0.55);
+}
+
+.tle-stat-player-head {
+  font-size: 0.98rem;
+  font-weight: 900;
+  color: #67e8f9;
+  margin-bottom: 8px;
+}
+
+.tle-stat-card.tle-stat-opp .tle-stat-player-head {
+  color: #f9a8d4;
+}
+
+.tle-stat-hero-box {
+  background: rgba(15, 34, 54, 0.85);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  margin-bottom: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.tle-stat-hero-num {
+  display: block;
+  font-size: 1.85rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.tle-stat-hero-sub {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+.tle-stat-row {
   display: flex;
-  justify-content: center;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  font-size: 0.85rem;
+  color: #cbd5e1;
 }
 
-.hidden {
-  display: none !important;
+.tle-stat-row:last-child {
+  border-bottom: none;
+}
+
+.tle-stat-row strong {
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.tle-end-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.tle-btn-rematch {
+  padding: 11px 20px;
+  border-radius: 8px;
+  border: 1.5px solid #fbbf24;
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #ffffff;
+  font-size: 0.94rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tle-btn-exit-lobby {
+  padding: 11px 20px;
+  border-radius: 8px;
+  border: 1.5px solid #38efef;
+  background: #0f384c;
+  color: #ffffff;
+  font-size: 0.94rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tle-pubg-drawer {
+  position: fixed;
+  top: 86px;
+  right: 20px;
+  width: 332px;
+  background: #091828;
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  padding: 15px 17px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.94);
+  z-index: 135;
+  transition: transform 0.28s ease, opacity 0.28s ease;
+}
+
+.tle-side-hidden {
+  transform: translateX(380px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Small Green Popup Box when Opponent Escapes Room 1 / Room 2 / Room 3 */
+.tle-escape-green-popup {
+  position: fixed;
+  top: 82px;
+  right: 22px;
+  z-index: 132;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.97), rgba(21, 128, 61, 0.97));
+  border: 2px solid #4ade80;
+  color: #ecfdf5;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.85), 0 0 18px rgba(74, 222, 128, 0.55);
+  pointer-events: none;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.tle-escape-popup-hidden {
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+
+/* PUBG-Style In-Room Microphone Toggle (Symbol ONLY, Zero Text!) */
+.tle-pubg-mic-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 68;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 16, 28, 0.9);
+  border: 2px solid rgba(248, 113, 113, 0.8);
+  color: #f87171;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8);
+  transition: transform 0.16s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tle-pubg-mic-btn:hover {
+  transform: scale(1.06);
+}
+
+.tle-pubg-mic-btn.tle-mic-live {
+  border-color: #4ade80;
+  background: rgba(6, 46, 30, 0.92);
+  color: #4ade80;
+  animation: tle-mic-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tle-mic-pulse {
+  0%,
+  100% {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 0 0 0 rgba(74, 222, 128, 0.55);
+  }
+  50% {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 0 0 9px rgba(74, 222, 128, 0);
+  }
 }

@@ -8,20 +8,23 @@ function main(): void {
 
   app.style.padding = "0";
   const game = renderGameScreen(app, {
-    roomId: "ROOM-04",
+    roomId: "ROOM 01 // OUTBREAK BIO-BUNKER",
+    roomCode: "TL-04",
+    player1Name: "Saif",
+    player2Name: "Drek",
     timeLeftSeconds: 60,
     loopDurationSeconds: 60,
     loopCount: 1,
     connectedPlayers: 2,
     maxPlayers: 2,
-    score: 0,
-    statusText: "Time Loop Active",
+    score: 1,
+    statusText: "Ready",
   });
 
-  // 60-second Time Loop countdown: resets room & items at 00:00, keeps clues
+  // 60-second Time Loop countdown: ticks only while timerRunning is true
   setInterval(() => {
     const current = game.getState();
-    if (current.escaped) return;
+    if (!current.timerRunning || current.escaped) return;
 
     if (current.timeLeftSeconds > 0) {
       game.update({ timeLeftSeconds: current.timeLeftSeconds - 1 });
