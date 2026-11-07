@@ -48,8 +48,9 @@ body {
   overflow-x: hidden;
 }
 
+/* !important: classes like .tle-modal-backdrop set display later in this file and would otherwise win. */
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .tle-root {
