@@ -241,7 +241,8 @@ The course grades how the work is spread across members, using commits, issues a
 
 - Work only on the branch named in your brief. Commit often and push it: `git push -u origin <your-branch>`.
 - Never push, merge, rebase or force-push onto `main`, and never touch anyone else's branch.
-- Don't open pull requests or merge anything. Zaid pulls your branch, combines it with the other half, tests the result and pushes it to `main`.
+- In **this** repo, don't open pull requests or merge anything. Zaid pulls your branch, combines it with the other half, tests the result and pushes it to `main`.
+- **Port phase (from 2026-11-07):** in the **course repo** (nd2003/sdm2026-1) you *do* open your own issues and PRs into `feature/team-3`, following its `CLAUDE.md` (run `pnpm preflight` first). Review your teammate's PRs there. Never merge your own PR, and never push to `feature/team-3`, `main` or `prod`.
 - To pick up changes that landed on `main`, run `git pull origin main` while on your branch. If it conflicts outside your own files, stop and tell your human.
 - When your "Done when" checklist is complete, push your branch and tell Zaid it's ready.
 - Before finishing, open `index.html` in a browser and check that the console has no errors.
