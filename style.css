@@ -219,7 +219,7 @@ body.hurry .figure { opacity: 1; }
 /* Labels stay out of the view until you look at something. Touch screens have no hover, so they always show there. */
 .obj .label { opacity: 0; transition: opacity .15s; }
 .obj:hover .label, .obj:focus-visible .label { opacity: 1; }
-@media (hover: none) { .obj .label { opacity: 1; } }
+@media (hover: none) { .obj .label { opacity: 0; } :is(#obj-note, #obj-painting, #obj-cabinet, #obj-photo, #obj-computer, #obj-door, #obj-casket-left, #obj-casket-right, #obj-keypad, #obj-fusebox, #obj-hatch, #obj-lift-breaker, #obj-vent, #obj-vampire) .label { opacity: 1; } }
 
 /* Your flashlight. Outside the beam the room stays faintly visible, so nothing is impossible to find. */
 #room { --beam: 34cqw; }
@@ -602,7 +602,8 @@ body.no-flicker .flame { animation: none; }
 #obj-gate, #obj-zombie { pointer-events: none; }
 #obj-gate .art svg *, #obj-zombie .art svg * { pointer-events: visiblePainted; }
 #obj-zombie .z-back { pointer-events: none; }
-.shaft-dark { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 24% 18%, #5a0c0644, #000c 70%); transition: opacity 1.2s; }
+.shaft-dark { position: absolute; inset: 0; z-index: 0; pointer-events: none; transition: opacity 1.2s;
+  background: radial-gradient(ellipse 14% 12% at 73% 9%, #c0281a33, #0000), radial-gradient(ellipse 10% 18% at 88% 64%, #c0281a2a, #0000), radial-gradient(ellipse 12% 16% at 70% 72%, #c0281a2a, #0000), radial-gradient(ellipse at 24% 18%, #5a0c0644, #000a 72%); }
 #room.lift-power .shaft-dark { opacity: 0; }
 #room:not(.lift-power) .car-light { opacity: 0; }
 .emergency { animation: emergency 2.4s steps(1) infinite; }
@@ -731,3 +732,55 @@ body.no-flicker .zreach-out, .zreach-out.still { animation: none; transform: sca
 @keyframes dzpound { 0% { transform: translateX(0); } 50% { transform: translateX(2.5%) rotate(1.5deg); } }
 @keyframes dzclaw { to { transform: rotate(-12deg) translateX(-3%); } }
 @media (prefers-reduced-motion: reduce) { :is(.dz-body, .dz-head, .dz-hand) { animation: none !important; } }
+
+/* --- Block 3 redesign: one clear path per stage --- */
+/* the hand holding the flashlight stays small and in the corner, clear of every object */
+.arm { width: 11cqw; right: -2%; bottom: -10%; }
+/* stage 1: props spread to the sides */
+#obj-scratches { left: 58.5%; }
+/* stage 2: the caskets fully in view */
+#obj-casket-left  { left: 26%; bottom: 8%; --w: 17cqw; }
+#obj-casket-right { left: 70%; bottom: 8%; --w: 17cqw; }
+/* stage 3: the sign hangs beside the dial, off the gate */
+#obj-lift { left: 55.5%; top: 4%; bottom: auto; --w: 9cqw; }
+/* props are darker than puzzle objects, so the path reads first */
+:is(#obj-lift, #obj-lift-panel, #obj-indicator, #obj-graffiti, #obj-emergency-phone, #obj-shoes, #obj-bricked-door, #obj-candles, #obj-phone, #obj-coat, #obj-vending, #obj-scratches, #obj-clock, #obj-shelf, #obj-lamp) .art { filter: brightness(.72); }
+/* the first object you need on a stage glows softly until you've used it */
+.obj.beckon .art { animation: beckon 2.6s ease-in-out infinite; }
+@keyframes beckon { 0%, 100% { filter: drop-shadow(0 0 .2cqw #e8c86a00); } 50% { filter: drop-shadow(0 0 1.4cqw #e8c86acc) brightness(1.15); } }
+/* a clear focus ring for keyboard players */
+.obj:focus-visible { outline: 3px solid #e8c86a; outline-offset: 4px; border-radius: 4px; }
+.obj:focus-visible .label { opacity: 1; }
+
+/* the message sits under the room, never on top of it */
+@media (min-width: 701px) and (min-aspect-ratio: 27/20) {
+  body[data-phase]:not([data-phase="lobby"]) {
+    grid-template-areas: "hud hud" "room opponent" "room journal" "room chat" "message inventory";
+    grid-template-rows: 64px auto minmax(0, 1fr) minmax(0, 1fr) 56px;
+  }
+  /* an empty journal stays small, so the chat has the room */
+  body[data-phase]:not([data-phase="lobby"]):has(#journal .empty) { grid-template-rows: 64px auto auto minmax(0, 1fr) 56px; }
+  #message {
+    grid-area: message; align-self: stretch; justify-self: stretch; z-index: auto; width: auto; height: 56px; max-height: none; margin: 0;
+    overflow-y: auto; pointer-events: auto; background: #0b0a05; font-size: .98rem; display: flex; align-items: center;
+  }
+  #message:empty { display: flex; }
+}
+body:has(#journal .empty) #journal { max-height: 150px; }
+
+/* juice: medium (an item flies into the tray) and big (the room jolts and flashes) */
+.fly { position: fixed; z-index: 30; width: 80px; height: auto; pointer-events: none; animation: fly .7s cubic-bezier(.5, 0, .3, 1) forwards; filter: drop-shadow(0 0 8px #e8c86a); }
+@keyframes fly { 0% { transform: scale(1.6); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(.6); opacity: .2; } }
+#inventory li.new { box-shadow: 0 0 0 2px #e8c86a, 0 0 16px #e8c86a99; }
+.scene.jolt-big { animation: joltBig .5s cubic-bezier(.2, .8, .3, 1); }
+.scene.jolt-small { animation: joltSmall .25s ease-out; }
+@keyframes joltBig { 0% { transform: translate(1.2cqw, -.8cqw); } 20% { transform: translate(-1cqw, .6cqw); } 40% { transform: translate(.6cqw, -.4cqw); } 60% { transform: translate(-.3cqw, .2cqw); } 100% { transform: none; } }
+@keyframes joltSmall { 0% { transform: translate(.3cqw, -.2cqw); } 100% { transform: none; } }
+#flashfx { position: absolute; inset: 0; z-index: 8; pointer-events: none; background: #f4e6c8; opacity: 0; }
+#flashfx.show { animation: flashfx .45s ease-out; }
+@keyframes flashfx { 0% { opacity: .55; } 100% { opacity: 0; } }
+body.no-flicker :is(.scene.jolt-big, .scene.jolt-small, #flashfx.show, .obj.beckon .art) { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.scene.jolt-big, .scene.jolt-small, #flashfx.show, .fly, .obj.beckon .art) { animation: none !important; } .fly { display: none; } }
+/* stage 3: the room is shorter now the message sits below it, so the lift's contents are scaled to fit under the dial */
+#obj-gate   { --w: 21cqw; bottom: 13%; }
+#obj-zombie { --w: 22.5cqw; bottom: 12.5%; }

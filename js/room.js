@@ -322,7 +322,7 @@ function buildRoom() {
     <clipPath id="farEnd"><rect x="730" y="420" width="140" height="100"/></clipPath>
     <radialGradient id="vflesh" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#d4cfc0"/><stop offset=".6" stop-color="#8a8576"/><stop offset="1" stop-color="#1c1a16"/></radialGradient>
     <linearGradient id="vshade" x1="1" x2="0"><stop offset="0" stop-color="#000" stop-opacity=".75"/><stop offset=".55" stop-color="#000" stop-opacity=".15"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient>
-    <linearGradient id="zunder" x2="0" y2="1"><stop offset=".45" stop-color="#9a1a10" stop-opacity="0"/><stop offset="1" stop-color="#c0281a" stop-opacity=".45"/></linearGradient>
+    <radialGradient id="zunder" cx=".5" cy="1" r=".62"><stop offset="0" stop-color="#c0281a" stop-opacity=".42"/><stop offset="1" stop-color="#9a1a10" stop-opacity="0"/></radialGradient>
     <radialGradient id="roachShell" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#8a4f1e"/><stop offset=".55" stop-color="#5a2f10"/><stop offset="1" stop-color="#230f04"/></radialGradient>
     <linearGradient id="wax"><stop offset="0" stop-color="#b5ab8a"/><stop offset=".45" stop-color="#e6dcbc"/><stop offset="1" stop-color="#8f8668"/></linearGradient>
     <radialGradient id="blob"><stop offset=".35" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
@@ -569,7 +569,7 @@ function placeObjects() {
   };
   const wallSpots = shuffle([{ left: 18, top: 19, turn: 36, scale: 1 }, { left: 37, top: 27, turn: 0, scale: .6 }, { left: 72, top: 25, turn: -34, scale: .8 }]);
   [["painting", 18], ["clock", 9], ["photo", 8]].forEach(([id, width], i) => put(id, wallSpots[i], width * wallSpots[i].scale));
-  const floorSpots = shuffle([{ left: 74, bottom: 25, turn: -36, cabinet: 9, shelf: 12 }, { left: 89, bottom: 10, turn: -40, cabinet: 13, shelf: 17 }, { left: 12, bottom: 13, turn: 36, cabinet: 11, shelf: 14 }]);
+  const floorSpots = shuffle([{ left: 74, bottom: 25, turn: -36, cabinet: 9, shelf: 12 }, { left: 84, bottom: 15, turn: -40, cabinet: 12, shelf: 15 }, { left: 12, bottom: 13, turn: 36, cabinet: 11, shelf: 14 }]);
   put("cabinet", floorSpots[0], floorSpots[0].cabinet);
   put("shelf", floorSpots[1], floorSpots[1].shelf);
   // The painting is the colour your answer needs: [top, middle, bottom, waves, wave line]
