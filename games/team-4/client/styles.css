@@ -49,7 +49,7 @@ body {
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
 
 .tle-root {
@@ -749,7 +749,7 @@ body {
 }
 
 .tle-zoom-walkthrough {
-  transform: scale(3.2) !important;
+  transform: scale(3.2);
   opacity: 0.12;
   pointer-events: none;
 }
@@ -779,7 +779,9 @@ body {
   color: inherit;
   font: inherit;
   cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .tle-hotspot:hover {
@@ -1559,7 +1561,9 @@ body {
   padding: 14px 16px;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8);
   z-index: 135;
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 .tle-pubg-drawer::before {
@@ -1596,7 +1600,9 @@ body {
   font-weight: 800;
   letter-spacing: 0.02em;
   pointer-events: none;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .tle-escape-popup-hidden {
