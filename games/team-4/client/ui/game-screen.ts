@@ -3,6 +3,7 @@ export type DifficultyLevel = "basic" | "medium" | "hard";
 export type ActiveStageView = "lobby" | "basic" | "corridor-1" | "medium" | "corridor-2" | "hard";
 
 export type RoomObjectId =
+  | "r1-painting"
   | "r1-glovebox"
   | "r1-crate"
   | "r1-chem"
@@ -25,6 +26,8 @@ export type RoomObjectId =
 
 export type InventoryItemId =
   | "Console Key"
+  | "Cabinet Key"
+  | "Old Note"
   | "Brass Corkscrew"
   | "Bar Token"
   | "Oscilloscope Key"
@@ -150,7 +153,12 @@ export function renderGameScreen(
     r3HnocsSolved: initialState?.r3HnocsSolved ?? false,
     selectedInventoryItem: initialState?.selectedInventoryItem ?? null,
     escaped: initialState?.escaped ?? false,
-    clues: initialState?.clues ? [...initialState.clues] : [],
+    clues: initialState?.clues
+      ? [...initialState.clues]
+      : [
+          "Blue Painting: BLUE - 4 (behind mountain painting)",
+          "Photograph: Look closely at the year on the photograph",
+        ],
     inventory: initialState?.inventory ? [...initialState.inventory] : [],
     feedbackMessage: initialState?.feedbackMessage ?? "",
   };
@@ -427,6 +435,30 @@ export function renderGameScreen(
           <polygon points="270,315 385,295 435,405 320,430" fill="#e2e8f0" stroke="#475569" stroke-width="4"
             />
         </svg>
+
+        <!-- LYRA'S MULTIPLAYER LOBBY INTERFACE -->
+        <div class="tle-lyra-lobby-container" id="lyra-lobby-section">
+          <section class="multiplayer-lobby" aria-label="Multiplayer lobby">
+            <h1 class="tle-multi-title">TIME LOOP ESCAPE</h1>
+            <h2 class="tle-multi-sub">Multiplayer Lobby</h2>
+            <p class="room-code" id="lyra-room-code">Room code: ${state.roomCode}</p>
+            <div class="player-list">
+              <article class="player-card" id="lyra-card-p1" data-state="ready">
+                <h3>Player 1</h3>
+                <p class="player-name">${state.player1Name} (you)</p>
+                <p class="player-status" id="lyra-status-p1">Connected · Ready</p>
+              </article>
+              <article class="player-card" id="lyra-card-p2" data-state="ready">
+                <h3>Player 2</h3>
+                <p class="player-name">${state.player2Name} (partner)</p>
+                <p class="player-status" id="lyra-status-p2">Connected · Ready</p>
+              </article>
+            </div>
+            <p role="status" id="lyra-role-status" aria-live="polite">
+              Both players connected. Mark yourself ready when you are prepared.
+            </p>
+          </section>
+        </div>
 
         <div class="tle-lobby-title-pill">⏳ TIME LOOP ESCAPE // CHRONO-LAB LOBBY</div>
 
@@ -957,6 +989,19 @@ export function renderGameScreen(
                   <line x1="244" y1="415" x2="278" y2="416" stroke="#7f8c8d" stroke-width="1" />
                 </g>
               </svg>
+
+              <!-- HOTSPOT 0: Blue Painting (Ridan's Clue & Cabinet Key) -->
+              <button
+                type="button"
+                class="tle-hotspot"
+                style="left: 30%; top: 22%; width: 10%; height: 23%"
+                id="obj-r1-painting"
+                data-object-id="r1-painting"
+                aria-label="Inspect Blue Mountain Painting"
+              >
+                <div class="tle-badge-icon">🔍</div>
+                <span class="tle-tag-bubble" id="tag-r1-painting">🖼️ Painting</span>
+              </button>
 
               <!-- HOTSPOT 1: Open Journal on Left Desk (Inspect clue & key) -->
               <button
@@ -1965,6 +2010,33 @@ export function renderGameScreen(
     });
   }
 
+  function openR1Painting(): void {
+    if (!state.inventory.includes("Cabinet Key")) {
+      state.inventory.push("Cabinet Key");
+    }
+    addClue("Blue Painting: BLUE - 4 (Cabinet Key found behind frame)");
+    saveActiveProgress();
+    flashToast("🖼️ Blue Painting: Found Cabinet Key taped to the frame! Clue: BLUE - 4");
+    openModal("🖼️ BLUE MOUNTAIN PAINTING (RIDAN'S CLUE)", (host) => {
+      host.innerHTML = `
+        <div class="tle-puz-box">
+          <p class="tle-puz-desc">
+            You examine the oil painting of the blue mountain peak hanging on the wall.
+          </p>
+          <div class="tle-status-readout" style="text-align:left;font-size:0.96rem">
+            🏷️ <strong>Clue Inscribed on Canvas:</strong> <span style="color:#60a5fa">BLUE - 4</span><br />
+            🔑 <strong>Hidden Item:</strong> A small brass <strong>Cabinet Key</strong> was taped behind the
+              wooden frame!
+          </div>
+          <p class="tle-puz-desc" style="margin:10px 0 0;color:#67a17d">
+            ✅ <strong>Cabinet Key</strong> added to your Inventory! Use it to unlock the center Wardrobe.
+          </p>
+        </div>
+      `;
+    });
+    renderState();
+  }
+
   function openR1Chem(): void {
     revealRoom1HiddenClue(
       "🧪 CHEMISTRY RACK — HIDDEN REAGENT LABELS",
@@ -1973,10 +2045,33 @@ export function renderGameScreen(
   }
 
   function openR1Crate(): void {
-    revealRoom1HiddenClue(
-      "📦 WOODEN SUPPLY CRATE — HIDDEN COMPARTMENT",
-      "Under the false wooden lid sit 3 numbered antidote vials:",
-    );
+    const hasKey = state.inventory.includes("Cabinet Key");
+    if (hasKey) {
+      state.r1ChemSolved = true;
+      if (!state.inventory.includes("Old Note")) {
+        state.inventory.push("Old Note");
+      }
+      addClue("Photograph: Look closely at the year on the photograph (1984)");
+      addClue("Old Note: Found inside locked cabinet");
+      revealRoom1HiddenClue(
+        "🔓 LOCKED CABINET UNLOCKED (WARDROBE)",
+        "Using the Cabinet Key, the double doors open! Inside is a photograph and an Old Note:",
+      );
+    } else {
+      openModal("🔒 LOCKED CABINET (WARDROBE)", (host) => {
+        host.innerHTML = `
+          <div class="tle-puz-box">
+            <p class="tle-puz-desc">
+              A tall double-door wooden wardrobe. The brass lock is firmly shut.
+            </p>
+            <div class="tle-status-readout" style="text-align:left;color:#fde68a">
+              🔒 <strong>Locked:</strong> Requires the <strong>Cabinet Key</strong>.<br />
+              💡 <em>Hint: Inspect the Blue Mountain Painting on the wall to obtain the key!</em>
+            </div>
+          </div>
+        `;
+      });
+    }
   }
 
   function openR1Map(): void {
@@ -2590,6 +2685,9 @@ export function renderGameScreen(
     const meKey = state.localRole === "host" ? "p1" : "p2";
 
     switch (id) {
+      case "r1-painting":
+        openR1Painting();
+        break;
       case "r1-glovebox":
         openR1Glovebox();
         break;
@@ -3044,6 +3142,8 @@ export function renderGameScreen(
 
   function renderItemIcon(item: InventoryItemId): string {
     if (item === "Console Key") return "🔑";
+    if (item === "Cabinet Key") return "🗝️";
+    if (item === "Old Note") return "📜";
     if (item === "Brass Corkscrew") return "🍾";
     if (item === "Bar Token") return "🪙";
     if (item === "Oscilloscope Key") return "🔌";
@@ -3245,6 +3345,27 @@ export function renderGameScreen(
     container.querySelector("#lobby-box-p2")?.classList.toggle("tle-nameplate-ready", state.player2Ready);
     container.querySelector("#saif-ready-tick")?.classList.toggle("hidden", !state.player1Ready);
     container.querySelector("#drek-ready-tick")?.classList.toggle("hidden", !state.player2Ready);
+
+    // Lyra's Multiplayer Lobby Cards Dynamic Update
+    const lyraCardP1 = container.querySelector<HTMLElement>("#lyra-card-p1");
+    const lyraStatusP1 = container.querySelector<HTMLElement>("#lyra-status-p1");
+    const lyraCardP2 = container.querySelector<HTMLElement>("#lyra-card-p2");
+    const lyraStatusP2 = container.querySelector<HTMLElement>("#lyra-status-p2");
+    const lyraRoleMsg = container.querySelector<HTMLElement>("#lyra-role-status");
+    if (lyraCardP1) lyraCardP1.dataset.state = state.player1Ready ? "ready" : "waiting";
+    if (lyraStatusP1) {
+      lyraStatusP1.textContent = state.player1Ready ? "Connected · Ready" : "Connected · Not ready";
+    }
+    if (lyraCardP2) lyraCardP2.dataset.state = state.player2Ready ? "ready" : "waiting";
+    if (lyraStatusP2) {
+      lyraStatusP2.textContent = state.player2Ready ? "Connected · Ready" : "Connected · Not ready";
+    }
+    if (lyraRoleMsg) {
+      lyraRoleMsg.textContent =
+        state.player1Ready && state.player2Ready
+          ? "Both players ready! Press START to begin escape."
+          : "Both players connected. Mark yourself ready when you are prepared.";
+    }
 
     // Lobby Bottom-Left Button (Host vs Opponent Ready / Waiting / Start!)
     const lobbyBtn = container.querySelector<HTMLButtonElement>("#btn-lobby-start");
