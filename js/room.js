@@ -175,6 +175,8 @@ function buildRoom() {
       <feColorMatrix values="0 0 0 0 .16  0 0 0 0 .12  0 0 0 0 .04  2.6 0 0 0 -1.05"/>
     </filter>
     <radialGradient id="candle"><stop offset="0" stop-color="#f4d98a" stop-opacity=".55"/><stop offset="1" stop-color="#f4d98a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="roachShell" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#8a4f1e"/><stop offset=".55" stop-color="#5a2f10"/><stop offset="1" stop-color="#230f04"/></radialGradient>
+    <linearGradient id="wax"><stop offset="0" stop-color="#b5ab8a"/><stop offset=".45" stop-color="#e6dcbc"/><stop offset="1" stop-color="#8f8668"/></linearGradient>
     <radialGradient id="blob"><stop offset=".35" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
     <mask id="moldmask" maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="1000"><rect width="1600" height="1000" fill="#000"/>
       ${blob(470, 230, 150)}${blob(60, 60, 260)}${blob(50, 900, 230)}${blob(1130, 230, 130)}${blob(1550, 50, 220)}${blob(1130, 700, 100)}${blob(470, 700, 130)}</mask>
@@ -243,6 +245,51 @@ function buildRoom() {
     <path d="M0 0L730 420M1600 0L870 420M0 1000L730 520M1600 1000L870 520" stroke="#07090a" stroke-width="6"/>
     <rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)" opacity=".8"/>
     ${drip(180, 90, 18, 420)}${drip(420, 220, 14, 300)}${drip(1180, 220, 18, 320)}${drip(1420, 110, 22, 400)}
+    <g transform="translate(690 830) rotate(-12) scale(1.40)"><g class="roach roach-a">
+        <g class="legs" fill="none" stroke="#1f1007" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 -4l5 -7 7 -2M7 4l5 7 7 2"/><path d="M1 -6l1 -9 -3 -6M1 6l1 9 -3 6"/><path d="M-6 -6l-6 -8 -9 -3M-6 6l-6 8 -9 3"/>
+        </g>
+        <path d="M-17 -1l-6 -3M-17 1l-6 3" stroke="#2a160a" stroke-width="1"/>
+        <ellipse cx="-4" cy="0" rx="14" ry="7.5" fill="url(#roachShell)"/>
+        <path d="M10 0H-17" stroke="#1a0c04" stroke-width=".9"/>
+        <path d="M-15 -3c6 -3 16 -4 22 -2M-15 3c6 3 16 4 22 2" stroke="#9a5a26" stroke-width=".6" fill="none" opacity=".6"/>
+        <ellipse cx="9" cy="0" rx="5.5" ry="6.5" fill="#5a3214" stroke="#2a160a" stroke-width=".8"/><ellipse cx="9.5" cy="0" rx="3" ry="3.8" fill="#2a1408"/>
+        <ellipse cx="14.5" cy="0" rx="2.6" ry="3" fill="#1f1007"/>
+        <ellipse cx="-6" cy="-3" rx="7" ry="1.6" fill="#f4e0b8" opacity=".28"/>
+        <g class="antennae" fill="none" stroke="#2a160a" stroke-width=".7"><path d="M16 -1.5q9 -5 21 -15"/><path d="M16 1.5q10 4 23 8"/></g></g></g><g transform="translate(1010 700) rotate(160) scale(0.8)"><g class="roach roach-b">
+        <g class="legs" fill="none" stroke="#1f1007" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 -4l5 -7 7 -2M7 4l5 7 7 2"/><path d="M1 -6l1 -9 -3 -6M1 6l1 9 -3 6"/><path d="M-6 -6l-6 -8 -9 -3M-6 6l-6 8 -9 3"/>
+        </g>
+        <path d="M-17 -1l-6 -3M-17 1l-6 3" stroke="#2a160a" stroke-width="1"/>
+        <ellipse cx="-4" cy="0" rx="14" ry="7.5" fill="url(#roachShell)"/>
+        <path d="M10 0H-17" stroke="#1a0c04" stroke-width=".9"/>
+        <path d="M-15 -3c6 -3 16 -4 22 -2M-15 3c6 3 16 4 22 2" stroke="#9a5a26" stroke-width=".6" fill="none" opacity=".6"/>
+        <ellipse cx="9" cy="0" rx="5.5" ry="6.5" fill="#5a3214" stroke="#2a160a" stroke-width=".8"/><ellipse cx="9.5" cy="0" rx="3" ry="3.8" fill="#2a1408"/>
+        <ellipse cx="14.5" cy="0" rx="2.6" ry="3" fill="#1f1007"/>
+        <ellipse cx="-6" cy="-3" rx="7" ry="1.6" fill="#f4e0b8" opacity=".28"/>
+        <g class="antennae" fill="none" stroke="#2a160a" stroke-width=".7"><path d="M16 -1.5q9 -5 21 -15"/><path d="M16 1.5q10 4 23 8"/></g></g></g><g transform="translate(330 640) rotate(-70) scale(0.9)"><g class="roach roach-c">
+        <g class="legs" fill="none" stroke="#1f1007" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 -4l5 -7 7 -2M7 4l5 7 7 2"/><path d="M1 -6l1 -9 -3 -6M1 6l1 9 -3 6"/><path d="M-6 -6l-6 -8 -9 -3M-6 6l-6 8 -9 3"/>
+        </g>
+        <path d="M-17 -1l-6 -3M-17 1l-6 3" stroke="#2a160a" stroke-width="1"/>
+        <ellipse cx="-4" cy="0" rx="14" ry="7.5" fill="url(#roachShell)"/>
+        <path d="M10 0H-17" stroke="#1a0c04" stroke-width=".9"/>
+        <path d="M-15 -3c6 -3 16 -4 22 -2M-15 3c6 3 16 4 22 2" stroke="#9a5a26" stroke-width=".6" fill="none" opacity=".6"/>
+        <ellipse cx="9" cy="0" rx="5.5" ry="6.5" fill="#5a3214" stroke="#2a160a" stroke-width=".8"/><ellipse cx="9.5" cy="0" rx="3" ry="3.8" fill="#2a1408"/>
+        <ellipse cx="14.5" cy="0" rx="2.6" ry="3" fill="#1f1007"/>
+        <ellipse cx="-6" cy="-3" rx="7" ry="1.6" fill="#f4e0b8" opacity=".28"/>
+        <g class="antennae" fill="none" stroke="#2a160a" stroke-width=".7"><path d="M16 -1.5q9 -5 21 -15"/><path d="M16 1.5q10 4 23 8"/></g></g></g><g transform="translate(880 905) rotate(20) scale(1.61)"><g class="roach roach-d">
+        <g class="legs" fill="none" stroke="#1f1007" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 -4l5 -7 7 -2M7 4l5 7 7 2"/><path d="M1 -6l1 -9 -3 -6M1 6l1 9 -3 6"/><path d="M-6 -6l-6 -8 -9 -3M-6 6l-6 8 -9 3"/>
+        </g>
+        <path d="M-17 -1l-6 -3M-17 1l-6 3" stroke="#2a160a" stroke-width="1"/>
+        <ellipse cx="-4" cy="0" rx="14" ry="7.5" fill="url(#roachShell)"/>
+        <path d="M10 0H-17" stroke="#1a0c04" stroke-width=".9"/>
+        <path d="M-15 -3c6 -3 16 -4 22 -2M-15 3c6 3 16 4 22 2" stroke="#9a5a26" stroke-width=".6" fill="none" opacity=".6"/>
+        <ellipse cx="9" cy="0" rx="5.5" ry="6.5" fill="#5a3214" stroke="#2a160a" stroke-width=".8"/><ellipse cx="9.5" cy="0" rx="3" ry="3.8" fill="#2a1408"/>
+        <ellipse cx="14.5" cy="0" rx="2.6" ry="3" fill="#1f1007"/>
+        <ellipse cx="-6" cy="-3" rx="7" ry="1.6" fill="#f4e0b8" opacity=".28"/>
+        <g class="antennae" fill="none" stroke="#2a160a" stroke-width=".7"><path d="M16 -1.5q9 -5 21 -15"/><path d="M16 1.5q10 4 23 8"/></g></g></g>
     <g fill="#08090a" stroke="#000" stroke-width="2"><path d="M630 660c20-8 40-8 50 2l-4 12h-46zM690 664c20-8 40-8 50 2l-4 12h-46z"/><path d="M930 640c14-6 28-6 36 1l-3 9h-33zM974 642c14-6 28-6 36 1l-3 9h-33z"/><path d="M822 575c9-4 18-4 24 1l-2 6h-22zM852 577c9-4 18-4 24 1l-2 6h-22z"/></g>
     <path d="M770 690c30-18 80-24 118-8 18 10 10 34-14 34h-94c-20 0-26-16-10-26z" fill="#1c2024" stroke="#000" stroke-width="2"/><path d="M820 676l6 40M852 682l-4 34" stroke="#0a0c0e" stroke-width="3"/>
   </svg>
@@ -327,6 +374,35 @@ function buildRoom() {
     el.addEventListener("click", () => onObjectClick(id));
     scene.append(el);
   }
+  scene.insertAdjacentHTML("beforeend", `<svg class="candelabra level-view" data-stage="2" viewBox="-115 -300 230 320" aria-hidden="true">
+    <g>
+      <ellipse cx="0" cy="2" rx="60" ry="10" fill="#000" opacity=".6"/>
+      <g fill="#14110c" stroke="#050403" stroke-width="1.5">
+        <path d="M-46 2c10-4 22-10 30-22l8 4c-8 10-20 16-30 20zM46 2c-10-4-22-10-30-22l-8 4c8 10 20 16 30 20zM-4 -20h8l2 22h-12z"/>
+        <ellipse cx="0" cy="-22" rx="16" ry="6"/><path d="M-4 -24v-120h8v120z"/><ellipse cx="0" cy="-70" rx="9" ry="5"/><ellipse cx="0" cy="-120" rx="10" ry="6"/>
+        <path d="M-2 -150c-14 0-34-2-52-14-12-8-18-20-24-32" fill="none" stroke="#14110c" stroke-width="7" stroke-linecap="round"/>
+        <path d="M2 -150c14 0 34-2 52-14 12-8 18-20 24-32" fill="none" stroke="#14110c" stroke-width="7" stroke-linecap="round"/>
+        <path d="M-78 -196c-6 4-10 12-6 18M78 -196c6 4 10 12 6 18" fill="none" stroke="#14110c" stroke-width="3"/>
+        <path d="M-92 -198h28l-4 6h-20zM64 -198h28l-4 6h-20z"/><path d="M-4 -150v-62h8v62z"/><path d="M-14 -214h28l-4 6h-20z"/>
+      </g>
+      <path d="M-2 -146v-118M-1 -22v-120" stroke="#4a4236" stroke-width="1.2" opacity=".7"/>
+      <path d="M-46 0c10-4 20-10 28-20" stroke="#4a4236" stroke-width="1" fill="none" opacity=".6"/>
+      <path d="M-86 -192c1 8 0 14 2 22M86 -192c-1 7 0 13-1 20" stroke="#e8dfc0" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <rect x="-85" y="-244" width="14" height="46" fill="url(#wax)"/><path d="M-85 -242c2 8 1 14 2 22M-73 -241c1 5 2 12 1 18" stroke="#efe6c8" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="-78" cy="-244" rx="7" ry="2.5" fill="#f2e9cc"/><g transform="translate(-78 -246)"><g class="flame"><circle r="60" fill="url(#candle)" opacity=".9"/><path d="M0 -24c-5 8-7 14-7 18 0 5 3 8 7 8s7-3 7-8c0-4-2-10-7-18z" fill="#f6c45a"/><path d="M0 -14c-2 5-3 8-3 10 0 3 1 4 3 4s3-1 3-4c0-2-1-5-3-10z" fill="#fff4cf"/><path d="M0 -4v4" stroke="#1a1208" stroke-width="1.2"/></g></g><rect x="71" y="-236" width="14" height="38" fill="url(#wax)"/><path d="M71 -234c2 8 1 14 2 22M83 -233c1 5 2 12 1 18" stroke="#efe6c8" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="78" cy="-236" rx="7" ry="2.5" fill="#f2e9cc"/><g transform="translate(78 -238)"><g class="flame"><circle r="60" fill="url(#candle)" opacity=".9"/><path d="M0 -24c-5 8-7 14-7 18 0 5 3 8 7 8s7-3 7-8c0-4-2-10-7-18z" fill="#f6c45a"/><path d="M0 -14c-2 5-3 8-3 10 0 3 1 4 3 4s3-1 3-4c0-2-1-5-3-10z" fill="#fff4cf"/><path d="M0 -4v4" stroke="#1a1208" stroke-width="1.2"/></g></g>
+      <g class="bat" transform="translate(0 -214)">
+        <path d="M-6 0l-2 4M-2 0l-1 4M2 0l1 4M6 0l2 4" stroke="#0a0806" stroke-width="1.6" stroke-linecap="round"/>
+        <g class="bat-wing-l"><path d="M-5 -4c-12 -2-20-14-20-34 0-8 3-14 8-18l3 8 4-6c3 14 7 30 8 46z" fill="#120d0a" stroke="#050403"/><path d="M-21 -46l2 30M-15 -48l2 34M-9 -42l1 30" stroke="#2c2018" stroke-width="1"/><path d="M-17 -56l-4 -6" stroke="#0a0806" stroke-width="1.6" stroke-linecap="round"/></g>
+        <g class="bat-wing-r"><path d="M5 -4c12 -2 20-14 20-34 0-8-3-14-8-18l-3 8-4-6c-3 14-7 30-8 46z" fill="#120d0a" stroke="#050403"/><path d="M21 -46l-2 30M15 -48l-2 34M9 -42l-1 30" stroke="#2c2018" stroke-width="1"/><path d="M17 -56l4 -6" stroke="#0a0806" stroke-width="1.6" stroke-linecap="round"/></g>
+        <path d="M-7 -2c-2 -14 0-30 7-36 7 6 9 22 7 36z" fill="#1b1410"/><path d="M-3 -8c0-8 1-16 3-22M3 -8c0-8-1-16-3-22" stroke="#2c2018" stroke-width=".8" fill="none"/>
+        <g class="bat-head">
+          <path d="M-7 -40l-5 -16 9 9zM7 -40l5 -16 -9 9z" fill="#1b1410" stroke="#050403" stroke-width=".8"/><path d="M-6 -44l-3 -8M6 -44l3 -8" stroke="#3a2a1e" stroke-width=".8"/>
+          <ellipse cx="0" cy="-42" rx="8" ry="7" fill="#1b1410"/><path d="M-3 -37c1 3 5 3 6 0l-3 4z" fill="#0a0604"/>
+          <circle cx="-3.4" cy="-43.5" r="1.5" fill="#c23a30"/><circle cx="3.4" cy="-43.5" r="1.5" fill="#c23a30"/>
+          <path d="M-1.8 -36.6l.5 2.2.6 -2M1.8 -36.6l-.5 2.2-.6 -2" fill="#e8e2cf"/>
+        </g>
+      </g>
+    </g>
+  </svg>`);
   // First-person look: the flashlight follows the pointer, or the focused object for keyboard players.
   // The beam is its own layer moved with transform, so following the pointer never repaints the room.
   room.insertAdjacentHTML("beforeend", '<div class="beam" aria-hidden="true"><div class="dust"></div></div><div class="wipe l" aria-hidden="true"></div><div class="wipe r" aria-hidden="true"></div>');
