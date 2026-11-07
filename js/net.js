@@ -3,7 +3,6 @@
 // - ?server=ws://... : the relay server pairs the two players.
 // - a room code, no server: two tabs in the same browser pair up through BroadcastChannel (real 2-player, no backend).
 // - no code: solo, with a fake partner who chats you the clues from "their" room.
-const FAKE_PARTNER_NAME = "The Other";
 
 let link = null;    // ponytail: net.js's own connection (WebSocket or BroadcastChannel), not game state; Colyseus replaces it
 let isHost = false; // created the room (sent seconds): in tab mode the host plays the server's part
@@ -56,7 +55,7 @@ function connect(name, code, seconds) {
     addEventListener("pagehide", () => link.postMessage({ type: "partner-left" }));
     if (!isHost) setTimeout(() => {  // nobody created this code (or it's a typo): say so instead of waiting forever
       if (game.phase === "lobby" && game.playerName) say(`Still waiting. Nobody has opened room ${game.code} yet. Check the code, or ask your partner to create it.`);
-    }, 15000);
+    }, CONFIG.joinWaitSeconds * 1000);
   } else {
     return fakePartner();
   }
@@ -86,7 +85,7 @@ function send(type, data) {
 }
 
 function sendChat(text) {
-  text = String(text || "").trim().slice(0, 200);
+  text = String(text || "").trim().slice(0, CONFIG.chatMax);
   if (!text || game.phase !== "playing") return;
   game.chat.push({ from: game.playerName, text, mine: true });  // mine: works even if both players share a name
   send("chat", { text });
@@ -113,7 +112,7 @@ function onNetMessage(msg) {
       if (game.partner) Object.assign(game.partner, { loop: msg.loop, step: msg.step, stage: msg.stage || 1 });
       break;
     case "chat":
-      if (game.partner && msg.text) game.chat.push({ from: game.partner.name, text: String(msg.text).slice(0, 200) });
+      if (game.partner && msg.text) game.chat.push({ from: game.partner.name, text: String(msg.text).slice(0, CONFIG.chatMax) });
       break;
     case "escaped":
       if (game.partner) game.partner.escaped = true;
@@ -140,25 +139,30 @@ function onNetMessage(msg) {
 }
 
 // Solo: a fake partner in a room you can't see. It chats you the clues that sit in "its" room, then escapes.
-const FAKE_SCRIPT = [  // [seconds after start, its progress step, what it says]
-  [6,   1, (a) => `There's a note for you in my room: "${a.color} - ${a.clicks}". It's in your handwriting. How?`],
-  [18,  3, (a) => (photoIsRemote() ? `Your computer password is ${a.year}. It's on the photo in my room.` : "The photo in my room has my year. Yours is on your photo.")],
-  [30,  5, (a) => `A card in my cabinet, for you: your code sleeps in the ${a.casket.toUpperCase()} casket. Don't open the other one.`],
-  [45,  6, (a) => `My casket had a scrap for you: floor ${a.floor}. Something in the other casket is still moving.`],
-  [100, 7, () => "I'm out. It's dawn out here. Don't make me leave without you."],
+const FAKE_LINES = [  // [its progress step, what it says], sent at CONFIG.fakePartner.clueAt[i], then it escapes
+  [1, (a) => `There's a note for you in my room: "${a.color} - ${a.clicks}". It's in your handwriting. How?`],
+  [3, (a) => (photoIsRemote() ? `Your computer password is ${a.year}. It's on the photo in my room.` : "The photo in my room has my year. Yours is on your photo.")],
+  [5, (a) => `A card in my cabinet, for you: your code sleeps in the ${a.casket.toUpperCase()} casket. Don't open the other one.`],
+  [6, (a) => `My casket had a scrap for you: floor ${a.floor}. Something in the other casket is still moving.`],
 ];
 function fakePartner() {
+  const fake = CONFIG.fakePartner;
   game.code = makeRoomCode();
-  onNetMessage({ type: "start", partner: FAKE_PARTNER_NAME, role: "A", seed: seedFromCode(game.code), seconds: game.loopSeconds });
+  onNetMessage({ type: "start", partner: fake.name, role: "A", seed: seedFromCode(game.code), seconds: game.loopSeconds });
   let t = 0;
   const timer = setInterval(() => {
     if (game.phase !== "playing") return clearInterval(timer);
     t++;
-    for (const [at, step, line] of FAKE_SCRIPT) {
-      if (t !== at) continue;
+    const i = fake.clueAt.indexOf(t);
+    if (i >= 0 && FAKE_LINES[i]) {
+      const [step, line] = FAKE_LINES[i];
       onNetMessage({ type: "chat", text: line(puzzleAnswers(game.role)) });
-      onNetMessage({ type: "progress", loop: 1, step, stage: step >= 7 ? 3 : step >= 5 ? 2 : 1 });  // it never loops
+      onNetMessage({ type: "progress", loop: 1, step, stage: step >= 5 ? 2 : 1 });  // it never loops
     }
-    if (t === 100) onNetMessage({ type: "escaped" });
+    if (t === fake.escapeAt) {
+      onNetMessage({ type: "chat", text: "I'm out. It's dawn out here. Don't make me leave without you." });
+      onNetMessage({ type: "progress", loop: 1, step: 7, stage: 3 });
+      onNetMessage({ type: "escaped" });
+    }
   }, 1000);
 }

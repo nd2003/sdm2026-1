@@ -2,24 +2,21 @@
 // Co-op: both players have the same rooms, but each player's answers are different, and some of your clues sit in
 // your PARTNER's room. They read them out to you in the chat. Answers come from game.seed, so they change every match.
 
-// Tuning: becomes config/game.json in the course port
-const COLORS = ["BLUE", "RED", "GREEN", "WHITE", "BLACK"];
-const WRONG_CODE_LOCK = 5;    // seconds the input stays locked after a wrong code
-const VAMPIRE_DRAIN = 20;     // seconds a vampire takes when you open the wrong casket
-const LEVEL_BONUS = 60;       // seconds added when you enter a new level
-const NIGHT = "13 October";
+// Tuning numbers live in CONFIG (state.js).
+const NIGHT = CONFIG.night;
 
 // Answers for one role, from the seed. Independent of rand()'s position, so call order never matters.
 function puzzleAnswers(role) {
   const r = mulberry32(game.seed + (role === "B" ? 2 : 1));
-  const pick = (n) => Math.floor(r() * n);
+  const pick = (n) => Math.floor(r() * n), between = ([lo, hi]) => lo + pick(hi - lo + 1);
+  const p = CONFIG.painting, low = 10 ** (CONFIG.keypadDigits - 1);
   return {
-    color: COLORS[pick(COLORS.length)],      // the painting's colour (the UI can tint it)
-    clicks: 3 + pick(4),                     // painting clicks: 3-6
-    year: String(1950 + pick(50)),           // computer password, on a photo
-    casket: pick(2) ? "right" : "left",      // level 2: the casket with your code in it
-    keypad: String(100 + pick(900)),         // level 2 exit code, inside that casket
-    floor: String(2 + pick(18)),             // level 3: lift floor, inside your PARTNER's casket
+    color: p.colors[pick(p.colors.length)],              // the painting's colour (the UI can tint it)
+    clicks: between([p.minClicks, p.maxClicks]),         // painting clicks
+    year: String(between(CONFIG.years)),                 // computer password, on a photo
+    casket: pick(2) ? "right" : "left",                  // level 2: the casket with your code in it
+    keypad: String(between([low, low * 10 - 1])),        // level 2 exit code, inside that casket
+    floor: String(between(CONFIG.floors)),               // level 3: lift floor, inside your PARTNER's casket
   };
 }
 function photoIsRemote() { return mulberry32(game.seed + 3)() < 0.5; }  // does your photo show your partner's year?
@@ -56,13 +53,54 @@ function atLoop(lines) { return lines[Math.min(game.loop, lines.length) - 1]; }
 function remember(text) { addClue("Memory: " + text); }
 
 // Progress the partner sees: steps 1 note, 2 key, 3 cabinet, 4 computer, 5 level 2, 6 casket, 7 level 3
-function progress(step) { send("progress", { loop: game.loop, step, stage: game.stage }); }
+function progress(step) {
+  game.flags.lastProgressAt = game.timeLeft;  // the hint clock restarts whenever you get somewhere
+  send("progress", { loop: game.loop, step, stage: game.stage });
+}
+
+// Hints: stuck for CONFIG.hintAfter seconds -> a vague whisper; twice that long -> a plain one. Once each per step.
+// Called by the loop timer every second (state.js).
+function hintTick() {
+  if (!CONFIG.hintAfter || isAdmin() || game.phase !== "playing" || game.flags.escaped || game.input) return;
+  const f = game.flags, stuck = (f.lastProgressAt ?? game.loopSeconds) - game.timeLeft;
+  if (stuck < CONFIG.hintAfter) return;
+  const [step, vague, plain] = nextHint(), tier = stuck >= 2 * CONFIG.hintAfter ? 2 : 1;
+  if (f.hinted === step + tier) return;
+  f.hinted = step + tier;
+  game.message = "A whisper, in your own voice: " + (tier === 1 ? vague : plain);
+}
+function nextHint() {  // [step, vague hint, plain hint] for where you are right now
+  const f = game.flags, me = mine(), p = partnerName();
+  if (game.stage === 1) {
+    if (!hasItem("key") && !f.paintingMoved) {
+      return partnerSaid(me.color, String(me.clicks))
+        ? ["painting", "You know the painting's code now.", `Click the painting exactly ${me.clicks} times.`]
+        : ["ask-painting", "The painting matters, but its code isn't in your room.", `Ask ${p} what the note in their room says: your painting's colour and a number.`];
+    }
+    if (!f.cabinetOpen) return ["cabinet", "Keys open things.", "Use the key on the cabinet."];
+    if (!f.doorUnlocked) {
+      if (!knows("dated")) return ["photo", "The card told you where to look.", "Look at the photograph."];
+      return ["computer", "The computer wants a year. Yours.", photoIsRemote()
+        ? `Your year is on ${p}'s photo, not yours. Ask them, then type it into the computer.`
+        : "Type the year from your photograph into the computer."];
+    }
+    return ["door", "Something unlocked behind you.", "Go through the door."];
+  }
+  if (game.stage === 2) {
+    if (!f.casketOpen) return ["casket", "One casket is safe. One is hungry.", `${p}'s cabinet says which casket holds your code. Ask them before you open one.`];
+    if (!f.powerOn) return ["fusebox", "The keypad is dead. Something here still has power.", "Throw the switch on the fuse box."];
+    return ["keypad", "You have the code.", "Type the code from the casket into the keypad."];
+  }
+  if (!f.gateClosed) return ["gate", "The lift won't move like this.", "Drag the cage gate shut."];
+  if (!partnerSaid(me.floor)) return ["floor", "Which floor? Not one in your room.", `${p} found your floor in their casket. Ask them.`];
+  return ["lift", "You know where to go.", "Take the lift to your floor."];
+}
 
 function enterStage(stage, text) {
   game.stage = stage;
-  game.timeLeft += LEVEL_BONUS;
+  game.timeLeft += CONFIG.levelBonus;
   delete game.flags.lockedUntil;  // the lock is measured against timeLeft, which just jumped
-  say(text + ` (+${LEVEL_BONUS}s)`);
+  say(text + ` (+${CONFIG.levelBonus}s)`);
   progress(stage === 2 ? 5 : 7);
 }
 
@@ -133,7 +171,8 @@ function onObjectClick(id) {
                                    : "I answered an ad: night auditors wanted, floor 14, cash, no questions.");
         break;
       }
-      enterStage(2, "The door opens onto a corridor that wasn't there before. Two caskets lie across the floor.");
+      enterStage(2, "The door opens onto a corridor that wasn't there before. Bricked-up offices on both sides, candles burning on the floor, "
+        + "and two caskets laid across it. At the far end, a keypad sits dark and dead.");
       break;
     case "clock":
       say(atLoop(["The clock has no hands. You can still hear it ticking down.",
@@ -164,8 +203,8 @@ function onObjectClick(id) {
       if (game.stage !== 2) { say("A casket. The lid is nailed down from the inside."); break; }
       if (f.casketOpen) { say("You've already disturbed enough of the dead tonight."); break; }
       if (side !== me.casket && !isAdmin()) {
-        game.timeLeft = Math.max(1, game.timeLeft - VAMPIRE_DRAIN);
-        say(`The lid slides open. Something in a Meridian Trust badge sits up and drinks the seconds out of you. (-${VAMPIRE_DRAIN}s) The other casket, maybe.`);
+        game.timeLeft = Math.max(1, game.timeLeft - CONFIG.vampireDrain);
+        say(`The lid slides open. Something in a Meridian Trust badge sits up and drinks the seconds out of you. (-${CONFIG.vampireDrain}s) The other casket, maybe.`);
         remember("The things in the caskets wear Meridian Trust badges. They're the ones who stayed behind.");
         break;
       }
@@ -287,7 +326,7 @@ function onInput(text) {
   const me = mine(), answer = String(text ?? "").trim();
   if (!answer && !isAdmin()) return say("You step back.");  // cancel or an empty box never costs a lock
   const right = (correct) => isAdmin() || answer === correct;
-  const wrong = (msg) => { setFlag("lockedUntil", game.timeLeft - WRONG_CODE_LOCK); say(msg + ` (locked for ${WRONG_CODE_LOCK}s)`); };
+  const wrong = (msg) => { setFlag("lockedUntil", game.timeLeft - CONFIG.wrongCodeLock); say(msg + ` (locked for ${CONFIG.wrongCodeLock}s)`); };
   if (what === "computer") {
     if (!right(me.year)) return wrong("Access denied. For a second the screen shows your face, from behind."
       + (photoIsRemote() ? ` The year on your photo is ${partnerName()}'s. Ask them for yours.` : ""));
@@ -301,7 +340,8 @@ function onInput(text) {
     progress(4);
   } else if (what === "keypad") {
     if (!right(me.keypad)) return wrong("The keypad buzzes. In one of the caskets, something turns over.");
-    enterStage(3, "The wall slides open onto a lift shaft. The lift is waiting, lights flickering.");
+    enterStage(3, "The wall slides open onto a lift shaft. An old cage lift waits with its gate hanging open. "
+      + "Above it, the floor needle twitches. Somewhere above you, the night desk phone is ringing.");
   } else if (what === "lift") {
     if (!right(me.floor)) return wrong("The lift drops a few metres and stops. Laughter from the shaft.");
     escapeNow();
