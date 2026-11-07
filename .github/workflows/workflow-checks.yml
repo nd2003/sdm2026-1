@@ -20,6 +20,10 @@ permissions:
 jobs:
   pull-request:
     name: pull request follows the template
+    # Not on sync PRs (main -> feature/team-N): their head is main itself, so this job's result is recorded on main's
+    # latest commit, and Railway's "Wait for CI" would skip every deploy while one fails. Their commits were already
+    # reviewed and checked on main; CI still runs on them (issue #325).
+    if: ${{ github.head_ref != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
