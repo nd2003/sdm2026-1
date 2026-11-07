@@ -828,3 +828,13 @@ body.hurry #room { --beam: 24cqw; }
 @keyframes cbateye { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
 body.no-flicker :is(.cbat-wings, .cbat-eye) { animation: none; }
 @media (prefers-reduced-motion: reduce) { :is(.cbat-wings, .cbat-eye) { animation: none !important; } }
+
+/* The vampire stalks you in the last 20s (--stalk 0..1 from ui.js) and lunges when time runs out */
+#room.stalked:not(.vamp) .vampire {
+  left: 50%; opacity: calc(.12 + var(--stalk) * .88);
+  transform: translateY(calc((1 - var(--stalk)) * 45%)) scale(calc(.32 + var(--stalk) * .72));
+  filter: brightness(calc(.35 + var(--stalk) * .65));
+  transition: transform 1s linear, opacity 1s linear, filter 1s linear;
+}
+#room[data-scare="timeout"] .vampire { left: 50%; }
+@media (prefers-reduced-motion: reduce) { #room.stalked:not(.vamp) .vampire { transition: none; } }
