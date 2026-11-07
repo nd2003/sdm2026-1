@@ -273,3 +273,17 @@ h2 {
     flex: 1;
   }
 }
+
+.invite-link {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 16px auto;
+  color: #c4b5fd;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.invite-link:focus-visible {
+  outline: 3px solid #c4b5fd;
+  outline-offset: 4px;
+}
