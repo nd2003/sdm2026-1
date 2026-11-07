@@ -303,23 +303,7 @@ function buildRoom() {
     <g transform="translate(700 632) rotate(-8) skewX(-20)"><rect width="46" height="34" fill="#3a2614" stroke="#120b06" stroke-width="3"/><rect x="5" y="5" width="36" height="24" fill="#4a4a44"/><path d="M5 5l36 24M30 5l-12 24" stroke="#c9c2a8" stroke-width="1" opacity=".5"/></g>
     <g class="fog"><ellipse class="fog-a" cx="500" cy="860" rx="520" ry="70" fill="url(#fog)"/><ellipse class="fog-b" cx="1150" cy="900" rx="560" ry="80" fill="url(#fog)"/><ellipse class="fog-a" cx="800" cy="640" rx="380" ry="40" fill="url(#fog)" opacity=".6"/></g>`;
   })();
-  // ponytail: one filter gives the whole game its woodcut look; redraw objects in ink only if a piece reads badly
-  const engrave = `<svg class="fx-defs" width="0" height="0" aria-hidden="true"><filter id="engrave" color-interpolation-filters="sRGB" x="0" y="0" width="1" height="1">
-    <feColorMatrix in="SourceGraphic" type="matrix" values=".3 .59 .11 0 0  .3 .59 .11 0 0  .3 .59 .11 0 0  0 0 0 1 0"/>
-    <feComponentTransfer result="lum"><feFuncR type="gamma" amplitude="1.15" exponent=".55"/><feFuncG type="gamma" amplitude="1.15" exponent=".55"/><feFuncB type="gamma" amplitude="1.15" exponent=".55"/></feComponentTransfer>
-    <feImage href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5'%3E%3ClinearGradient id='g' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23000'/%3E%3Cstop offset='.5' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3Crect width='5' height='5' fill='url(%23g)'/%3E%3C/svg%3E" x="0" y="0" width="5" height="5" preserveAspectRatio="none"/><feTile result="h"/>
-    <feImage href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='5'%3E%3ClinearGradient id='g' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%23000'/%3E%3Cstop offset='.5' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3Crect width='5' height='5' fill='url(%23g)'/%3E%3C/svg%3E" x="0" y="0" width="7" height="7" preserveAspectRatio="none"/><feTile result="v"/>
-    <feComposite in="lum" in2="h" operator="arithmetic" k2="1" k3="-1" k4=".5"/>
-    <feComponentTransfer result="t1"><feFuncR type="linear" slope="7" intercept="-3"/><feFuncG type="linear" slope="7" intercept="-3"/><feFuncB type="linear" slope="7" intercept="-3"/><feFuncA type="discrete" tableValues="1"/></feComponentTransfer>
-    <feComposite in="lum" in2="v" operator="arithmetic" k2="2.2" k3="-1" k4=".42"/>
-    <feComponentTransfer result="t2"><feFuncR type="linear" slope="7" intercept="-3"/><feFuncG type="linear" slope="7" intercept="-3"/><feFuncB type="linear" slope="7" intercept="-3"/><feFuncA type="discrete" tableValues="1"/></feComponentTransfer>
-    <feComposite in="t1" in2="t2" operator="arithmetic" k1="1"/>
-    <feComponentTransfer><feFuncR type="linear" slope=".82" intercept=".08"/><feFuncG type="linear" slope=".8" intercept=".067"/><feFuncB type="linear" slope=".72" intercept=".047"/></feComponentTransfer>
-    <feComposite in2="SourceAlpha" operator="in" result="print"/>
-    <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 .62  0 0 0 0 .07  0 0 0 0 .05  3.2 -3.4 0 0 -.18" result="blood"/>
-    <feMerge><feMergeNode in="print"/><feMergeNode in="blood"/></feMerge>
-  </filter></svg>`;
-  room.innerHTML = engrave + `<div class="scene"><svg class="walls" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true"><defs>
+  room.innerHTML = `<div class="scene"><svg class="walls" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true"><defs>
     <pattern id="carpet" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#4a4326"/><path d="M0 0l14 14M14 0L0 14" stroke="#231f10" stroke-width="2"/></pattern>
     <pattern id="bricks" width="44" height="26" patternUnits="userSpaceOnUse"><rect width="44" height="26" fill="#3a3f42"/><path d="M0 0h44M0 13h44M0 0v13M22 13v13" stroke="#14171a" stroke-width="3"/></pattern>
     <filter id="grime" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
