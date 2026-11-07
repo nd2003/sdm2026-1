@@ -5,6 +5,7 @@
 import "./room.css";
 import { type ChatLine, mountChat, updateChat } from "./chat.ts";
 import { type HudView, mountHud, updateHud } from "./hud.ts";
+import { type PartnerView, updatePartner } from "./partner.ts";
 import { buildRoom, placeObjects, type RoomView, updateRoom } from "./room.ts";
 
 const room = document.getElementById("room") as HTMLElement;
@@ -27,6 +28,7 @@ const show = (): void => {
   updateRoom(room, view);
   updateHud(hudRoot, { ...hud, loop: view.loop, stage: view.stage });
   updateChat(hudRoot, chat);
+  updatePartner(document.getElementById("opponent") as HTMLElement, partner);
   for (const b of document.querySelectorAll<HTMLButtonElement>("[data-stage-btn]"))
     b.setAttribute("aria-pressed", String(Number(b.dataset.stageBtn) === view.stage));
 };
@@ -74,6 +76,8 @@ mountChat(hudRoot, (text) => {
   if (chat.length === 2) chat.push({ from: "Partner", text: "Got it, trying that now.", mine: false });
   show();
 });
+// The partner panel: "Partner step" moves them on, and after the last step they are out.
+const partner: PartnerView = { name: "Partner", stage: 1, loop: 1, step: 0, escaped: false };
 const button = (id: string, run: () => void): void =>
   (document.getElementById(id) as HTMLElement).addEventListener("click", () => {
     run();
@@ -82,6 +86,11 @@ const button = (id: string, run: () => void): void =>
 button("add-item", () => {
   hud.items.push(hud.items.includes("key") ? "fuse" : "key");
   hud.message = "You found something.";
+});
+button("partner-step", () => {
+  if (partner.step < 7) partner.step += 1;
+  else partner.escaped = true;
+  partner.stage = partner.step >= 7 ? 3 : partner.step >= 5 ? 2 : 1; // step 5 is "Lv 2", step 7 is "Lv 3"
 });
 button("add-clue", () => {
   hud.clues.push(`BLUE - ${hud.clues.length + 4}`);
