@@ -1,5 +1,14 @@
 import "./styles.css";
+import { serverUrlFromPage } from "@sdm/core/client";
 import { renderGameScreen } from "./ui/index.ts";
+
+/**
+ * In local dev the server runs on :2567; deployed builds are served by the server itself, at the root of its
+ * own address or under /team-4/ behind the gateway, so the address comes from the page, not location.origin.
+ */
+export const SERVER_URL: string =
+  import.meta.env.VITE_SERVER_URL ??
+  (import.meta.env.DEV ? "http://localhost:2567" : serverUrlFromPage(location.href));
 
 const app = document.getElementById("app");
 

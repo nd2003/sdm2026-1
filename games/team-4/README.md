@@ -15,7 +15,7 @@ From the repository root:
 ```bash
 nvm use 22.21.1
 pnpm install
-pnpm --filter @sdm/team-4 dev
+pnpm --filter @team-4/game dev
 ```
 
 Frontend:
