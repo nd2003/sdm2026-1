@@ -1,0 +1,43 @@
+{
+  "instructors": ["ferenc-munde", "matyas-munde", "nd2003"],
+  "students": [
+    {
+      "login": "dileepkumar2626",
+      "name": "Hindu Menghwar Dileep Kumar",
+      "nickname": "Kumar",
+      "team": "team-1"
+    },
+    { "login": "danish2k04", "name": "Kumar Danish", "nickname": "Danish", "team": "team-1" },
+    { "login": "Lakhmichand-Meghwar", "name": "Meghwar Lakhmichand", "nickname": "Lakhmi", "team": "team-1" },
+
+    { "login": "mzayanaa19", "name": "Munkhbaatar Zolzaya", "nickname": "Zolo", "team": "team-2" },
+    { "login": "jawadjb21", "name": "Jahangir Jawad Bin", "nickname": "Jawad", "team": "team-2" },
+    { "login": "Suvd0528", "name": "Enkhtur Suvd", "nickname": "Suvd", "team": "team-2" },
+
+    { "login": "abdullahwaseem6", "name": "Abdullah", "nickname": "Abdullah", "team": "team-3" },
+    {
+      "login": "BaasanjavBatchuluun",
+      "name": "Batchuluun Baasanjav",
+      "nickname": "Baasa",
+      "team": "team-3",
+      "note": "Worked in a separate repository at the start of the hackathon; that work is not visible here. Take it into account in the evaluation."
+    },
+    {
+      "login": "zaid-akroush",
+      "name": "Akroush Zaid Wahab Butros",
+      "nickname": "Zaid",
+      "team": "team-3",
+      "note": "Worked in a separate repository at the start of the hackathon; that work is not visible here. Take it into account in the evaluation."
+    },
+
+    { "login": "lvlzd", "name": "Valizada Lala", "nickname": "Lala", "team": "team-4" },
+    { "login": "Lyra06", "name": "Kasemi Lyra", "nickname": "Lyra", "team": "team-4" },
+    { "login": "Ridan14", "name": "Agara Divine Ridan", "nickname": "Divine", "team": "team-4" },
+    { "login": "safesaif1122-design", "name": "Din Saif Ud", "nickname": "Saif", "team": "team-4" },
+
+    { "login": "MadaniKhalil", "name": "Madani Khalil", "nickname": "Khalil", "team": "platform" },
+    { "login": "muneeebnaveeed", "name": "Naveed Muhammad Muneeb", "nickname": "Munib", "team": "platform" },
+    { "login": "yigitcemakbas", "name": "Akbas Yigit Cem", "nickname": "Yigit", "team": "platform" },
+    { "login": "Doublespy8971", "name": "Hamail Hamail", "nickname": "Hamil", "team": "platform" }
+  ]
+}

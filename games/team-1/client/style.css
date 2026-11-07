@@ -2400,57 +2400,17 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.3em;
 }
-.lobby-time {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.lobby-time legend {
-  padding: 0;
-  margin-bottom: 8px;
-}
-.lobby-time-note {
-  opacity: 0.7;
-}
-.time-options {
-  display: flex;
-  gap: 8px;
-}
-.time-option {
-  flex: 1;
-  position: relative;
-}
-.time-option input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-.time-option-label {
-  display: block;
-  padding: 9px 0;
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--dim);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--hud-border);
-  border-radius: 6px;
+.select-input {
+  padding-right: 36px;
+  appearance: none;
   cursor: pointer;
-  transition:
-    background 160ms,
-    color 160ms,
-    border-color 160ms;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%237a7268' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
 }
-.time-option-label:hover {
+.select-input option {
   color: var(--text);
-}
-.time-option input:checked + .time-option-label {
-  color: var(--text);
-  background: var(--accent-dim);
-  border-color: rgba(184, 136, 48, 0.6);
-}
-.time-option input:focus-visible + .time-option-label {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  background: #14110d;
 }
 .lobby-actions {
   display: flex;
@@ -2660,4 +2620,11 @@ button:disabled {
   .top-right {
     gap: 6px;
   }
+}
+
+/* ── going back ──────────────────────────────────────────────────────────── */
+.back-button {
+  align-self: flex-start;
+  padding: 6px 14px;
+  font-size: 0.72rem;
 }
