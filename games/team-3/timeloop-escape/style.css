@@ -39,7 +39,6 @@ h2 { margin: 0; font-size: 1rem; line-height: 24px; }
   font-size: clamp(10px, 1.5cqw, 13px); padding: 1px 6px; border-radius: 999px; background: #000b; white-space: nowrap;
 }
 
-
 /* living details */
 #obj-clock .sec { transform-origin: 50px 50px; animation: tick 60s steps(60) infinite; }  /* one lap = one loop */
 @keyframes tick { to { transform: rotate(360deg); } }
@@ -485,7 +484,7 @@ body.no-flicker :is(.candles, .needle) { animation: none; }
 #obj-indicator       { left: 44.5%; top: 3%; --w: 12cqw; }
 #obj-emergency-phone { left: 11%; top: 40%; --w: 8cqw; transform: translateX(-50%) perspective(70cqw) rotateY(36deg); }
 #obj-graffiti        { left: 85%; top: 30%; --w: 18cqw; transform: translateX(-50%) perspective(70cqw) rotateY(-34deg); }
-.folds { transform-origin: 0 50%; transform: scaleX(.24); transition: transform .8s cubic-bezier(.5, 0, .2, 1); }
+.folds { transform-origin: 0 50%; transform: scaleX(.8); transition: transform .8s cubic-bezier(.5, 0, .2, 1); }
 #room.gate-closed .folds { transform: none; }
 #room.gate-closed .car-light { opacity: .3; }
 .car-light { transition: opacity .6s; }
@@ -561,7 +560,48 @@ body.asking #message { display: none; }  /* no stale message above an open input
 #lobby-note { margin: 14px auto 0; color: #e0655b; font-weight: 700; }
 #lobby-note:empty { display: none; }
 
-/* Testing only: looks nothing like the game on purpose */
+/* Level 2: cockroaches scurry in short bursts and stop, like real ones */
+.roach { transform-origin: 0 0; }
+.roach-a { animation: roachA 9s infinite; }
+.roach-b { animation: roachB 12s infinite; }
+.roach-c { animation: roachC 10.5s infinite; }
+.roach-d { animation: roachD 14s infinite; }
+@keyframes roachA { 0%, 18% { transform: none; } 24% { transform: translate(70px, 0); } 40% { transform: translate(70px, 0); } 42% { transform: translate(70px, 0) rotate(40deg); } 50%, 70% { transform: translate(110px, 34px) rotate(40deg); } 73% { transform: translate(110px, 34px) rotate(200deg); } 86%, 100% { transform: rotate(180deg); } }
+@keyframes roachB { 0%, 30% { transform: none; } 36%, 60% { transform: translate(90px, 8px); } 62% { transform: translate(90px, 8px) rotate(-150deg); } 72%, 100% { transform: rotate(-180deg); } }
+@keyframes roachC { 0%, 10% { transform: none; } 16%, 48% { transform: translate(60px, 4px) rotate(10deg); } 54%, 80% { transform: translate(110px, -16px) rotate(-20deg); } 82% { transform: translate(110px, -16px) rotate(160deg); } 94%, 100% { transform: rotate(180deg); } }
+@keyframes roachD { 0%, 42% { transform: none; } 47% { transform: translate(-60px, 10px) rotate(8deg); } 49%, 78% { transform: translate(-60px, 10px) rotate(8deg); } 80% { transform: translate(-60px, 10px) rotate(-170deg); } 90%, 100% { transform: rotate(-180deg); } }
+.roach .legs { transform-origin: 0 0; animation: legs .14s steps(2) infinite; }
+@keyframes legs { 50% { transform: skewX(9deg); } }
+.roach .antennae { transform-origin: 16px 0; animation: feel 2.3s ease-in-out infinite alternate; }
+@keyframes feel { to { transform: rotate(9deg); } }
+
+/* The candelabra's flames, and the bat that lives on it */
+.flame { transform-box: fill-box; transform-origin: 50% 85%; animation: flame 1.7s ease-in-out infinite alternate; }
+.flame + .flame, rect + path + ellipse + .flame { animation-duration: 2.1s; }
+@keyframes flame { 0% { transform: scale(1, 1); } 30% { transform: scale(.94, 1.08) skewX(-3deg); } 60% { transform: scale(1.04, .95) skewX(2deg); } 100% { transform: scale(.97, 1.05); } }
+.bat-head { transform-box: fill-box; transform-origin: 50% 80%; animation: batlook 8s steps(1) infinite; }
+@keyframes batlook { 0%, 100% { transform: none; } 38% { transform: rotate(-14deg); } 52% { transform: rotate(10deg); } 66% { transform: none; } }
+.bat-wing-l, .bat-wing-r { transform-box: fill-box; animation: batwing 11s ease-in-out infinite; }
+.bat-wing-l { transform-origin: 100% 90%; }
+.bat-wing-r { transform-origin: 0 90%; animation-name: batwingR; }
+@keyframes batwing { 0%, 84%, 92%, 100% { transform: none; } 87% { transform: rotate(-38deg) scaleX(1.5); } 89% { transform: rotate(-30deg) scaleX(1.4); } }
+@keyframes batwingR { 0%, 84%, 92%, 100% { transform: none; } 87% { transform: rotate(38deg) scaleX(1.5); } 89% { transform: rotate(30deg) scaleX(1.4); } }
+body.no-flicker .flame { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.roach, .roach .legs, .roach .antennae, .flame, .bat-head, .bat-wing-l, .bat-wing-r) { animation: none !important; } }
+.candelabra { position: absolute; z-index: 2; left: 3.5%; bottom: 3%; width: 15cqw; height: auto; pointer-events: none; overflow: visible; }
+
+/* Level 3: a zombie trapped in the lift, attacking you through the gate */
+.zlunge, .zarms, .rattle { transform-box: fill-box; }
+.zlunge { transform-origin: 50% 100%; animation: zlunge 4.6s cubic-bezier(.5, 0, .2, 1) infinite; }
+.zarms { transform-origin: 0 0; pointer-events: none; animation: zreach 4.6s cubic-bezier(.5, 0, .2, 1) infinite; }
+.rattle { animation: zrattle 4.6s infinite; }
+@keyframes zlunge { 0%, 62% { transform: none; } 70% { transform: translateY(-2%) scale(1.07); } 74% { transform: scale(1.04); } 82%, 100% { transform: none; } }
+@keyframes zreach { 0%, 62% { transform: rotate(-4deg); } 70% { transform: translate(4%, 6%) rotate(6deg) scale(1.18); } 76% { transform: rotate(2deg) scale(1.08); } 86%, 100% { transform: rotate(-4deg); } }
+@keyframes zrattle { 0%, 68%, 82%, 100% { transform: none; } 70% { transform: translateX(-1.2%); } 72% { transform: translateX(1%); } 74% { transform: translateX(-.6%); } 76% { transform: translateX(.4%); } }
+#room.gate-closed .zarms { animation-name: zreachShut; }
+@keyframes zreachShut { 0%, 62% { transform: rotate(-4deg) scale(.85); } 70% { transform: rotate(4deg) scale(.95); } 86%, 100% { transform: rotate(-4deg) scale(.85); } }
+body.no-flicker :is(.zlunge, .zarms, .rattle) { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.zlunge, .zarms, .rattle) { animation: none !important; } }
 /* --- Lobby: Create and Join as two cards, timer as tiles (same palette as the game) --- */
 .ways { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
 .way {
