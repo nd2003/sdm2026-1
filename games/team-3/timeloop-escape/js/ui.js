@@ -105,20 +105,64 @@ function render() {
   document.body.classList.toggle("hurry", t <= 10 && !out && !game.won && phase === "playing"); // whole room goes red in the last 10s
   cssVar($("hud"), "--time", Math.min(1, t / (game.loopSeconds || 60))); // drives the shrinking time bar
   set($("loop-count"), "textContent", `Level ${stage}/3 · Loop ${game.loop}`);
-  if (stage > Number(document.body.dataset.stage || stage)) {
+  const newStage = stage > Number(document.body.dataset.stage || stage);
+  if (newStage) {
     replay($("bonus"), "show");
     replay($("room"), "entering");
-  } // +1:00 and the doors sliding apart
+    jolt("big");
+  } // +1:00, the doors sliding apart, a heavy jolt
+  const fl = game.flags || {},
+    first = {
+      1: !game.clues.length && "note",
+      2: !fl.powerOn && "fusebox",
+      3: !game.items.includes("fuse") && !fl.liftPower && "hatch",
+    }[stage];
+  document.querySelectorAll(".obj.beckon").forEach((el) => {
+    if (el.id !== "obj-" + first) el.classList.remove("beckon");
+  });
+  if (first && phase === "playing") $("obj-" + first)?.classList.add("beckon");
+  // Keyboard players start on the first puzzle object of each stage (not while typing)
+  if (phase === "playing" && $("room")._focusStage !== stage) {
+    $("room")._focusStage = stage;
+    const target = $("obj-" + { 1: "note", 2: "fusebox", 3: "hatch" }[stage]),
+      typing = document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+    if (target && !typing) setTimeout(() => target.focus({ preventScroll: true }));
+  }
   data("stage", stage);
-  if (stage === 2 && phase === "playing" && t <= ($("timer")._t ?? t) - 15) {
+  // A bite (the wrong casket) plays the scare at that casket
+  const bites = (game.flags && game.flags.vampireBites) || 0;
+  if (stage === 2 && phase === "playing" && bites > ($("room")._bites ?? bites)) {
+    $("room").dataset.scare = "casket"; // the vampire only lives in the wrong casket
     replay($("room"), "vamp");
-    replay($("drain"), "show");
+    if (!(game.playerName && String(game.playerName).toLowerCase() === "admin")) replay($("drain"), "show");
+    splatter();
+    jolt("big");
+    document.dispatchEvent(new Event("tle-bite"));
     document.dispatchEvent(new Event("tle-scare"));
   }
-  $("timer")._t = t;
+  $("room")._bites = bites;
+  // The vampire stalks you as time runs out: over the last 20s it creeps out of the dark, bigger and closer
+  // every second, and when the loop resets it lunges. (Admin's clock never runs out, so it never comes.)
+  const STALK = 20,
+    escapedNow = !!(game.flags && game.flags.escaped);
+  const near = phase === "playing" && !escapedNow && game.timeLeft <= STALK ? 1 - game.timeLeft / STALK : 0;
+  $("room").style.setProperty("--stalk", near.toFixed(3));
+  $("room").classList.toggle("stalked", near > 0);
+  const attacked = phase === "playing" && game.loop > ($("room")._stalkLoop ?? game.loop);
+  if (attacked) {
+    $("room").dataset.scare = "timeout";
+    replay($("room"), "vamp");
+    splatter();
+    jolt("big");
+    document.dispatchEvent(new Event("tle-bite"));
+    document.dispatchEvent(new Event("tle-scare"));
+  }
+  $("room")._stalkLoop = game.loop;
   $("room").classList.toggle("casket-open", !!(game.flags && game.flags.casketOpen));
   $("room").classList.toggle("power-on", !!(game.flags && game.flags.powerOn));
   $("room").classList.toggle("gate-closed", !!(game.flags && game.flags.gateClosed));
+  $("room").classList.toggle("lift-power", !!(game.flags && game.flags.liftPower));
+  $("room").classList.toggle("vent-out", stage === 3 && out);
   $("room").classList.toggle("later", game.loop >= 2);
   const scrawl = $("room").querySelector(".scrawl-name");
   if (scrawl)
@@ -187,7 +231,10 @@ function render() {
         : '<p class="empty">Empty pockets.</p>'),
   );
   inv.querySelectorAll("li").forEach((li, i) => {
-    if (i >= had) li.classList.add("new");
+    if (i >= had) {
+      li.classList.add("new");
+      flyToTray(li);
+    }
   });
   inv._count = game.items.length;
 
@@ -241,7 +288,7 @@ function render() {
       document.body.append(flash);
     }
     flash.innerHTML = `<div>Time's up. The loop resets…<small>Your items are gone, but your journal remembers. Loop ${game.loop}</small></div>`;
-    replay(flash, "show");
+    setTimeout(() => replay(flash, "show"), attacked ? 1800 : 0); // let the vampire's attack land first
     replay($("journal"), "remember"); // glows as the flash fades: "your clues survived"
   }
   data("loop", game.loop);
@@ -280,6 +327,81 @@ function render() {
   }
 }
 
+// Juice, in tiers. Small: the press scale in CSS. Medium: an item flies into the tray. Big: the room jolts and flashes.
+// Every effect is short and returns to rest; reduced motion and "Flickering light: off" turn the jolt and flash off in CSS.
+function jolt(size) {
+  const scene = document.querySelector("#room .scene"),
+    room = document.getElementById("room");
+  if (!scene || !room) return;
+  scene.classList.remove("jolt-big", "jolt-small");
+  void scene.offsetWidth;
+  scene.classList.add("jolt-" + size);
+  let flash = document.getElementById("flashfx");
+  if (!flash) {
+    room.insertAdjacentHTML("beforeend", '<div id="flashfx" aria-hidden="true"></div>');
+    flash = document.getElementById("flashfx");
+  }
+  if (size === "big") {
+    flash.classList.remove("show");
+    void flash.offsetWidth;
+    flash.classList.add("show");
+  }
+}
+function flyToTray(li) {
+  const room = document.getElementById("room"),
+    icon = li.querySelector("svg");
+  if (
+    !room ||
+    !icon ||
+    document.body.classList.contains("no-flicker") ||
+    matchMedia("(prefers-reduced-motion: reduce)").matches
+  )
+    return;
+  const from = room.getBoundingClientRect(),
+    to = li.getBoundingClientRect(),
+    fly = icon.cloneNode(true);
+  fly.classList.add("fly");
+  fly.style.left = from.left + from.width / 2 - 40 + "px";
+  fly.style.top = from.top + from.height / 2 - 14 + "px";
+  fly.style.setProperty("--dx", to.left - (from.left + from.width / 2 - 40) + "px");
+  fly.style.setProperty("--dy", to.top - (from.top + from.height / 2 - 14) + "px");
+  document.body.append(fly);
+  fly.addEventListener("animationend", () => fly.remove());
+}
+
+// Blood on the screen at the peak of a bite: a few splats in new places each time, then they run and fade
+function splatter() {
+  let box = document.getElementById("blood");
+  if (!box) {
+    // buildRoom() redraws #room, so the layer is made when it is first needed
+    document
+      .getElementById("room")
+      .insertAdjacentHTML("beforeend", '<div id="blood" aria-hidden="true"></div>');
+    box = document.getElementById("blood");
+  }
+  const shapes = [
+    "M50 10c8 0 10 14 18 16s16-6 20 2-8 14-4 22 16 10 10 18-18 0-22 8 4 18-6 20-10-14-18-12-12 14-20 8 4-16-4-22-20 0-20-10 14-10 14-18-12-16-6-22 16 4 22-2-2-20 6-24z",
+    "M50 22c14-6 30 2 32 16 2 12-10 16-6 26s-6 22-20 18-14 8-26 2-6-18-14-24-10-20 2-26 18-4 32-12z",
+    "M30 40c6-16 30-24 44-12 10 8 2 18 14 26s0 20-14 18-16 10-30 4-6-14-16-20-4-10 2-16z",
+  ];
+  box.innerHTML = Array.from({ length: 4 }, (_, i) => {
+    const x = 8 + Math.random() * 74,
+      y = 6 + Math.random() * 48,
+      s = 9 + Math.random() * 12,
+      d = shapes[i % shapes.length]; // looks only, not game logic
+    const drops = [0, 1, 2]
+      .map(
+        (k) =>
+          `<rect class="trickle" x="${30 + k * 18 + Math.random() * 8}" y="60" width="4" height="40" rx="2" fill="#7a0905" style="animation-delay:${(1.7 + k * 0.15).toFixed(2)}s"/>`,
+      )
+      .join("");
+    return `<svg class="splat" viewBox="0 0 100 140" style="left:${x}%;top:${y}%;width:${s}%"><path d="${d}" fill="#8c0d08"/><circle cx="${10 + Math.random() * 80}" cy="${10 + Math.random() * 40}" r="3" fill="#8c0d08"/><circle cx="${10 + Math.random() * 80}" cy="${50 + Math.random() * 20}" r="2" fill="#8c0d08"/>${drops}</svg>`;
+  }).join("");
+  box.classList.remove("show");
+  void box.offsetWidth;
+  box.classList.add("show");
+}
+
 // Co-op panels that live for the whole page: chat, the in-game input and the +1:00 flash. Created once, filled by render().
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -295,6 +417,14 @@ function render() {
       <input id="game-input-text" autocomplete="off" spellcheck="false">
       <div class="row"><button>Enter</button><button type="button" id="game-input-cancel">Step back</button></div></form>`,
   );
+  $("room").addEventListener(
+    "click",
+    (e) => {
+      const o = e.target.closest?.(".obj");
+      if (o) $("room")._last = o.id.slice(4);
+    },
+    true,
+  ); // where a bite came from
   $("hud").insertAdjacentHTML(
     "beforeend",
     '<span id="bonus" aria-hidden="true">+1:00</span><span id="drain" aria-hidden="true">-20s</span>',
@@ -514,7 +644,13 @@ const updateSound = (() => {
     melodyTimer = setTimeout(melody, GAPS[melodyStep++ % GAPS.length]);
   };
   // One short sound: a wave that may glide from one pitch to another and dies away
+  const vary = (f) => f * (1 + (Math.random() - 0.5) * 0.08); // UI sound only, not game logic
   const blip = (type, from, to, peak, seconds, delay = 0, out = sfxBus) => {
+    if (out === sfxBus) {
+      const k = vary(1);
+      from *= k;
+      to *= k;
+    }
     const t = ctx.currentTime + delay,
       { o, g } = tone(type, from, out, 0);
     o.frequency.setValueAtTime(from, t);
@@ -532,7 +668,7 @@ const updateSound = (() => {
     s.buffer = noise;
     s.loop = true;
     f.type = "bandpass";
-    f.frequency.value = freq;
+    f.frequency.value = vary(freq);
     g.gain.setValueAtTime(peak, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + seconds);
     s.connect(f).connect(g).connect(sfxBus);
@@ -573,6 +709,41 @@ const updateSound = (() => {
       [220, 261.63, 329.63, 440].forEach((f, i) => {
         blip("sine", f, f, 0.16, 3, i * 0.22);
       });
+    },
+    bite: () => {
+      hiss(0.45, 0.5, 3400);
+      blip("sawtooth", 190, 80, 0.22, 0.45);
+      hiss(0.3, 0.2, 700, 0.25);
+    },
+    groan: (loud) => {
+      const t = ctx.currentTime,
+        o = ctx.createOscillator(),
+        g = ctx.createGain(),
+        f = ctx.createBiquadFilter(),
+        lfo = ctx.createOscillator(),
+        lg = ctx.createGain();
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(92, t);
+      o.frequency.linearRampToValueAtTime(66, t + 1.6);
+      f.type = "lowpass";
+      f.frequency.value = 520;
+      lfo.frequency.value = 7;
+      lg.gain.value = 9;
+      lfo.connect(lg).connect(o.frequency);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(loud ? 0.32 : 0.18, t + 0.25);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+      o.connect(f).connect(g).connect(sfxBus);
+      o.start(t);
+      lfo.start(t);
+      o.stop(t + 1.9);
+      lfo.stop(t + 1.9);
+      hiss(loud ? 0.12 : 0.07, 1.4, 380);
+    },
+    growl: () => {
+      SFX.groan(true);
+      blip("sawtooth", 140, 60, 0.25, 0.7);
+      hiss(0.25, 0.6, 260);
     },
     bang: () => {
       blip("sine", 70, 40, 0.55, 0.3);
@@ -803,6 +974,7 @@ const updateSound = (() => {
     creatureTimer = setTimeout(creatures, rnd(6000, 14000) * (mode === "hurry" ? 0.5 : 1));
   };
 
+  let tense;
   const update = () => {
     const f = game.flags || {},
       over = game.phase === "over",
@@ -830,8 +1002,10 @@ const updateSound = (() => {
         SFX.unlock();
       if (f.lockedUntil !== undefined && f.lockedUntil !== seen.flags.lockedUntil) SFX.wrong();
       if (f.casketOpen && !seen.flags.casketOpen) SFX.casket();
-      if (game.loop > seen.loop) SFX.reset();
-      else if (stage > seen.stage) SFX.level();
+      if (game.loop > seen.loop) {
+        SFX.reset();
+        duck(2.2);
+      } else if (stage > seen.stage) SFX.level();
       if (game.chat.length > seen.chat) SFX.chat();
       if (over && game.won && !seen.won) SFX.win();
     }
@@ -859,6 +1033,7 @@ const updateSound = (() => {
       heart();
       heartTimer = setInterval(heart, 950);
     }
+    if (tense) fade(tense.gain, next === "hurry" ? 0.05 : 0, next === "hurry" ? 0.8 : 0.4);
     if (next === "dead") setTimeout(SFX.hit, 900); // lands as the figure reaches you
     if (next === "dead" || next === "end") clearTimeout(melodyTimer);
     if (next === "dead" || next === "end") clearTimeout(creatureTimer);
@@ -895,6 +1070,13 @@ const updateSound = (() => {
       echo.connect(delay).connect(dull).connect(feedback).connect(delay);
       dull.connect(musicBus);
       for (const s of [1, 2, 3]) beds[s] = makeTrack(TRACKS[s]);
+      // The last 10 seconds get a layer of their own: two close notes beating against each other, fast
+      tense = ctx.createGain();
+      tense.gain.value = 0;
+      tense.connect(musicBus);
+      tone("sawtooth", 466.16, tense, 0.5);
+      tone("sawtooth", 493.88, tense, 0.5);
+      const trem = tone("sine", 9, tense.gain, 0.04);
       mode = "";
       stageNow = 0;
       update();
@@ -908,9 +1090,41 @@ const updateSound = (() => {
   document.addEventListener("tle-scare", () => {
     if (ctx) SFX.hit();
   });
+  document.addEventListener("tle-bite", () => {
+    if (ctx) {
+      SFX.bite();
+      duck(2.6);
+    }
+  });
+  // Duck the music under a big scare, then let it come back
+  function duck(seconds) {
+    if (!ctx) return;
+    const t = ctx.currentTime,
+      g = musicBus.gain;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(opts.volume * 0.2, t + 0.08);
+    g.setTargetAtTime(opts.volume, t + seconds * 0.6, seconds * 0.25);
+  }
+  // The zombie on level 3 groans every few seconds, more often and louder in the last 10 seconds; clicking it makes it lunge
+  let groanAt = 0;
+  setInterval(() => {
+    if (!ctx || game.stage !== 3 || game.phase !== "playing" || (game.flags && game.flags.escaped)) return;
+    const hurry = game.timeLeft <= 10,
+      now = performance.now();
+    if (now < groanAt) return;
+    SFX.groan(hurry);
+    groanAt = now + (hurry ? 2200 : 4200) + Math.random() * 3000; // sound only, not game logic
+  }, 500);
+  addEventListener("click", (e) => {
+    if (ctx && e.target.closest?.("#obj-zombie")) {
+      SFX.growl();
+      duck(1.6);
+      setTimeout(SFX.bang, 150);
+    }
+  });
   document.addEventListener("animationiteration", (e) => {
-    if (ctx && e.animationName === "zlunge" && game.stage === 3 && game.phase === "playing")
-      setTimeout(SFX.bang, 3200);
+    if (ctx && e.animationName === "zlunge" && game.stage === 3 && game.phase === "playing") SFX.bang();
   }); // lands with the slam at 70% of the cycle
   addEventListener("click", (e) => {
     if (
