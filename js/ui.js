@@ -360,7 +360,10 @@ const updateSound = (() => {
     const out = ctx.createGain(), panner = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain(), far = ctx.createBiquadFilter();
     o.type = "sawtooth"; vib.frequency.value = vibrato; vibAmt.gain.value = pitch[0][1] * depth;
     vib.connect(vibAmt).connect(o.frequency);
-    pitch.forEach(([at, hz], i) => i ? o.frequency.exponentialRampToValueAtTime(hz, t + at) : o.frequency.setValueAtTime(hz, t + at));
+    for (const [i, [at, hz]] of pitch.entries()) {
+      if (i) o.frequency.exponentialRampToValueAtTime(hz, t + at);
+      else o.frequency.setValueAtTime(hz, t + at);
+    }
     far.type = "lowpass"; far.frequency.value = 3200;
     if (panner.pan) panner.pan.value = pan;
     out.gain.value = 0; out.connect(far).connect(panner).connect(musicBus); panner.connect(echo);
@@ -378,7 +381,9 @@ const updateSound = (() => {
     out.gain.setValueAtTime(0, t);
     return { gain: out.gain, t, peak };
   };
-  const envelope = ({ gain, t, peak }, steps) => steps.forEach(([at, v]) => gain.linearRampToValueAtTime(v * peak, t + at));
+  const envelope = ({ gain, t, peak }, steps) => {
+    for (const [at, v] of steps) gain.linearRampToValueAtTime(v * peak, t + at);
+  };
   const CREATURES = {
     cry() {  // sobbing: falling wails broken by catches of breath
       const base = rnd(380, 470), pan = rnd(-.8, .8);
