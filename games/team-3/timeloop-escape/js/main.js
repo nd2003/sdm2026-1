@@ -30,10 +30,37 @@ skipButton.addEventListener("click", () => {
   adminSkip();
   skipButton.blur();
 });
+const restartButton = document.createElement("button");
+restartButton.type = "button";
+restartButton.id = "demo-restart";
+restartButton.textContent = "Restart loop \u21BB";
+restartButton.title = "Demo: reset this loop (items lost, journal keeps)";
+restartButton.hidden = true;
+Object.assign(restartButton.style, {
+  position: "fixed",
+  left: "16px",
+  bottom: "56px",
+  zIndex: "20",
+  padding: "10px 18px",
+  cursor: "pointer",
+  background: "#856404",
+  color: "#fff",
+  border: "2px solid #ffeaa7",
+  borderRadius: "8px",
+  font: "bold 15px system-ui, sans-serif",
+  boxShadow: "0 4px 14px #000a",
+});
+restartButton.addEventListener("click", () => {
+  resetLoop();
+  restartButton.blur();
+});
 document.body.append(skipButton);
+document.body.append(restartButton);
 setInterval(() => {
   // ponytail: polls instead of hooking render() (ui.js isn't mine)
-  skipButton.hidden = !((CONFIG.demoSkip || isAdmin()) && game.phase === "playing" && !game.flags.escaped);
+  const admin = CONFIG.demoSkip || isAdmin();
+  skipButton.hidden = !(admin && game.phase === "playing" && !game.flags.escaped);
+  restartButton.hidden = !(admin && game.phase === "playing");
 }, 250);
 addEventListener("keydown", (e) => {
   if (

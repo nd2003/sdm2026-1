@@ -1019,4 +1019,5 @@ function placeObjects() {
   room.dataset.wrong = wrong;
   document.getElementById("obj-casket-" + answers.casket).classList.add("right-one");
   document.getElementById("obj-casket-" + wrong).classList.add("wrong-one");
+  if (isAdmin()) room.dataset.adminvamp = wrong; // ponytail: admin sees which casket bites
 }

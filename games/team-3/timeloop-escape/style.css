@@ -1694,6 +1694,16 @@ body.no-flicker :is(.candles, .needle) {
 #room.vamp .wrong-one .lid {
   animation: wronglid 2.6s ease-in-out both;
 }
+/* Admin only: the wrong casket glows red so the bite is telegraphed */
+#room[data-adminvamp="left"] #obj-casket-left,
+#room[data-adminvamp="right"] #obj-casket-right {
+  box-shadow: 0 0 10px #c00, 0 0 20px #c00;
+  animation: vampGlow 2s ease-in-out infinite alternate;
+}
+@keyframes vampGlow {
+  from { box-shadow: 0 0 6px #c00, 0 0 12px #c00; }
+  to { box-shadow: 0 0 14px #c00, 0 0 28px #c00; }
+}
 @keyframes redlight {
   0% {
     opacity: 0;
