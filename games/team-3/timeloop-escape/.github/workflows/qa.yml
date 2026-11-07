@@ -1,0 +1,37 @@
+name: QA
+on: workflow_dispatch # manual only: Zaid runs it after integrating (gh workflow run QA)
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run test.html in headless Chrome
+        run: |
+          # Real time, not --virtual-time-budget: the two-tab checks talk over BroadcastChannel, which virtual time skips past.
+          # qa.html runs test.html in a frame and copies its results out; /hold keeps qa.html "loading" (so --dump-dom waits) until they're in.
+          cat > qa.html <<'EOF'
+          <iframe src="test.html" width="900" height="900"></iframe><pre id="out"></pre>
+          <script>
+            const t = setInterval(() => { const d = document.querySelector("iframe").contentDocument, r = d && d.getElementById("result");
+              if (!r || !r.className) return; clearInterval(t);  // test.html sets class ok|bad when it finishes
+              document.getElementById("out").textContent = [...d.querySelectorAll("#log li")].map((li) => li.textContent).join("\n") + "\n" + r.textContent;
+              fetch("/done"); }, 500);
+          </script><img src="/hold">
+          EOF
+          cat > serve.py <<'EOF'
+          import http.server, threading
+          done = threading.Event()
+          class H(http.server.SimpleHTTPRequestHandler):
+              def log_message(self, *a): pass
+              def do_GET(self):
+                  if self.path in ("/hold", "/done"):
+                      done.set() if self.path == "/done" else done.wait(180)  # ponytail: 180s cap if the page hangs
+                      self.send_response(204); self.end_headers(); return
+                  super().do_GET()
+          http.server.ThreadingHTTPServer(("127.0.0.1", 8000), H).serve_forever()
+          EOF
+          python3 serve.py &
+          sleep 1
+          timeout 240 google-chrome --headless=new --disable-gpu --no-sandbox --dump-dom "http://localhost:8000/qa.html" > out.html
+          grep -oE '(PASS|FAIL) [^<]*' out.html || true
+          grep -q 'ALL PASS' out.html

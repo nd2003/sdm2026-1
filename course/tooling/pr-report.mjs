@@ -56,8 +56,8 @@ const prs = paginate(
           number title body url state headRefName baseRefName createdAt
           author { login }
           labels(first: 20) { nodes { name } }
-          commits(first: ${COMMITS}) { totalCount nodes { commit { oid message } } }
-          comments(last: 50) { nodes { databaseId body viewerDidAuthor } }
+          commits(first: ${COMMITS}) { totalCount nodes { commit { oid message committedDate } } }
+          comments(last: 50) { nodes { id databaseId body viewerDidAuthor isMinimized } }
         }
       }
     }
@@ -101,7 +101,11 @@ const entries = prs.map((p) => {
     createdAt: p.createdAt,
     labels: p.labels.nodes.map((l) => l.name),
   };
-  const commits = p.commits.nodes.map((c) => ({ oid: c.commit.oid, message: c.commit.message }));
+  const commits = p.commits.nodes.map((c) => ({
+    oid: c.commit.oid,
+    message: c.commit.message,
+    committedDate: c.commit.committedDate,
+  }));
   const number = linkedIssue(pr.body, { allowRefs: pr.head === "main" });
   const result = auditPr({
     pr,
@@ -120,25 +124,35 @@ if (flags.fix === true) {
   const items = selected
     .filter((e) => !e.result.ok || e.ownComment)
     .map((e) => ({
-      plan: planFix({ pr: e.pr, commits: e.commits, issues, config, templates }),
+      plan: planFix({
+        pr: e.pr,
+        commits: e.commits,
+        issues,
+        config,
+        templates,
+        hadComment: Boolean(e.ownComment),
+      }),
       ownComment: e.ownComment,
     }));
   const { failed } = runFixes({ root, repo, kind: "pr", apply: flags.apply === true, items });
-  process.exit(failed > 0 ? EXIT.failed : EXIT.ok);
-}
-
-const failingOnly = flags.failing === true;
-const groups = groupByTeam(
-  selected.map((e) => e.result),
-  config.teamLabels,
-)
-  .map((g) => (failingOnly ? { ...g, passing: [] } : g))
-  .filter((g) => !failingOnly || g.failCount > 0);
-
-if (flags.json === true) {
-  console.log(JSON.stringify({ repo, state, generatedAt: new Date().toISOString(), teams: groups }, null, 2));
+  // exitCode, not process.exit(): on macOS and Linux stdout to a pipe is asynchronous, and exit() would cut it off.
+  process.exitCode = failed > 0 ? EXIT.failed : EXIT.ok;
 } else {
-  const generatedAt = `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
-  process.stdout.write(formatReport(groups, { repo, state, generatedAt, failingOnly }));
+  const failingOnly = flags.failing === true;
+  const groups = groupByTeam(
+    selected.map((e) => e.result),
+    config.teamLabels,
+  )
+    .map((g) => (failingOnly ? { ...g, passing: [] } : g))
+    .filter((g) => !failingOnly || g.failCount > 0);
+
+  if (flags.json === true) {
+    console.log(
+      JSON.stringify({ repo, state, generatedAt: new Date().toISOString(), teams: groups }, null, 2),
+    );
+  } else {
+    const generatedAt = `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
+    process.stdout.write(formatReport(groups, { repo, state, generatedAt, failingOnly }));
+  }
+  process.exitCode = EXIT.ok;
 }
-process.exit(EXIT.ok);

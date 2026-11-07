@@ -15,6 +15,7 @@ import {
   createLogBuffer,
   normalizeRoomCode,
   readClientParams,
+  serverUrlFromPage,
 } from "@sdm/core/client";
 import {
   ClientMessage,
@@ -32,7 +33,8 @@ import { askQuit, type LoopSeconds, renderLobby, syncScreens } from "./screens.t
 
 /** In local dev the server runs on :2567; deployed builds are served by the server itself. */
 export const SERVER_URL: string =
-  import.meta.env.VITE_SERVER_URL ?? (import.meta.env.DEV ? "http://localhost:2567" : location.origin);
+  import.meta.env.VITE_SERVER_URL ??
+  (import.meta.env.DEV ? "http://localhost:2567" : serverUrlFromPage(location.href));
 
 const ROOM_NAME = "game";
 const TOKEN_KEY = "sdm:reconnectionToken";

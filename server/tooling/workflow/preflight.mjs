@@ -45,7 +45,14 @@ const steps = quick
       { name: "build", ...pnpm("build") },
       { name: "branch", ...node("check-branch.mjs", ...shared) },
       { name: "ownership", ...node("check-ownership.mjs", ...shared) },
-      ...(baseRef ? [{ name: "commits", ...node("check-commit.mjs", "--range", `${baseRef}..HEAD`) }] : []),
+      ...(baseRef
+        ? [
+            {
+              name: "commits",
+              ...node("check-commit.mjs", "--range", `${baseRef}..HEAD`, "--exclude", "origin/main"),
+            },
+          ]
+        : []),
       { name: "files", ...node("check-files.mjs", ...shared) },
       { name: "secrets", ...node("check-files.mjs", "secrets", ...shared) },
       { name: "docs", ...node("check-docs.mjs") },

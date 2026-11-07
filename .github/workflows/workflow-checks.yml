@@ -46,7 +46,7 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node server/tooling/workflow/check-commit.mjs --range "origin/$BASE_REF..$HEAD_SHA"
+        run: node server/tooling/workflow/check-commit.mjs --range "origin/$BASE_REF..$HEAD_SHA" --exclude origin/main
 
       # The branch-level checks from pnpm preflight (issue #10). They read the head and base branch names
       # from GITHUB_HEAD_REF and GITHUB_BASE_REF, and compare the PR's head commit with origin/<base>.

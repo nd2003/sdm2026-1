@@ -4,12 +4,12 @@
 export const COMMIT_TYPES = ["feat", "fix", "docs", "refactor", "chore", "ci", "build", "test", "perf"];
 
 const SUBJECT = /^([a-z]+)(?:\(([a-z0-9][a-z0-9-]*)\))?(!)?: (\S.*)$/;
-const ISSUE_REFERENCE = /^(?:Refs|Closes|Fixes|Resolves) #\d+/im;
+export const ISSUE_REFERENCE = /^(?:Refs|Closes|Fixes|Resolves) #\d+/im;
 // Past tense and -ing forms that sneak in instead of the imperative ("added", "fixing", "updates").
 const NOT_IMPERATIVE =
   /^(?:added|fixed|updated|removed|changed|created|renamed|moved|adding|fixing|updating|removing|changing|creating|adds|fixes|updates|removes|changes|creates)\b/i;
 // Messages git or a tool generates; they cannot follow the format.
-const EXEMPT = /^(?:Merge |Revert "|fixup! |squash! |amend! )/;
+export const EXEMPT = /^(?:Merge |Revert "|fixup! |squash! |amend! )/;
 
 /**
  * Checks a Conventional-Commit subject line: "type(scope): description". Used for commit subjects
@@ -91,4 +91,13 @@ export function parseLog(out) {
       const i = rec.indexOf("\x1f");
       return { sha: rec.slice(0, i).trim(), message: rec.slice(i + 1) };
     });
+}
+
+/**
+ * Git log arguments for a commit range, optionally excluding commits reachable from a trusted ref.
+ * @param {string[]} range
+ * @param {string | undefined} exclude
+ */
+export function commitRangeArgs(range, exclude) {
+  return ["log", "--no-merges", "--format=%H%x1f%B%x1e", ...range, ...(exclude ? ["--not", exclude] : [])];
 }
