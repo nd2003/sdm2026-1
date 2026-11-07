@@ -1,10 +1,30 @@
 // Owner: Core loop (see README)
 // The ONLY shared state. Everyone reads it; change it only through the functions below.
-const DEFAULT_LOOP_SECONDS = 60;  // tuning: the room creator picks 60 / 90 / 120
+// Every tuning number in the game, in one place. In the course port this becomes config/game.json.
+const CONFIG = {
+  loopSeconds: 60,        // default loop length; the room creator picks 60 / 90 / 120
+  levelBonus: 60,         // seconds added when you enter level 2 and level 3
+  wrongCodeLock: 5,       // seconds an input stays locked after a wrong code
+  vampireDrain: 20,       // seconds the wrong casket takes
+  hintAfter: 25,          // seconds stuck on the same step before a whisper hints at it (0 = no hints)
+  demoSkip: true,         // demo: a red "Skip level" button for everyone (and Shift+N). Set false for a fair game; ?debug forces it on
+  night: "13 October",    // the night that repeats every year
+  painting: { colors: ["BLUE", "RED", "GREEN", "WHITE", "BLACK"], minClicks: 3, maxClicks: 6 },
+  years: [1950, 1999],    // computer passwords are picked from this range
+  keypadDigits: 3,        // level 2 exit code length
+  floors: [2, 19],        // level 3 lift floors
+  chatMax: 200,           // characters per chat line
+  joinWaitSeconds: 15,    // tab mode: tell a joiner nobody opened the room yet
+  fakePartner: {          // solo practice partner: when it sends each clue, and when it escapes
+    name: "The Other",
+    clueAt: [6, 18, 30, 45],
+    escapeAt: 100,
+  },
+};
 
 const game = {
   loop: 1,
-  timeLeft: DEFAULT_LOOP_SECONDS,
+  timeLeft: CONFIG.loopSeconds,
   items: [],     // resets every loop
   flags: {},     // resets every loop: e.g. { paintingClicks: 2, cabinetOpen: true }. flags.escaped = I'm out (my timer stops)
   clues: [],     // KEPT across loops: e.g. ["BLUE - 4"]
@@ -18,7 +38,7 @@ const game = {
   code: null,         // 4-letter room code, null when playing solo
   role: null,         // "A" (created the room) or "B"
   seed: 0,            // from the room code: the only source of randomness in game logic
-  loopSeconds: DEFAULT_LOOP_SECONDS,
+  loopSeconds: CONFIG.loopSeconds,
   partner: null,      // { name, loop, step, stage, escaped } once the match starts
   chat: [],           // [{ from, text }], kept across loops
 };
@@ -45,8 +65,9 @@ function startLoop() {
     if (game.phase === "over" || game.flags.escaped || game.loop !== loop) return clearInterval(timer);
     if (isAdmin() && game.timeLeft <= 1) return render();  // ponytail: testing cheat (puzzles.js), admin's clock never runs out
     game.timeLeft--;
-    if (game.timeLeft <= 0) resetLoop();
-    else render();
+    if (game.timeLeft <= 0) return resetLoop();
+    hintTick();  // puzzles.js: a whisper when you've been stuck too long
+    render();
   }, 1000);
   render();
 }
