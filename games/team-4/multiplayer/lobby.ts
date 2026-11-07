@@ -2,6 +2,8 @@ export type PartnerStatus = "waiting" | "connected" | "disconnected" | "error";
 
 export interface LobbyView {
   playerName: string;
+  partnerName?: string;
+  readyMessage?: string;
   roomCode: string;
   localSlot: 1 | 2;
   ready: boolean;
@@ -62,7 +64,7 @@ export function renderLobby(
       name.textContent = local
         ? `${view?.playerName ?? "You"} (you)`
         : partnerStatus === "connected" || partnerStatus === "disconnected"
-          ? "Partner"
+          ? (view?.partnerName ?? "Partner")
           : "—";
     if (status)
       status.textContent = local
@@ -79,7 +81,7 @@ export function renderLobby(
   if (message)
     message.textContent =
       partnerStatus === "connected" && view?.ready && view.partnerReady
-        ? "Both players are ready. This preview does not start a game."
+        ? (view?.readyMessage ?? "Both players are ready. This preview does not start a game.")
         : messages[partnerStatus];
   const actions = container.querySelector<HTMLElement>(".lobby-actions");
   if (view && actions) {
