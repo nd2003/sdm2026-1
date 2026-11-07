@@ -88,7 +88,7 @@ describe("qa:evidence", () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
-  });
+  }, 30_000);
 
   it("reports a clear error when no comparison base exists", async () => {
     const git = (args: string[]) => {

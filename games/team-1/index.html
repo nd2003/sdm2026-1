@@ -38,6 +38,7 @@
         <p class="intro-body" id="intro-body"></p>
         <div class="intro-dots" id="intro-dots"></div>
         <div class="intro-actions">
+          <button type="button" class="btn-secondary" id="intro-back">Back</button>
           <button type="button" class="btn-secondary" id="intro-skip">Skip</button>
           <button type="button" class="btn-primary" id="intro-next">Next</button>
         </div>
@@ -66,6 +67,7 @@
         <div class="lobby-actions">
           <button type="button" class="btn-primary" id="brief-go">Enter the room</button>
           <button type="button" class="btn-secondary" id="brief-end">End game</button>
+          <button type="button" class="btn-secondary" id="brief-leave">Leave room</button>
         </div>
         <p class="brief-wait hidden" id="brief-wait">Waiting for your partner to be ready</p>
       </div>
@@ -74,16 +76,17 @@
     <!-- ── LOBBY ── -->
     <div id="screen-lobby" class="fullscreen hidden">
       <div class="lobby-inner">
+        <button type="button" class="btn-secondary back-button" id="lobby-back">← Back</button>
         <h2 class="lobby-title">Find your partner</h2>
         <p class="lobby-sub">Each of you plays on your own device. Create a room and share the code, or join with one. No partner right now? Play alone and do everything yourself.</p>
         <label class="lobby-field" for="lobby-name">
           <span>Your name</span>
           <input id="lobby-name" class="text-input" type="text" maxlength="24" placeholder="Detective" autocomplete="off" />
         </label>
-        <fieldset class="lobby-field lobby-time">
-          <legend>Loop time for a new room <span class="lobby-time-note">(later rooms get 10s less)</span></legend>
-          <div class="time-options" id="lobby-time"></div>
-        </fieldset>
+        <label class="lobby-field" for="lobby-time">
+          <span>Loop time for a new room (Office / Archive / Vault)</span>
+          <select id="lobby-time" class="text-input select-input"></select>
+        </label>
         <div class="lobby-actions">
           <button type="button" class="btn-primary" id="lobby-create">Create a room</button>
           <button type="button" class="btn-secondary" id="lobby-solo">Play alone</button>
@@ -104,7 +107,10 @@
         <div class="wait-code" id="wait-code">----</div>
         <p class="wait-text">Send this code, or the link, to your partner. The game starts when they join.</p>
         <div class="wait-link" id="wait-link"></div>
-        <button type="button" class="btn-secondary" id="wait-copy">Copy invite link</button>
+        <div class="lobby-actions">
+          <button type="button" class="btn-secondary" id="wait-copy">Copy invite link</button>
+          <button type="button" class="btn-secondary" id="wait-cancel">Cancel</button>
+        </div>
       </div>
     </div>
 
@@ -138,6 +144,17 @@
         <div class="lobby-actions">
           <button type="button" class="btn-primary btn-danger" id="confirm-end-yes">End game</button>
           <button type="button" class="btn-secondary" id="confirm-end-no">Keep playing</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirm-leave" class="fullscreen hidden overlay confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-leave-title">
+      <div class="wait-inner">
+        <h2 class="lobby-title" id="confirm-leave-title">Leave this room?</h2>
+        <p class="wait-text" id="confirm-leave-text">You leave this room.</p>
+        <div class="lobby-actions">
+          <button type="button" class="btn-primary btn-danger" id="confirm-leave-yes">Leave room</button>
+          <button type="button" class="btn-secondary" id="confirm-leave-no">Stay</button>
         </div>
       </div>
     </div>
@@ -594,7 +611,10 @@
           </div>
         </div>
         <p class="win-msg" id="win-msg"></p>
-        <button type="button" class="btn-primary" id="btn-restart">Play again</button>
+        <div class="lobby-actions">
+          <button type="button" class="btn-primary" id="btn-restart">Play again</button>
+          <button type="button" class="btn-secondary" id="win-lobby">Back to lobby</button>
+        </div>
       </div>
     </div>
 
