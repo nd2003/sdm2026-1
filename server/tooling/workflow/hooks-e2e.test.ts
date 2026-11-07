@@ -123,7 +123,8 @@ describe("commit-msg hook with an editor", () => {
   });
 });
 
-describe("pre-push hook", () => {
+// Real Git pushes spawn hook processes; allow for Windows startup under suite load.
+describe("pre-push hook", { timeout: 30_000 }, () => {
   // Pushes that need no checks never reach pnpm, so they work in this throwaway repository.
   let remote: string;
   beforeAll(() => {

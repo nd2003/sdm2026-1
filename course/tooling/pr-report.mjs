@@ -56,8 +56,8 @@ const prs = paginate(
           number title body url state headRefName baseRefName createdAt
           author { login }
           labels(first: 20) { nodes { name } }
-          commits(first: ${COMMITS}) { totalCount nodes { commit { oid message } } }
-          comments(last: 50) { nodes { databaseId body viewerDidAuthor } }
+          commits(first: ${COMMITS}) { totalCount nodes { commit { oid message committedDate } } }
+          comments(last: 50) { nodes { id databaseId body viewerDidAuthor isMinimized } }
         }
       }
     }
@@ -88,6 +88,18 @@ const templates = Object.fromEntries(
     .map(([type, t]) => [type, readFileSync(`${root}/${t.prTemplate}`, "utf8")]),
 );
 
+// The first merged PR each commit appeared in (#310): a later work PR that brings in main carries those
+// commits again, and they are judged in that first PR, not again. Only the PRs read here are known, so
+// `--state open` sees fewer of them than the default `--state all`.
+const firstMerged = new Map();
+for (const p of prs) {
+  if (p.state !== "MERGED") continue;
+  for (const c of p.commits.nodes) {
+    const seen = firstMerged.get(c.commit.oid);
+    if (seen === undefined || p.number < seen) firstMerged.set(c.commit.oid, p.number);
+  }
+}
+
 const entries = prs.map((p) => {
   const pr = {
     number: p.number,
@@ -101,8 +113,15 @@ const entries = prs.map((p) => {
     createdAt: p.createdAt,
     labels: p.labels.nodes.map((l) => l.name),
   };
-  const commits = p.commits.nodes.map((c) => ({ oid: c.commit.oid, message: c.commit.message }));
+  const commits = p.commits.nodes.map((c) => ({
+    oid: c.commit.oid,
+    message: c.commit.message,
+    committedDate: c.commit.committedDate,
+  }));
   const number = linkedIssue(pr.body, { allowRefs: pr.head === "main" });
+  const judgedElsewhere = new Set(
+    commits.filter((c) => (firstMerged.get(c.oid) ?? Number.POSITIVE_INFINITY) < pr.number).map((c) => c.oid),
+  );
   const result = auditPr({
     pr,
     commits,
@@ -110,9 +129,10 @@ const entries = prs.map((p) => {
     issue: number === null ? null : (issues.get(number) ?? null),
     config,
     templates,
+    judgedElsewhere,
   });
   const ownComment = p.comments.nodes.find((c) => c.viewerDidAuthor && c.body.includes(COMMENT_MARKER));
-  return { pr, commits, result, ownComment };
+  return { pr, commits, judgedElsewhere, result, ownComment };
 });
 const selected = team ? entries.filter((e) => e.result.team === team) : entries;
 
@@ -120,7 +140,15 @@ if (flags.fix === true) {
   const items = selected
     .filter((e) => !e.result.ok || e.ownComment)
     .map((e) => ({
-      plan: planFix({ pr: e.pr, commits: e.commits, issues, config, templates }),
+      plan: planFix({
+        pr: e.pr,
+        commits: e.commits,
+        judgedElsewhere: e.judgedElsewhere,
+        issues,
+        config,
+        templates,
+        hadComment: Boolean(e.ownComment),
+      }),
       ownComment: e.ownComment,
     }));
   const { failed } = runFixes({ root, repo, kind: "pr", apply: flags.apply === true, items });
