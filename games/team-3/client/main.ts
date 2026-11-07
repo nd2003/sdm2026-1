@@ -29,7 +29,7 @@ import {
 import { timeLoopGame } from "../shared/game.ts";
 import type { TimeLoopInput, TimeLoopState } from "../shared/index.ts";
 import { OBJECT_IDS } from "../shared/puzzles.ts";
-import { askQuit, type LoopSeconds, renderLobby, syncScreens } from "./screens.ts";
+import { askQuit, clearScreens, type LoopSeconds, renderLobby, syncScreens } from "./screens.ts";
 
 /** In local dev the server runs on :2567; deployed builds are served by the server itself. */
 export const SERVER_URL: string =
@@ -180,6 +180,7 @@ function play(room: Room<TimeLoopState>, health: BuildInfo): void {
     safeSession(() => sessionStorage.removeItem(TOKEN_KEY));
     safeSession(() => sessionStorage.removeItem(CODE_KEY));
     room.leave(true).catch(() => {});
+    clearScreens(); // the overlays live on document.body, so the lobby would otherwise sit under the end card
     showLobby(health);
   };
   const screenActions = {
@@ -202,6 +203,7 @@ function play(room: Room<TimeLoopState>, health: BuildInfo): void {
   let lastHtml = "";
   const meter = createFrameMeter(performance.now());
   const frame = (now: number) => {
+    if (left) return; // left the room: one more frame would redraw the end card over the lobby
     const state = room.state;
     if (state.code) safeSession(() => sessionStorage.setItem(CODE_KEY, state.code));
     if (state.players) syncScreens(state, room.sessionId, screenActions);
