@@ -37,6 +37,9 @@ function connect(name, code, seconds) {
   game.playerName = name;
   game.code = code ? code.toUpperCase() : null;
   isHost = !!seconds;
+  // 60/90/120 for everyone; 600 only for the name admin (ponytail: testing cheat, a ?debug option in the port).
+  // Anything else falls back to 60.
+  if (seconds) seconds = [60, 90, 120].includes(seconds) || (seconds === 600 && isAdmin()) ? seconds : 60;
   if (seconds) game.loopSeconds = seconds;
   const server = new URLSearchParams(location.search).get("server");
   tabId = makeRoomCode() + makeRoomCode();
