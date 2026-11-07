@@ -2,13 +2,20 @@
  * Template game client. Placeholder: checks the server's /health and shows the result.
  * Teams replace this with their own lobby and renderer; the debug overlay comes from @sdm/core/client.
  */
-import { type BuildInfo, createDebugOverlay, createFrameMeter, readClientParams } from "@sdm/core/client";
+import {
+  type BuildInfo,
+  createDebugOverlay,
+  createFrameMeter,
+  readClientParams,
+  serverUrlFromPage,
+} from "@sdm/core/client";
 import { HealthResponseSchema, Routes } from "@sdm/core/shared";
 import { GAME_ID } from "../shared/index.ts";
 
 /** In local dev the server runs on :2567; deployed builds are served by the server itself. */
 export const SERVER_URL: string =
-  import.meta.env.VITE_SERVER_URL ?? (import.meta.env.DEV ? "http://localhost:2567" : location.origin);
+  import.meta.env.VITE_SERVER_URL ??
+  (import.meta.env.DEV ? "http://localhost:2567" : serverUrlFromPage(location.href));
 
 const app = document.getElementById("app");
 
