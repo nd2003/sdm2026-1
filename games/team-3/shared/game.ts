@@ -18,10 +18,12 @@ import {
 } from "./index.ts";
 import {
   answer,
+  answersFor,
   type Ctx,
   click,
   openingLine,
   partnerOf,
+  resetLoop,
   say,
   secondPassed,
   seedAnswers,
@@ -113,6 +115,22 @@ export const timeLoopGame: GameDefinition<TimeLoopState, TimeLoopInput, TimeLoop
       if (!p) throw new Error(`no player ${playerId}`.trim());
       skipLevel(ctx, playerId, p);
       return `${p.name} is on level ${p.stage}${p.escaped ? " (escaped)" : ""}`;
+    },
+    /** `restart [playerId]`: debug only (?debug). Runs the loop reset now, as if the timer hit 0. */
+    restart(ctx, [id]) {
+      const playerId = id ?? [...ctx.state.players.keys()][0] ?? "";
+      const p = ctx.state.players.get(playerId);
+      if (!p) throw new Error(`no player ${playerId}`.trim());
+      resetLoop(ctx, p);
+      return `${p.name} restarted, now in loop ${p.loop}`;
+    },
+    /** `vampire [playerId]`: debug only (?debug). Names the casket that bites this player (the wrong one). */
+    vampire(ctx, [id]) {
+      const playerId = id ?? [...ctx.state.players.keys()][0] ?? "";
+      const p = ctx.state.players.get(playerId);
+      if (!p) throw new Error(`no player ${playerId}`.trim());
+      const safe = answersFor(ctx, p.role === "B" ? "B" : "A").casket;
+      return `${p.name}'s vampire is in casket-${safe === "left" ? "right" : "left"}`;
     },
   },
 };
