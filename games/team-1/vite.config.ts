@@ -1,17 +1,10 @@
 import { networkInterfaces } from "node:os";
 import { defineConfig, type Plugin } from "vite";
+import { pickNetworkAddress } from "./dev/network-address.ts";
 
-const PRIVATE_NETWORK = /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/;
-
-/** This computer's address on the local network, if it has one. Prefers a home or office address. */
+/** This computer's address on the local network, skipping virtual adapters (Hyper-V, WSL, VirtualBox). */
 function findNetworkAddress(): string | null {
-  const found: string[] = [];
-  for (const addresses of Object.values(networkInterfaces())) {
-    for (const entry of addresses ?? []) {
-      if (entry.family === "IPv4" && !entry.internal) found.push(entry.address);
-    }
-  }
-  return found.find((address) => PRIVATE_NETWORK.test(address)) ?? found[0] ?? null;
+  return pickNetworkAddress(networkInterfaces());
 }
 
 /** Dev only: tells the page the network address, so the invite link opens on another laptop. */
