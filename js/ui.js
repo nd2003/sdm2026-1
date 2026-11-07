@@ -25,11 +25,13 @@ function render() {
         <label for="player-name">Your name</label>
         <input id="player-name" maxlength="20" autocomplete="nickname" placeholder="e.g. Sam" value="${esc(url.get("name") || "")}">
         <div class="ways">
-          <div class="way"><h2>Create a room</h2>
-            <label for="loop-seconds">Time per loop</label>
-            <select id="loop-seconds"><option value="60">60 seconds</option><option value="90">90 seconds</option><option value="120">120 seconds</option></select>
+          <div class="way way-create"><h2>Create a room</h2><p class="way-note">Pick how long each loop lasts, then share the code.</p>
+            <fieldset class="loops" id="loop-seconds"><legend>Time per loop</legend>
+              ${[60, 90, 120, 600].map((s) => `<label class="loop"${s === 600 ? " data-admin hidden" : ""}><input type="radio" name="loop" value="${s}"${s === 60 ? " checked" : ""}>`
+                + `<span class="tile" aria-hidden="true"><b>${s === 600 ? 10 : s}</b><small>${s === 600 ? "min" : "sec"}</small></span><span class="sr">${s === 600 ? "10 minutes (admin)" : `${s} seconds`}</span></label>`).join("")}
+              <span class="loop-line" aria-hidden="true"></span></fieldset>
             <button name="how" value="create">Create room</button></div>
-          <div class="way"><h2>Join a room</h2>
+          <div class="way way-join"><h2>Join a room</h2><p class="way-note">Your partner gives you a 4-letter code.</p>
             <label for="room-code">Room code</label>
             <input id="room-code" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="QXTR" value="${esc((url.get("room") || "").toUpperCase())}">
             <button name="how" value="join">Join room</button></div>
@@ -200,6 +202,26 @@ function render() {
   $("game-input").addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); onInput(null); } });
 
   // The lobby form is redrawn by render(), so its events are handled here.
+  // Loop picker: the gold line slides under the chosen tile; the 10 min tile only exists for the name admin.
+  const placeLoopLine = () => {
+    const line = document.querySelector("#lobby .loop-line"), chosen = document.querySelector("#lobby input[name=loop]:checked")?.closest(".loop");
+    if (!line || !chosen) return;
+    line.style.left = chosen.offsetLeft + "px";
+    line.style.width = chosen.offsetWidth + "px";
+  };
+  const syncAdminLoop = () => {
+    const ten = document.querySelector("#lobby .loop[data-admin]"), name = $("player-name");
+    if (!ten || !name) return;
+    const admin = name.value.trim().toLowerCase() === "admin";  // ponytail: testing cheat, connect() also checks it
+    ten.hidden = !admin;
+    if (!admin && ten.querySelector("input").checked) document.querySelector("#lobby input[name=loop][value='60']").checked = true;
+    placeLoopLine();
+  };
+  $("lobby").addEventListener("change", placeLoopLine);
+  $("lobby").addEventListener("input", (e) => { if (e.target.id === "player-name") syncAdminLoop(); });
+  addEventListener("resize", placeLoopLine);
+  new MutationObserver(syncAdminLoop).observe($("lobby"), { childList: true });  // the form was just drawn
+  requestAnimationFrame(syncAdminLoop);
   $("lobby").addEventListener("submit", (e) => {
     e.preventDefault();
     const name = $("player-name").value.trim(), code = $("room-code").value.trim().toUpperCase();
@@ -209,7 +231,7 @@ function render() {
     error.hidden = !problem;
     error.textContent = problem;
     if (problem) return;
-    if (how === "create") connect(name, makeRoomCode(), Number($("loop-seconds").value));
+    if (how === "create") connect(name, makeRoomCode(), Number(document.querySelector("#lobby input[name=loop]:checked")?.value || 60));
     else if (how === "join") connect(name, code);
     else connect(name);
   });

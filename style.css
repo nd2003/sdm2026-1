@@ -602,3 +602,35 @@ body.no-flicker .flame { animation: none; }
 @keyframes zreachShut { 0%, 62% { transform: rotate(-4deg) scale(.85); } 70% { transform: rotate(4deg) scale(.95); } 86%, 100% { transform: rotate(-4deg) scale(.85); } }
 body.no-flicker :is(.zlunge, .zarms, .rattle) { animation: none; }
 @media (prefers-reduced-motion: reduce) { :is(.zlunge, .zarms, .rattle) { animation: none !important; } }
+/* --- Lobby: Create and Join as two cards, timer as tiles (same palette as the game) --- */
+.ways { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+.way {
+  position: relative; gap: 10px; padding: 18px 16px 16px; border-radius: 12px; border: 1px solid #c9b45844;
+  background: linear-gradient(180deg, #23200f, #15130a); box-shadow: 0 10px 28px #000a, inset 0 1px 0 #c9b45822;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+.way::before { content: ""; position: absolute; inset: 0 16px auto; height: 3px; border-radius: 0 0 3px 3px; background: #c9b458; opacity: .8; }
+.way:hover, .way:focus-within { transform: translateY(-2px); border-color: #c9b45899; box-shadow: 0 14px 34px #000c, 0 0 18px #c9b45822; }
+#lobby .way h2 { margin: 2px 0 0; color: #c9b458; letter-spacing: .06em; text-transform: uppercase; font-size: 1.05rem; }
+#lobby .way .way-note { margin: 0; font-size: .85rem; opacity: .65; max-width: none; }
+.way-join { align-content: start; }
+.way-join button { margin-top: auto; }
+/* timer tiles: real radio inputs (keyboard + screen readers), drawn as cards */
+.loops { position: relative; display: flex; gap: 8px; margin: 2px 0 4px; padding: 0 0 9px; border: 0; }
+.loops legend { padding: 0; margin-bottom: 6px; font-size: .85rem; opacity: .7; }
+.loop { position: relative; flex: 1; }
+#lobby .loop { margin: 0; opacity: 1; font-size: inherit; }  /* undo the generic #lobby label look */
+#lobby .loop[hidden] { display: none; }
+.loop input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.tile {
+  display: grid; place-items: center; padding: 8px 2px 6px; border-radius: 8px; border: 1px dashed #c9b45855;
+  background: #0d0c06; color: #d8d0ba; line-height: 1.1; transition: border-color .2s, background .2s, color .2s;
+}
+.tile b { font-size: 1.35rem; }
+.tile small { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.loop input:checked + .tile { border-style: solid; border-color: #c9b458; background: #2a2510; color: #c9b458; box-shadow: inset 0 0 12px #c9b45822; }
+.loop input:focus-visible + .tile { outline: 2px solid #fff; outline-offset: 2px; }
+.loop-line { position: absolute; left: 0; bottom: 0; width: 0; height: 3px; border-radius: 2px; background: #c9b458; box-shadow: 0 0 8px #c9b45899; transition: left .25s ease, width .25s ease; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 560px) { .ways { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .way, .tile, .loop-line { transition: none; } .way:hover, .way:focus-within { transform: none; } }
