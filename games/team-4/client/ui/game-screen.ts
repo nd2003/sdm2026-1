@@ -1,12 +1,6 @@
 export type DifficultyLevel = "basic" | "medium" | "hard";
 
-export type ActiveStageView =
-  | "lobby"
-  | "basic"
-  | "corridor-1"
-  | "medium"
-  | "corridor-2"
-  | "hard";
+export type ActiveStageView = "lobby" | "basic" | "corridor-1" | "medium" | "corridor-2" | "hard";
 
 export type RoomObjectId =
   | "r1-glovebox"
@@ -232,26 +226,14 @@ export function renderGameScreen(
     ["GREEN", "BLUE", "RED", "AMBER"],
     ["GREEN", "BLUE", "RED"],
   );
-  let r2TapOrder: string[] = shuffleNonSequential(
-    ["WINE", "ALE", "GIN", "RYE"],
-    ["WINE", "ALE", "GIN"],
-  );
+  let r2TapOrder: string[] = shuffleNonSequential(["WINE", "ALE", "GIN", "RYE"], ["WINE", "ALE", "GIN"]);
   let r2SuspectOrder: string[] = shuffleItems(["caterina", "marco", "sanchez", "luca"]);
   let r3OscilloOrder: string[] = shuffleNonSequential(["4", "6", "8", "12"], ["4", "8", "12"]);
-  let r3HnocsOrder: string[] = shuffleNonSequential(
-    ["H", "N", "O", "C", "S"],
-    ["C", "O", "N"],
-  );
+  let r3HnocsOrder: string[] = shuffleNonSequential(["H", "N", "O", "C", "S"], ["C", "O", "N"]);
 
   function reseedShuffles(): void {
-    r1ConsoleOrder = shuffleNonSequential(
-      ["GREEN", "BLUE", "RED", "AMBER"],
-      ["GREEN", "BLUE", "RED"],
-    );
-    r2TapOrder = shuffleNonSequential(
-      ["WINE", "ALE", "GIN", "RYE"],
-      ["WINE", "ALE", "GIN"],
-    );
+    r1ConsoleOrder = shuffleNonSequential(["GREEN", "BLUE", "RED", "AMBER"], ["GREEN", "BLUE", "RED"]);
+    r2TapOrder = shuffleNonSequential(["WINE", "ALE", "GIN", "RYE"], ["WINE", "ALE", "GIN"]);
     r2SuspectOrder = shuffleItems(["caterina", "marco", "sanchez", "luca"]);
     r3OscilloOrder = shuffleNonSequential(["4", "6", "8", "12"], ["4", "8", "12"]);
     r3HnocsOrder = shuffleNonSequential(["H", "N", "O", "C", "S"], ["C", "O", "N"]);
@@ -338,24 +320,12 @@ export function renderGameScreen(
 
   function countRoomSolved(): number {
     if (state.difficulty === "basic") {
-      return (
-        Number(state.r1GloveSolved) +
-        Number(state.r1ChemSolved) +
-        Number(state.r1ConsoleSolved)
-      );
+      return Number(state.r1GloveSolved) + Number(state.r1ChemSolved) + Number(state.r1ConsoleSolved);
     }
     if (state.difficulty === "medium") {
-      return (
-        Number(state.r2ChalkSolved) +
-        Number(state.r2TapsSolved) +
-        Number(state.r2BoardSolved)
-      );
+      return Number(state.r2ChalkSolved) + Number(state.r2TapsSolved) + Number(state.r2BoardSolved);
     }
-    return (
-      Number(state.r3CoatSolved) +
-      Number(state.r3OscilloSolved) +
-      Number(state.r3HnocsSolved)
-    );
+    return Number(state.r3CoatSolved) + Number(state.r3OscilloSolved) + Number(state.r3HnocsSolved);
   }
 
   container.innerHTML = `
@@ -1803,12 +1773,14 @@ export function renderGameScreen(
   function toggleMicrophone(): void {
     state.micMuted = !state.micMuted;
     if (!state.micMuted) {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      if (navigator.mediaDevices?.getUserMedia) {
         navigator.mediaDevices
           .getUserMedia({ audio: true })
           .then((stream) => {
             if (state.micMuted) {
-              stream.getTracks().forEach((t) => t.stop());
+              stream.getTracks().forEach((t) => {
+                t.stop();
+              });
               return;
             }
             activeMicStream = stream;
@@ -1818,7 +1790,9 @@ export function renderGameScreen(
           });
       }
     } else if (activeMicStream) {
-      activeMicStream.getTracks().forEach((t) => t.stop());
+      activeMicStream.getTracks().forEach((t) => {
+        t.stop();
+      });
       activeMicStream = null;
     }
     renderState();
@@ -2269,11 +2243,7 @@ export function renderGameScreen(
                 })
                 .join("")}
             </div>
-            ${
-              errMsg
-                ? `<div class="tle-status-readout" style="color:#fca5a5">${errMsg}</div>`
-                : ""
-            }
+            ${errMsg ? `<div class="tle-status-readout" style="color:#fca5a5">${errMsg}</div>` : ""}
           </div>
         `;
         host.querySelectorAll<HTMLElement>("[data-sus]").forEach((btn) => {
@@ -2395,11 +2365,7 @@ export function renderGameScreen(
                 )
                 .join("")}
             </div>
-            ${
-              errMsg
-                ? `<div class="tle-status-readout" style="color:#fca5a5">${errMsg}</div>`
-                : ""
-            }
+            ${errMsg ? `<div class="tle-status-readout" style="color:#fca5a5">${errMsg}</div>` : ""}
           </div>
         `;
         host.querySelectorAll<HTMLElement>("[data-hz]").forEach((btn) => {
@@ -2527,7 +2493,7 @@ export function renderGameScreen(
     state.escaped = false;
     state.corridorEqualized = false;
     state.inventory = [];
-    state.loopCount = loopsArr[idx];
+    state.loopCount = loopsArr[idx] ?? 1;
     cur.maxUnlockedRoom = Math.max(cur.maxUnlockedRoom, idx + 1);
 
     reseedShuffles();
@@ -2843,11 +2809,7 @@ export function renderGameScreen(
   // =========================================================================
 
   function escapeChatHtml(raw: string): string {
-    return raw
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+    return raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   // Preview Switcher: View as Saif (Host) or Drek (Opponent) with independent room progress
@@ -3105,14 +3067,12 @@ export function renderGameScreen(
       btnBasic.classList.remove("tle-diff-locked");
     }
     if (btnMed) {
-      btnMed.textContent =
-        myCleared >= 2 ? "✓ Room 2" : unlocked >= 2 ? "Room 2" : "🔒 Room 2";
+      btnMed.textContent = myCleared >= 2 ? "✓ Room 2" : unlocked >= 2 ? "Room 2" : "🔒 Room 2";
       btnMed.classList.toggle("tle-diff-active", state.difficulty === "medium" && !inCorridor);
       btnMed.classList.toggle("tle-diff-locked", unlocked < 2);
     }
     if (btnHard) {
-      btnHard.textContent =
-        myCleared >= 3 ? "✓ Room 3" : unlocked >= 3 ? "Room 3" : "🔒 Room 3";
+      btnHard.textContent = myCleared >= 3 ? "✓ Room 3" : unlocked >= 3 ? "Room 3" : "🔒 Room 3";
       btnHard.classList.toggle("tle-diff-active", state.difficulty === "hard" && !inCorridor);
       btnHard.classList.toggle("tle-diff-locked", unlocked < 3);
     }
@@ -3150,48 +3110,28 @@ export function renderGameScreen(
       r3DoorTag.classList.toggle("tle-tag-solved", r3Open);
     }
 
-    container
-      .querySelector("#tag-r1-glove")
-      ?.classList.toggle("tle-tag-solved", state.r1GloveSolved);
-    container
-      .querySelector("#tag-r1-chem")
-      ?.classList.toggle("tle-tag-solved", state.r1ChemSolved);
-    container
-      .querySelector("#tag-r1-crate")
-      ?.classList.toggle("tle-tag-solved", state.r1ChemSolved);
-    container
-      .querySelector("#tag-r1-console")
-      ?.classList.toggle("tle-tag-solved", state.r1ConsoleSolved);
+    container.querySelector("#tag-r1-glove")?.classList.toggle("tle-tag-solved", state.r1GloveSolved);
+    container.querySelector("#tag-r1-chem")?.classList.toggle("tle-tag-solved", state.r1ChemSolved);
+    container.querySelector("#tag-r1-crate")?.classList.toggle("tle-tag-solved", state.r1ChemSolved);
+    container.querySelector("#tag-r1-console")?.classList.toggle("tle-tag-solved", state.r1ConsoleSolved);
     container
       .querySelector("#tag-r2-chalk")
       ?.classList.toggle(
         "tle-tag-solved",
         state.inventory.includes("Brass Corkscrew") || state.r2ChalkSolved,
       );
-    container
-      .querySelector("#tag-r2-wine")
-      ?.classList.toggle("tle-tag-solved", state.r2ChalkSolved);
-    container
-      .querySelector("#tag-r2-taps")
-      ?.classList.toggle("tle-tag-solved", state.r2TapsSolved);
-    container
-      .querySelector("#tag-r2-board")
-      ?.classList.toggle("tle-tag-solved", state.r2BoardSolved);
+    container.querySelector("#tag-r2-wine")?.classList.toggle("tle-tag-solved", state.r2ChalkSolved);
+    container.querySelector("#tag-r2-taps")?.classList.toggle("tle-tag-solved", state.r2TapsSolved);
+    container.querySelector("#tag-r2-board")?.classList.toggle("tle-tag-solved", state.r2BoardSolved);
     container
       .querySelector("#tag-r3-coat")
       ?.classList.toggle(
         "tle-tag-solved",
         state.inventory.includes("Oscilloscope Key") || state.r3CoatSolved,
       );
-    container
-      .querySelector("#tag-r3-graffiti")
-      ?.classList.toggle("tle-tag-solved", state.r3CoatSolved);
-    container
-      .querySelector("#tag-r3-oscillo")
-      ?.classList.toggle("tle-tag-solved", state.r3OscilloSolved);
-    container
-      .querySelector("#tag-r3-hnocs")
-      ?.classList.toggle("tle-tag-solved", state.r3HnocsSolved);
+    container.querySelector("#tag-r3-graffiti")?.classList.toggle("tle-tag-solved", state.r3CoatSolved);
+    container.querySelector("#tag-r3-oscillo")?.classList.toggle("tle-tag-solved", state.r3OscilloSolved);
+    container.querySelector("#tag-r3-hnocs")?.classList.toggle("tle-tag-solved", state.r3HnocsSolved);
 
     // Corridor LED Columns light up green when wheel turned!
     container.querySelectorAll("#corridor-led-cols rect").forEach((r) => {
@@ -3213,12 +3153,8 @@ export function renderGameScreen(
     const p2BotName = container.querySelector<HTMLElement>("#lobby-bot-p2-name");
     if (p1BotName) p1BotName.textContent = state.player1Name;
     if (p2BotName) p2BotName.textContent = state.player2Name;
-    container
-      .querySelector("#you-chip-p1")
-      ?.classList.toggle("hidden", state.localRole !== "host");
-    container
-      .querySelector("#you-chip-p2")
-      ?.classList.toggle("hidden", state.localRole !== "guest");
+    container.querySelector("#you-chip-p1")?.classList.toggle("hidden", state.localRole !== "host");
+    container.querySelector("#you-chip-p2")?.classList.toggle("hidden", state.localRole !== "guest");
 
     // Both Voice Microphones (In-Room PUBG Mic + Optional Lobby Mic — Symbol Only)
     const micBtn = container.querySelector<HTMLElement>("#btn-pubg-mic");
@@ -3253,12 +3189,8 @@ export function renderGameScreen(
     }
 
     // Lobby Name Box Green Checkmarks (Visible to BOTH Saif & Drek!)
-    container
-      .querySelector("#lobby-box-p1")
-      ?.classList.toggle("tle-nameplate-ready", state.player1Ready);
-    container
-      .querySelector("#lobby-box-p2")
-      ?.classList.toggle("tle-nameplate-ready", state.player2Ready);
+    container.querySelector("#lobby-box-p1")?.classList.toggle("tle-nameplate-ready", state.player1Ready);
+    container.querySelector("#lobby-box-p2")?.classList.toggle("tle-nameplate-ready", state.player2Ready);
     container.querySelector("#saif-ready-tick")?.classList.toggle("hidden", !state.player1Ready);
     container.querySelector("#drek-ready-tick")?.classList.toggle("hidden", !state.player2Ready);
 
@@ -3269,9 +3201,7 @@ export function renderGameScreen(
       lobbyBtn.classList.remove("tle-lobby-btn-green", "tle-lobby-btn-gray", "tle-lobby-btn-waiting");
       if (state.localRole === "guest") {
         lobbyBtn.textContent = "READY";
-        lobbyBtn.classList.add(
-          state.player2Ready ? "tle-lobby-btn-green" : "tle-lobby-btn-gray",
-        );
+        lobbyBtn.classList.add(state.player2Ready ? "tle-lobby-btn-green" : "tle-lobby-btn-gray");
         cancelReadyBtn?.classList.add("hidden");
       } else if (!state.player1Ready) {
         lobbyBtn.textContent = "READY";
@@ -3295,8 +3225,7 @@ export function renderGameScreen(
     const pubgDrawer = container.querySelector<HTMLElement>("#pubg-side-drawer");
     const inviteTextEl = container.querySelector<HTMLElement>("#pubg-invite-text");
     if (inviteTextEl && state.rematchInvitedBy) {
-      const inviterName =
-        state.rematchInvitedBy === "p1" ? state.player1Name : state.player2Name;
+      const inviterName = state.rematchInvitedBy === "p1" ? state.player1Name : state.player2Name;
       inviteTextEl.textContent = `${inviterName} invited you for a rematch`;
     }
     pubgDrawer?.classList.toggle("tle-side-hidden", !isRecipient);
@@ -3306,15 +3235,11 @@ export function renderGameScreen(
     if (showScoreModal) {
       const titleEl = container.querySelector<HTMLElement>("#score-modal-title");
       if (titleEl) {
-        titleEl.textContent = state.escaped
-          ? "🏆 ESCAPE COMPLETE — FINAL STATS"
-          : "📊 LIVE MATCH STATS";
+        titleEl.textContent = state.escaped ? "🏆 ESCAPE COMPLETE — FINAL STATS" : "📊 LIVE MATCH STATS";
       }
 
-      const otherName =
-        state.localRole === "host" ? state.player2Name : state.player1Name;
-      const myName =
-        state.localRole === "host" ? state.player1Name : state.player2Name;
+      const otherName = state.localRole === "host" ? state.player2Name : state.player1Name;
+      const myName = state.localRole === "host" ? state.player1Name : state.player2Name;
       const myKey: RematchSender = state.localRole === "host" ? "p1" : "p2";
       const iSent = state.rematchInvitedBy === myKey;
 
@@ -3327,10 +3252,8 @@ export function renderGameScreen(
         state.localRole === "host" && oppRawSum === 0 ? state.friendLoopCount : oppRawSum,
       );
 
-      const myTime =
-        state.localRole === "host" ? state.p1TimeSpentSeconds : state.p2TimeSpentSeconds;
-      const oppTime =
-        state.localRole === "host" ? state.p2TimeSpentSeconds : state.p1TimeSpentSeconds;
+      const myTime = state.localRole === "host" ? state.p1TimeSpentSeconds : state.p2TimeSpentSeconds;
+      const oppTime = state.localRole === "host" ? state.p2TimeSpentSeconds : state.p1TimeSpentSeconds;
       const myRooms =
         state.localRole === "host"
           ? state.escaped
@@ -3339,31 +3262,26 @@ export function renderGameScreen(
           : state.escaped
             ? 3
             : state.p2RoomsCleared;
-      const oppRooms =
-        state.localRole === "host" ? state.p2RoomsCleared : state.p1RoomsCleared;
+      const oppRooms = state.localRole === "host" ? state.p2RoomsCleared : state.p1RoomsCleared;
 
       const bannerEl = container.querySelector<HTMLElement>("#stats-winner-banner");
       if (bannerEl) {
         if (!state.escaped) {
           bannerEl.textContent =
-            `⏱️ Match in progress — ${myName}: ${myRooms}/3 rooms · ` +
-            `${otherName}: ${oppRooms}/3 rooms`;
+            `⏱️ Match in progress — ${myName}: ${myRooms}/3 rooms · ` + `${otherName}: ${oppRooms}/3 rooms`;
         } else if (myTotalLoops < oppTotalLoops) {
           bannerEl.textContent =
             `🥇 ${myName} escaped in fewer loops! (${myTotalLoops} vs ${otherName}'s ` +
             `${oppTotalLoops} loops)`;
         } else if (oppTotalLoops < myTotalLoops) {
           bannerEl.textContent =
-            `🥇 ${otherName} escaped in fewer loops! (${oppTotalLoops} vs your ` +
-            `${myTotalLoops} loops)`;
+            `🥇 ${otherName} escaped in fewer loops! (${oppTotalLoops} vs your ` + `${myTotalLoops} loops)`;
         } else {
-          bannerEl.textContent =
-            `🤝 Tied on Loops! Both ${myName} & ${otherName} took ${myTotalLoops} loop(s)`;
+          bannerEl.textContent = `🤝 Tied! Both ${myName} & ${otherName} took ${myTotalLoops} loop(s)`;
         }
       }
 
-      const fmtRoomLoop = (n: number): string =>
-        n <= 0 ? "—" : `${n} ${n === 1 ? "loop" : "loops"}`;
+      const fmtRoomLoop = (n: number): string => (n <= 0 ? "—" : `${n} ${n === 1 ? "loop" : "loops"}`);
 
       const meCol = container.querySelector<HTMLElement>("#stats-col-me");
       if (meCol) {
@@ -3528,9 +3446,7 @@ export function renderGameScreen(
               : "Click the draped Lab Coat & Radio at the corner desk for both Room 3 clues!";
         cluesEl.innerHTML = `<li class="tle-clue-empty">${tip}</li>`;
       } else {
-        cluesEl.innerHTML = state.clues
-          .map((c) => `<li class="tle-clue-item">${c}</li>`)
-          .join("");
+        cluesEl.innerHTML = state.clues.map((c) => `<li class="tle-clue-item">${c}</li>`).join("");
       }
     }
   }
@@ -3553,17 +3469,14 @@ export function renderGameScreen(
     }
 
     if (partial.opponentEscapedRoom) {
-      const otherName =
-        state.localRole === "host" ? state.player2Name : state.player1Name;
+      const otherName = state.localRole === "host" ? state.player2Name : state.player1Name;
       showEscapeGreenPopup(`${otherName} escaped Room ${partial.opponentEscapedRoom}`);
     }
 
     state = {
       ...state,
       ...partial,
-      lobbyMessages: partial.lobbyMessages
-        ? [...partial.lobbyMessages]
-        : state.lobbyMessages,
+      lobbyMessages: partial.lobbyMessages ? [...partial.lobbyMessages] : state.lobbyMessages,
       p1RoomLoops: partial.p1RoomLoops ? [...partial.p1RoomLoops] : state.p1RoomLoops,
       p2RoomLoops: partial.p2RoomLoops ? [...partial.p2RoomLoops] : state.p2RoomLoops,
       clues: partial.clues ? [...partial.clues] : state.clues,
