@@ -1,5 +1,6 @@
 // Rules for `node course/tooling/student-report.mjs`: per-student activity, a 1-5 score and a justification.
 // Pure functions only, so they can be unit tested. The criteria follow "Evaluation" in course/README.md.
+import { importOf } from "./pr-report.mjs";
 
 /** Logins that are never scored: instructors, organizer accounts and bots. */
 export const NOT_SCORED = {
@@ -25,6 +26,8 @@ const emptyStats = (login) => ({
   deletions: 0,
   commits: 0,
   commitsWithRefs: 0,
+  commitsImported: 0,
+  importsMerged: 0,
   docPass: 0,
   docFail: 0,
   docProblems: {},
@@ -93,17 +96,32 @@ export function collectStats({ prs, issues, docs, teamLabels, members = [] }) {
     }
     // A commit shows up again in integration PRs (work branch, feature/team-N, main): count it once, for the
     // first PR that has it. Commits by an AI agent count for the PR author.
+    // An import PR (#310) brings commits written in a team's own repository: without an issue reference they
+    // are counted as imported and left out of the "Refs" rule.
+    const imported = importOf(pr.number) !== null;
+    /** Authors of the imported commits of this PR. */
+    const importers = new Set();
     for (const c of pr.commits) {
       if (seenCommits.has(c.oid)) continue;
       seenCommits.add(c.oid);
       const logins = new Set(c.authors.map((a) => (!a || AGENTS.has(a) ? pr.author : a)));
+      const hasRef = ISSUE_REF.test(c.message);
       for (const login of logins) {
         const u = user(login);
         if (!u) continue;
+        if (imported && !hasRef) {
+          u.commitsImported++;
+          importers.add(login);
+          continue;
+        }
         u.commits++;
-        if (ISSUE_REF.test(c.message)) u.commitsWithRefs++;
+        if (hasRef) u.commitsWithRefs++;
       }
     }
+    // The work in a merged import PR was delivered by everyone who wrote it, not only by whoever opened the
+    // PR (#310): each other author gets it as a merged PR for Delivery (without its lines).
+    if (imported && pr.state === "MERGED")
+      for (const login of importers) if (login !== pr.author) user(login).importsMerged++;
     for (const r of new Set(pr.reviewers)) if (r !== pr.author) user(r).reviewsGiven++;
     for (const c of pr.commenters) if (c !== pr.author) user(c).comments++;
   }
@@ -130,13 +148,18 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 export function scoreStudent(s) {
   const why = [];
 
-  // Delivery, 0-4: merged pull requests.
+  // Delivery, 0-4: merged pull requests, including merged imports of the student's own work (#310).
+  const merged = s.prsMerged + (s.importsMerged ?? 0);
   let delivery = 0;
-  if (s.prsMerged >= 5) delivery = 4;
-  else if (s.prsMerged >= 2) delivery = 3;
-  else if (s.prsMerged === 1) delivery = 2;
+  if (merged >= 5) delivery = 4;
+  else if (merged >= 2) delivery = 3;
+  else if (merged === 1) delivery = 2;
   else if (s.prsOpen > 0) delivery = 1;
   if (s.prsMerged) why.push(`${plural(s.prsMerged, "merged PR")} (+${s.additions}/−${s.deletions} lines)`);
+  if (s.importsMerged)
+    why.push(
+      `own work in ${plural(s.importsMerged, "merged import PR")} opened by a teammate (counted for Delivery)`,
+    );
   if (s.prsOpen) why.push(`${plural(s.prsOpen, "PR")} still open`);
   if (!s.prsOpened) why.push("no pull requests");
 
@@ -163,6 +186,10 @@ export function scoreStudent(s) {
       why.push(`${s.commitsWithRefs}/${s.commits} commits reference an issue`);
     } else why.push(`only ${s.commitsWithRefs}/${s.commits} commits reference an issue`);
   }
+  if (s.commitsImported)
+    why.push(
+      `${plural(s.commitsImported, "commit")} imported from the team's own repository (not checked for Refs)`,
+    );
   if (s.issuesOpened) {
     if (s.issuesBadlyNamed === 0) {
       process++;
@@ -186,7 +213,15 @@ export function scoreStudent(s) {
 
   const points = delivery + process + collaboration;
   const score = points >= 8 ? 5 : points >= 5 ? 4 : points >= 3 ? 3 : points >= 1 ? 2 : 1;
-  if (points === 0 && !s.prsOpened && !s.issuesOpened && !s.issuesAssigned && !s.merges && !s.commits)
+  if (
+    points === 0 &&
+    !s.prsOpened &&
+    !s.issuesOpened &&
+    !s.issuesAssigned &&
+    !s.merges &&
+    !s.commits &&
+    !s.commitsImported
+  )
     why.splice(
       0,
       why.length,

@@ -1,15 +1,11 @@
-/**
- * Template game client. Placeholder: checks the server's /health and shows the result.
- * Teams replace this with their own lobby and renderer; the debug overlay comes from @sdm/core/client.
- */
 import "./styles.css";
 import { serverUrlFromPage } from "@sdm/core/client";
-import { HealthResponseSchema, Routes } from "@sdm/core/shared";
-import { GAME_ID } from "../shared/index.ts";
+import { renderGameScreen } from "./ui/index.ts";
 
 /**
  * In local dev the server runs on :2567; deployed builds are served by the server itself, at the root of its
  * own address or under /team-4/ behind the gateway, so the address comes from the page, not location.origin.
+ * Not used yet: the game screen still runs on sample data until it connects to the room.
  */
 export const SERVER_URL: string =
   import.meta.env.VITE_SERVER_URL ??
@@ -17,19 +13,33 @@ export const SERVER_URL: string =
 
 const app = document.getElementById("app");
 
-async function main(): Promise<void> {
+function main(): void {
   if (!app) return;
-  try {
-    const res = await fetch(`${SERVER_URL}${Routes.health}`);
-    const health = HealthResponseSchema.parse(await res.json());
-    app.innerHTML = `<div class="ok">Server OK</div>
-      <div>game: ${GAME_ID}</div>
-      <div>env: ${health.env}</div>
-      <div>sha: ${health.sha}</div>
-      <div>games: ${health.games.join(", ")}</div>`;
-  } catch (err) {
-    app.innerHTML = `<div class="bad">Can't reach the server at ${SERVER_URL}</div><div>${String(err)}</div>`;
-  }
+
+  app.style.padding = "0";
+  const game = renderGameScreen(app, {
+    roomId: "ROOM 01 // OUTBREAK BIO-BUNKER",
+    roomCode: "TL-04",
+    player1Name: "Saif",
+    player2Name: "Drek",
+    timeLeftSeconds: 60,
+    loopDurationSeconds: 60,
+    loopCount: 1,
+    connectedPlayers: 2,
+    maxPlayers: 2,
+    score: 1,
+    statusText: "Ready",
+  });
+
+  // 60-second Time Loop countdown: ticks only while timerRunning is true
+  setInterval(() => {
+    const current = game.getState();
+    if (!current.timerRunning || current.escaped) return;
+
+    if (current.timeLeftSeconds > 0) {
+      game.update({ timeLeftSeconds: current.timeLeftSeconds - 1 });
+    }
+  }, 1000);
 }
 
-void main();
+main();
