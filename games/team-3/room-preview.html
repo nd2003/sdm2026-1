@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Time Loop Escape: room preview</title>
+    <style>
+      .preview-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; font: 14px "Courier New", monospace; }
+      .preview-bar button { padding: 6px 10px; cursor: pointer; }
+      .preview-bar button[aria-pressed="true"] { outline: 2px solid #c9b458; }
+      #room { width: min(1000px, 100%); aspect-ratio: 16 / 10; }
+    </style>
+  </head>
+  <body data-phase="playing">
+    <div class="preview-bar">
+      <button type="button" data-stage-btn="1">Level 1</button>
+      <button type="button" data-stage-btn="2">Level 2</button>
+      <button type="button" data-stage-btn="3">Level 3</button>
+      <button type="button" data-flag="paintingMoved">Painting moved</button>
+      <button type="button" data-flag="cabinetOpen">Cabinet open</button>
+      <button type="button" data-flag="doorUnlocked">Door unlocked</button>
+      <button type="button" data-flag="powerOn">Corridor power</button>
+      <button type="button" data-flag="liftPower">Shaft power</button>
+      <button type="button" data-flag="gateClosed">Gate closed</button>
+      <button type="button" id="next-loop">Next loop</button>
+      <span id="clicked" role="status">Click an object</span>
+    </div>
+    <div id="room"></div>
+    <script type="module" src="/client/room-preview.ts"></script>
+  </body>
+</html>
