@@ -634,3 +634,17 @@ body.no-flicker :is(.zlunge, .zarms, .rattle) { animation: none; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @media (max-width: 560px) { .ways { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .way, .tile, .loop-line { transition: none; } .way:hover, .way:focus-within { transform: none; } }
+
+/* Level 2 changes (Abdullah): candles hang from the ceiling with a big bat; a count peeks half out of a doorway */
+#room .candelabra.level-view { display: none !important; }  /* the floor candelabra is gone: the candles hang from the ceiling now */
+#obj-candles { left: 74%; top: 7%; bottom: auto; --w: 22cqw; }  /* right of the message box */
+.bigbat { transform-box: view-box; animation: bigbat 6s ease-in-out infinite; }
+@keyframes bigbat { 0%, 100% { rotate: 0deg; } 50% { rotate: 4deg; } }
+.bat-eye { animation: eyeglow 2.2s ease-in-out infinite; }
+#obj-vampire { left: 60%; bottom: 24%; --w: 14cqw; }
+.vamp-eye-glow { animation: eyeglow 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes eyeglow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.vamp-body { animation: peek 7s ease-in-out infinite; }
+@keyframes peek { 0%, 60%, 100% { transform: translateX(0); } 70%, 85% { transform: translateX(-6px); } }
+body.no-flicker :is(.bigbat, .bat-eye, .vamp-eye-glow, .vamp-body) { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.bigbat, .bat-eye, .vamp-eye-glow, .vamp-body) { animation: none !important; } }

@@ -123,10 +123,44 @@ function buildRoom() {
       <rect x="2" y="2" width="66" height="136" fill="#1a1d20" ${ink}/><rect x="8" y="10" width="54" height="128" fill="url(#bricks)"/>
       <path d="M8 10h54M8 10v128M62 10v128" stroke="#0a0c0e" stroke-width="4"/><path d="M18 64c6 6 16 6 22-2M24 90l14-6" stroke="#0a0c0e" stroke-width="2" fill="none"/>
       <rect x="20" y="20" width="30" height="9" fill="#8d7433" stroke="#231a08"/><path d="M23 24h24" stroke="#2b2109" stroke-width="2"/>`), 2],
-    ["candles", "Candle stubs", `<svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
-      <g class="candles"><circle cx="44" cy="44" r="58" fill="url(#candle)"/><g fill="#f4d98a"><path d="M26 48c-4-7 0-12 0-17 3 6 5 11 0 17zM50 38c-4-8 0-14 0-20 3 7 6 13 0 20zM68 54c-3-6 0-10 0-14 3 5 4 9 0 14z"/></g></g>
-      <g fill="#c9c2a8" stroke="#3b3323"><rect x="20" y="48" width="12" height="28"/><rect x="44" y="38" width="13" height="40"/><rect x="62" y="54" width="11" height="22"/></g>
-      <path d="M14 78c20 6 50 6 64 0-2-6-12-6-14-2-10 2-30 2-36 0-4-4-12-2-14 2z" fill="#a79f8a" stroke="#3b3323"/></svg>`, 2],
+    ["candles", "Hanging candles", `<svg viewBox="-100 -20 200 220" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <path d="M0 -620V18" stroke="#1a1610" stroke-width="3" stroke-dasharray="6 3"/>
+      <g class="candles"><circle cx="0" cy="40" r="95" fill="url(#candle)"/>
+        <g fill="#f4d98a">${[-64, -32, 0, 32, 64].map((x, i) => `<path d="M${x} ${14 - (i % 2) * 6}c-4-8 0-14 0-20 4 7 6 13 0 20z"/>`).join("")}</g></g>
+      <g fill="#d6cfb6" stroke="#3b3323">${[-64, -32, 0, 32, 64].map((x, i) => `<rect x="${x - 5}" y="${16 - (i % 2) * 6}" width="10" height="${26 + (i % 2) * 6}"/>`).join("")}</g>
+      <path d="M-58 22c0 6 2 10 0 16M30 16c-1 6 1 12-1 18" stroke="#efe6c8" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <path d="M-76 44h152" stroke="#14110c" stroke-width="7" stroke-linecap="round"/><ellipse cx="0" cy="44" rx="78" ry="9" fill="none" stroke="#14110c" stroke-width="5"/>
+      <path d="M0 18L-70 42M0 18L70 42M0 18v26" stroke="#14110c" stroke-width="3"/>
+      <g class="bigbat" transform="translate(0 56)">
+        <path d="M-3 0v6M3 0v6" stroke="#0a0806" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M-12 6c-10 30-44 34-70 22 10-6 14-14 14-22-8 4-18 4-26 0 18-8 40-14 62-12zM12 6c10 30 44 34 70 22-10-6-14-14-14-22 8 4 18 4 26 0-18-8-40-14-62-12z" fill="#120d0a" stroke="#050403" stroke-width="1.5"/>
+        <path d="M-20 12c-14 12-30 14-48 14M20 12c14 12 30 14 48 14" stroke="#2c2018" stroke-width="1.2" fill="none"/>
+        <path d="M-14 4c-2 30 4 54 14 62 10-8 16-32 14-62z" fill="#1b1410" stroke="#050403" stroke-width="1.2"/>
+        <g transform="translate(0 70)"><path d="M-10 4l-6 16 10-8zM10 4l6 16-10-8z" fill="#1b1410"/><ellipse cx="0" cy="2" rx="12" ry="10" fill="#1b1410"/>
+          <circle class="bat-eye" cx="-4.5" cy="4" r="2.6" fill="#ff3a26"/><circle class="bat-eye" cx="4.5" cy="4" r="2.6" fill="#ff3a26"/>
+          <path d="M-3 -6l1 -4 1 3M3 -6l-1 -4-1 3" fill="#e8e2cf"/></g>
+      </g></svg>`, 2],
+    ["vampire", "Vampire", `<svg viewBox="0 0 170 300" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <defs><radialGradient id="vglow"><stop offset="0" stop-color="#ff3a26"/><stop offset=".35" stop-color="#ff3a2699"/><stop offset="1" stop-color="#ff3a2600"/></radialGradient>
+        <linearGradient id="vskin" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8d4c4"/><stop offset="1" stop-color="#8f8a78"/></linearGradient></defs>
+      <rect x="0" y="0" width="170" height="300" fill="#050403"/>
+      <g class="vamp-body">
+        <path d="M18 300c2-90 16-150 36-176l28 6 28-6c20 26 34 86 36 176z" fill="#070606"/>
+        <path d="M30 150c-8-30-10-62-4-94l40 70zM134 150c8-30 10-62 4-94l-40 70z" fill="#6e0d0f" stroke="#120303" stroke-width="2"/>
+        <path d="M30 150c-6-30-6-60 0-90l20 48zM134 150c6-30 6-60 0-90l-20 48z" fill="#0d0a0a"/>
+        <path d="M68 128l14 40 14-40-14 8z" fill="#e9e4d4"/><path d="M76 140l6 18 6-18z" fill="#6e0d0f"/>
+        <path d="M58 54c0-34 12-50 24-50s24 16 24 50c0 34-10 64-24 70-14-6-24-36-24-70z" fill="url(#vskin)"/>
+        <path d="M56 54c-2-34 10-52 26-52s28 18 26 52c-6-16-14-24-18-30l-8 18-8-18c-4 6-12 14-18 30z" fill="#0a0808"/>
+        <path d="M64 58l14 6M100 58l-14 6" stroke="#0a0808" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="72" cy="70" r="14" fill="url(#vglow)" class="vamp-eye-glow"/><circle cx="92" cy="70" r="14" fill="url(#vglow)" class="vamp-eye-glow"/>
+        <ellipse cx="72" cy="70" rx="4.5" ry="3" fill="#ff5a3a"/><ellipse cx="92" cy="70" rx="4.5" ry="3" fill="#ff5a3a"/>
+        <path d="M82 76l-3 14h6z" fill="#7a7566" opacity=".6"/><path d="M72 100c6 4 14 4 20 0" stroke="#3a0605" stroke-width="2.5" fill="none"/>
+        <path d="M75 100l2 7 2-6M89 100l-2 7-2-6" fill="#f2eee2"/>
+      </g>
+      <path d="M86 0h84v300H86z" fill="#1c1a16"/><path d="M86 0v300" stroke="#2f2b22" stroke-width="6"/><path d="M98 40h60M98 120h60M98 200h60M120 0v40M140 40v80M110 120v80M150 200v100" stroke="#0e0d0a" stroke-width="2"/>
+      <g fill="url(#vskin)" stroke="#2a2620" stroke-width="1"><path d="M86 150c-6 0-8 4-6 8l8 2zM86 162c-7 0-9 4-7 8l9 2zM86 174c-6 0-8 4-6 8l8 1z"/></g>
+      <path d="M80 158l-6 2M79 170l-6 2M80 182l-5 2" stroke="#1a1712" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>`, 2],
     ["keypad", "Keypad", S("0 0 60 84", `
       <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle class="led" cx="46" cy="15" r="2.5"/>
       <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`), 2],
