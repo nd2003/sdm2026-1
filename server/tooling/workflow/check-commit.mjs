@@ -4,6 +4,8 @@
 //   pnpm check:commit --file .git/COMMIT_EDITMSG   one message (this is what a commit-msg hook passes)
 //   pnpm check:commit --message "feat: add x"      one message given inline
 //   pnpm check:commit --range origin/main..HEAD    every non-merge commit in a range
+//   pnpm check:commit --range base..HEAD --exclude origin/main
+//                                                 skip commits already reachable from a trusted ref
 //   pnpm check:commit                              the last commit
 //   --json                                         machine-readable output
 //
@@ -12,7 +14,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { EXIT, parseArgs } from "./lib/args.mjs";
-import { checkCommit, parseLog } from "./lib/check-commit.mjs";
+import { checkCommit, commitRangeArgs, parseLog } from "./lib/check-commit.mjs";
 import { git } from "./lib/git.mjs";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -31,8 +33,13 @@ try {
   } else if (typeof flags.message === "string") {
     commits = [{ id: "message", message: flags.message, stripComments: false }];
   } else {
+    if (flags.exclude === true) {
+      console.error("error: --exclude needs a Git ref");
+      process.exit(EXIT.usage);
+    }
     const range = typeof flags.range === "string" ? [flags.range] : ["-1", "HEAD"];
-    const out = git(root, ["log", "--no-merges", "--format=%H%x1f%B%x1e", ...range]);
+    const exclude = typeof flags.exclude === "string" ? flags.exclude : undefined;
+    const out = git(root, commitRangeArgs(range, exclude));
     commits = parseLog(out).map((c) => ({ id: c.sha.slice(0, 7), message: c.message, stripComments: false }));
   }
 } catch (err) {
