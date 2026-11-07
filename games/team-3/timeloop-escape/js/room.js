@@ -1011,6 +1011,7 @@ function placeObjects() {
   };
   const room = document.getElementById("room"),
     answers = puzzleAnswers(game.role);
+  delete room.dataset.adminvamp;
   PAINT[answers.color].forEach((c, i) => {
     room.style.setProperty("--paint" + i, c);
   });
@@ -1019,4 +1020,5 @@ function placeObjects() {
   room.dataset.wrong = wrong;
   document.getElementById("obj-casket-" + answers.casket).classList.add("right-one");
   document.getElementById("obj-casket-" + wrong).classList.add("wrong-one");
+  if (isAdmin()) room.dataset.adminvamp = wrong;
 }
