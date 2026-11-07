@@ -479,7 +479,8 @@ body.no-flicker :is(.candles, .needle) { animation: none; }
 .lever { transition: transform .25s; }
 #room.power-on .lever { transform: translateY(32px); }
 /* Level 3: the gate folds across the lift car, and the buttons sit beside it */
-#obj-lift            { left: 64%; bottom: 30%; --w: 6cqw; transform: translateX(-50%); }
+#obj-lift-panel      { left: 61.5%; bottom: 30%; --w: 5.5cqw; transform: translateX(-50%); }
+#obj-lift            { left: 44.5%; top: 17%; bottom: auto; --w: 13cqw; }
 #obj-gate            { left: 44.5%; bottom: 17%; --w: 28cqw; }
 #obj-indicator       { left: 44.5%; top: 3%; --w: 12cqw; }
 #obj-emergency-phone { left: 11%; top: 40%; --w: 8cqw; transform: translateX(-50%) perspective(70cqw) rotateY(36deg); }
@@ -488,7 +489,7 @@ body.no-flicker :is(.candles, .needle) { animation: none; }
 #room.gate-closed .folds { transform: none; }
 #room.gate-closed .car-light { opacity: .3; }
 .car-light { transition: opacity .6s; }
-#room.gate-closed .lift-lamp { fill: #8fbf86; }
+#room.lift-power .lift-lamp { fill: #8fbf86; }
 .needle { transform-origin: 75px 74px; }
 /* Door: the ad on loop 1, your own warning after that */
 .scrawl { display: none; }
@@ -593,15 +594,54 @@ body.no-flicker .flame { animation: none; }
 @media (prefers-reduced-motion: reduce) { :is(.roach, .roach .legs, .roach .antennae, .flame, .bat-head, .bat-wing-l, .bat-wing-r) { animation: none !important; } }
 .candelabra { position: absolute; z-index: 2; left: 3.5%; bottom: 3%; width: 15cqw; height: auto; pointer-events: none; overflow: visible; }
 
-/* Level 3: a zombie trapped in the lift, attacking you through the gate */
-.zlunge, .zarms, .rattle { transform-box: fill-box; }
-.zlunge { transform-origin: 50% 100%; animation: zlunge 4.6s cubic-bezier(.5, 0, .2, 1) infinite; }
-.zarms { transform-origin: 0 0; pointer-events: none; animation: zreach 4.6s cubic-bezier(.5, 0, .2, 1) infinite; }
-.rattle { animation: zrattle 4.6s infinite; }
-@keyframes zlunge { 0%, 62% { transform: none; } 70% { transform: translateY(-2%) scale(1.07); } 74% { transform: scale(1.04); } 82%, 100% { transform: none; } }
-@keyframes zreach { 0%, 62% { transform: rotate(-4deg); } 70% { transform: translate(4%, 6%) rotate(6deg) scale(1.18); } 76% { transform: rotate(2deg) scale(1.08); } 86%, 100% { transform: rotate(-4deg); } }
-@keyframes zrattle { 0%, 68%, 82%, 100% { transform: none; } 70% { transform: translateX(-1.2%); } 72% { transform: translateX(1%); } 74% { transform: translateX(-.6%); } 76% { transform: translateX(.4%); } }
+
+/* Level 3: the vent ending. The shaft is dark until the breaker has a fuse; then the fan stops and daylight shows through. */
+#obj-hatch        { left: 73%; top: 6%; --w: 12cqw; }
+#obj-hatch .art { filter: drop-shadow(0 0 1cqw #000) brightness(1.5); }
+#obj-lift-breaker { left: 88%; top: 56%; --w: 6cqw; transform: translateX(-50%) perspective(70cqw) rotateY(-34deg); }
+#obj-vent         { left: 70%; bottom: 22%; --w: 9cqw; }
+#obj-zombie       { left: 44.5%; bottom: 17%; --w: 28cqw; }
+/* The zombie stands behind the gate: clicks on the bars reach the gate, clicks between them reach the zombie */
+#obj-gate, #obj-zombie { pointer-events: none; }
+#obj-gate .art svg *, #obj-zombie .art svg * { pointer-events: visiblePainted; }
+#obj-zombie .z-back { pointer-events: none; }
+.shaft-dark { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 24% 18%, #5a0c0644, #000c 70%); transition: opacity 1.2s; }
+#room.lift-power .shaft-dark { opacity: 0; }
+#room:not(.lift-power) .car-light { opacity: 0; }
+.emergency { animation: emergency 2.4s steps(1) infinite; }
+#room.lift-power .emergency { display: none; }
+@keyframes emergency { 50% { opacity: .45; } }
+.fan { transform-box: fill-box; transform-origin: center; animation: fan .22s linear infinite; }
+@keyframes fan { to { transform: rotate(360deg); } }
+#room.lift-power .fan { animation: fan 2.4s cubic-bezier(.2, .6, .4, 1) 1 forwards; }
+.daylight { opacity: .12; transition: opacity 1.5s; }
+#room.lift-power .daylight { opacity: 1; }
+.draft { opacity: 0; }
+#room.lift-power .draft { animation: draft 3s ease-in-out infinite; }
+@keyframes draft { 0%, 100% { opacity: 0; transform: translateX(-4px); } 50% { opacity: .4; transform: translateX(4px); } }
+.power-led { transition: fill .4s; }
+#room.lift-power .power-led { fill: #8fbf86; }
+#room:not(.lift-power) .fuse-in { opacity: 0; }
+.vent-cover { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .9s cubic-bezier(.5, 0, .7, .4), opacity .9s; }
+#room.vent-out .vent-cover { transform: translateY(70%) rotate(-12deg); opacity: 0; }
+#room.vent-out .daylight { animation: daylight 1.6s ease-in forwards; }
+@keyframes daylight { to { transform: scale(2.4); transform-origin: center; transform-box: fill-box; } }
+
+/* The zombie: jerky, broken-necked, faster as time runs out and every loop */
+#room { --zs: calc(3.6s - var(--dread, 1) * .3s); }
+body.hurry #room { --zs: 1.3s; }
+.zbody, .zhead, .zjaw, .zarms, .rattle { transform-box: fill-box; }
+.zbody { transform-origin: 50% 100%; animation: zlunge var(--zs) cubic-bezier(.5, 0, .2, 1) infinite; }
+.zhead { transform-origin: 50% 95%; animation: zneck calc(var(--zs) * 1.7) steps(1) infinite; }
+.zjaw { transform-origin: 20% 0; animation: zjaw calc(var(--zs) * .6) ease-in-out infinite alternate; }
+.zarms { transform-origin: 0 0; animation: zreach var(--zs) cubic-bezier(.5, 0, .2, 1) infinite; }
+.rattle { animation: zrattle var(--zs) infinite; }
+@keyframes zlunge { 0%, 4% { transform: translateY(-3%) scale(1.09); } 10% { transform: scale(1.04); } 22%, 100% { transform: none; } }
+@keyframes zneck { 0% { transform: rotate(18deg); } 18% { transform: rotate(-9deg); } 21% { transform: rotate(26deg); } 46% { transform: rotate(12deg) translateX(3%); } 70% { transform: rotate(31deg); } 73% { transform: rotate(4deg); } }
+@keyframes zjaw { from { transform: rotate(4deg); } to { transform: rotate(14deg) translateY(4%); } }
+@keyframes zreach { 0%, 4% { transform: translate(5%, 7%) rotate(7deg) scale(1.22); } 12% { transform: rotate(2deg) scale(1.08); } 30%, 100% { transform: rotate(-4deg); } }
+@keyframes zrattle { 0% { transform: translateX(-1.2%); } 2% { transform: translateX(1%); } 4% { transform: translateX(-.6%); } 6% { transform: translateX(.4%); } 10%, 100% { transform: none; } }
 #room.gate-closed .zarms { animation-name: zreachShut; }
-@keyframes zreachShut { 0%, 62% { transform: rotate(-4deg) scale(.85); } 70% { transform: rotate(4deg) scale(.95); } 86%, 100% { transform: rotate(-4deg) scale(.85); } }
-body.no-flicker :is(.zlunge, .zarms, .rattle) { animation: none; }
-@media (prefers-reduced-motion: reduce) { :is(.zlunge, .zarms, .rattle) { animation: none !important; } }
+@keyframes zreachShut { 0%, 4% { transform: rotate(4deg) scale(.95); } 30%, 100% { transform: rotate(-4deg) scale(.85); } }
+body.no-flicker :is(.zbody, .zhead, .zjaw, .zarms, .rattle, .emergency) { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.zbody, .zhead, .zjaw, .zarms, .rattle, .fan, .draft, .emergency) { animation: none !important; } .vent-cover { transition: none; } }

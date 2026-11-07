@@ -130,29 +130,52 @@ function buildRoom() {
     ["keypad", "Keypad", S("0 0 60 84", `
       <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle class="led" cx="46" cy="15" r="2.5"/>
       <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`), 2],
-    ["lift", "Lift buttons", S("0 0 60 170", `
+    ["lift-panel", "Lift buttons", S("0 0 60 170", `
       <rect x="2" y="2" width="56" height="166" rx="3" fill="#3a3019" ${ink}/><rect x="8" y="8" width="44" height="154" fill="#231d0f" stroke="#090806"/>
       <rect x="14" y="12" width="32" height="12" fill="#090806" stroke="#6f5a30"/><circle class="lift-lamp" cx="30" cy="18" r="3.500" fill="#3a1511"/>
       <g fill="#c7a650" stroke="#231a08" stroke-width="1.2">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].flatMap((r) => [0, 1].map((c) => `<circle cx="${21 + c * 18}" cy="${34 + r * 12}" r="4"/>`)).join("")}</g>
       <path d="M12 164l10-5M40 160l14 4" stroke="#6b3e20" stroke-width="2"/>`), 3],
+    ["zombie", "Zombie in the lift", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <rect class="z-back" x="2" y="2" width="116" height="186" fill="#020202" opacity=".7"/>
+      <g class="zbody">
+        <path d="M6 190c0-40 4-70 22-86 10-8 20-12 32-12s22 4 32 12c18 16 22 46 22 86z" fill="#151711"/>
+        <path d="M30 104c8 10 18 16 30 16s22-6 30-16l-4 86H34z" fill="#2c2a22"/>
+        <path d="M44 120l8 14-10 8 6 12M84 112l-6 16 10 10-4 18M60 150l-4 40" stroke="#0e0d0a" stroke-width="2.4" fill="none"/>
+        <g stroke="#3d4334" stroke-width="2.2" fill="none" stroke-linecap="round"><path d="M50 128c6 3 14 3 20 0M48 138c8 4 16 4 24 0M48 148c8 4 16 4 24 0"/></g>
+        <path d="M36 106c-3 14-2 26 2 34M86 104c4 12 4 26 0 36" stroke="#5a120d" stroke-width="1.6" fill="none" opacity=".8"/>
+        <rect x="70" y="160" width="14" height="10" fill="#8f8664" stroke="#090806" transform="rotate(8 77 165)"/>
+        <path d="M51 84c0 12 3 20 9 22 6-2 9-10 9-22z" fill="#2b3024"/><path d="M55 90l3 12M66 88l-2 14" stroke="#161a12" stroke-width="1.2"/>
+      </g>
+      <g class="zhead">
+        <path d="M38 34c0-22 9-32 22-32s22 10 22 32c0 18-4 30-9 40-4 6-9 8-13 8s-9-2-13-8c-5-10-9-22-9-40z" fill="url(#zskin)"/>
+        <path d="M40 46c4 10 4 20 2 26M80 46c-4 10-4 20-2 26" stroke="#141710" stroke-width="3" fill="none" opacity=".8"/>
+        <ellipse cx="47" cy="22" rx="7" ry="5" fill="#1d2218" opacity=".85"/><ellipse cx="76" cy="58" rx="4" ry="7" fill="#3a1410" opacity=".7"/>
+        <path d="M40 18c-2 12-4 22-2 34M84 18c2 12 4 22 2 34M48 6c-2 10-8 16-10 24M72 6c2 10 8 16 10 24M60 2c-1 8-4 12-8 16M64 3c2 8 6 10 10 14" stroke="#0a0907" stroke-width="1.5" fill="none"/>
+        <path d="M44 36c3-6 12-6 15 0-3 7-12 7-15 0zM62 36c3-6 12-6 15 0-3 7-12 7-15 0z" fill="#050504"/>
+        <ellipse class="z-eye" cx="51.5" cy="36" rx="5" ry="3.6" fill="#c9cbbd"/><ellipse class="z-eye" cx="69.5" cy="36" rx="5" ry="3.6" fill="#c9cbbd"/>
+        <circle cx="51.5" cy="36" r="2.2" fill="#9ea294" opacity=".7"/><circle cx="69.5" cy="36" r="2.2" fill="#9ea294" opacity=".7"/>
+        <path d="M47 35l3 1M74 34l-3 2" stroke="#7a1b14" stroke-width=".6"/>
+        <path d="M57 44l-2 7h3zM63 44l2 7h-3z" fill="#050504"/>
+        <path d="M48 56c4-2 20-2 24 0l-1 4c-6-1-16-1-22 0z" fill="#0c0201"/>
+        <path d="M49 57l1.6 3 1.6-3 1.6 3 1.6-3 1.6 3 1.6-3 1.6 3 1.6-3 1.6 3 1.6-3 1.6 3 1.6-3" fill="#b3a986" stroke="#4a4232" stroke-width=".4"/>
+        <g class="zjaw">
+          <path d="M46 62c2 18 6 30 14 32 8-2 12-14 14-32-6 4-22 4-28 0z" fill="#0a0201"/>
+          <path d="M46 62c2 18 6 30 14 32 8-2 12-14 14-32l3 4c-2 20-8 32-17 34-9-2-15-14-17-34z" fill="url(#zskin)"/>
+          <path d="M50 80l1.6-3 1.6 3 1.6-3 1.6 3 1.6-3 1.6 3 1.6-3 1.6 3 1.6-3 1.6 3" fill="#b3a986" stroke="#4a4232" stroke-width=".4"/>
+          <path d="M57 94c-1 10 0 18 1 22M63 93c0 8 1 12 0 16" stroke="#6e0d08" stroke-width="1.6" fill="none"/>
+        </g>
+      </g>
+      <g class="zarms">
+        <path d="M92 102l16 20 12 26" fill="none" stroke="#151711" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M93 103l15 19 11 25" fill="none" stroke="#454b3c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+        <circle cx="108" cy="122" r="4.4" fill="#262a20"/><path d="M100 110l2 4M114 134l2 4" stroke="#5a120d" stroke-width="1.8"/>
+        <path d="M116 144c5-3 11 0 12 6 1 5-3 9-8 10-5 0-8-4-8-8 0-4 1-6 4-8z" fill="#2b3024"/>
+        <g fill="none" stroke="#2b3024" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M127 146l9-6 7 3 4 6"/><path d="M129 152l11 0 6 6 1 6"/><path d="M127 158l7 8 0 8"/><path d="M120 161l2 10-3 7"/><path d="M113 155l-7 6-1 7"/></g>
+        <g fill="#0b0906"><circle cx="147" cy="149" r="1.2"/><circle cx="147" cy="164" r="1.2"/><circle cx="134" cy="174" r="1.2"/><circle cx="119" cy="178" r="1.2"/><circle cx="105" cy="168" r="1.2"/></g>
+      </g>
+      <rect x="0" y="0" width="120" height="190" fill="url(#zdark)" pointer-events="none"/>
+    </svg>`, 3],
     ["gate", "Lift gate", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><g class="rattle">
-      <rect x="2" y="2" width="116" height="186" fill="#020202" opacity=".6"/>
-      <g class="zombie"><g class="zlunge">
-        <path d="M24 190c-2-46 2-84 18-98 12-9 30-9 40 0 16 14 18 52 16 98z" fill="#121410"/>
-        <path d="M40 98l20 30 22-30-4 92H42z" fill="#2b2a23"/><path d="M48 120l6 10-8 6M70 140l8-6 2 14" stroke="#141310" stroke-width="2" fill="none"/>
-        <rect x="64" y="104" width="13" height="9" fill="#a89c7c" stroke="#090806"/><path d="M66 106l9 5M75 106l-9 5" stroke="#5a120d" stroke-width="1"/>
-        <path d="M52 76c0 10 2 16 8 18 6-2 8-8 8-18z" fill="#262a20"/>
-        <path d="M42 38c0-20 8-30 18-30s18 10 18 30c0 16-4 28-8 36-4 8-16 8-20 0-4-8-8-20-8-36z" fill="url(#zskin)"/>
-        <ellipse cx="50" cy="26" rx="6" ry="4" fill="#232a1c" opacity=".8"/><ellipse cx="72" cy="56" rx="4" ry="6" fill="#232a1c" opacity=".7"/>
-        <path d="M43 30c-4 10-4 26 0 40M77 30c4 10 4 26 0 40M46 14c-2 12-6 20-6 30M74 14c2 12 6 20 6 30M58 8c-2 10-4 14-8 18" stroke="#0b0a07" stroke-width="1.6" fill="none"/>
-        <ellipse cx="53" cy="38" rx="5.5" ry="4.5" fill="#020202"/><ellipse cx="68" cy="38" rx="5.5" ry="4.5" fill="#020202"/>
-        <circle cx="53.5" cy="38.5" r="1" fill="#e8e2cf"/><circle cx="67.5" cy="38.5" r="1" fill="#e8e2cf"/>
-        <path d="M58 44l-1 5h2zM62 44l1 5h-2z" fill="#0b0a07"/>
-        <path d="M52 54c4 3 12 3 16 0l-2 24c-3 4-9 4-12 0z" fill="#0e0201"/>
-        <path d="M53 55l1.5 3 1.5-3 1.5 3 1.5-3 1.5 3 1.5-3 1.5 3 1.5-3 1.5 3 1.5-3M55 77l1.5-3 1.5 3 1.5-3 1.5 3 1.5-3 1.5 3 1.5-3" fill="#bdb393" stroke="#5c5440" stroke-width=".4"/>
-        <path d="M63 78c0 8 1 14 2 14s1-6 0-14z" fill="#6e0d08"/><path d="M48 60c-2 6-2 10 0 14" stroke="#6e0d08" stroke-width="1.5" fill="none"/>
-        <rect x="0" y="0" width="120" height="190" fill="url(#zdark)"/>
-      </g></g>
       <g class="folds">
         <g stroke="#7a6530" stroke-width="3" fill="none"><path d="M3 2H117V188H3z"/>${[3, 17, 31, 45, 59, 73, 87, 101, 117].map((x) => `<path d="M${x} 2v186"/>`).join("")}</g>
         <g stroke="#57461f" stroke-width="2.2">${[3, 31, 59, 87].map((x) => `<path d="M${x} 20l28 40M${x + 28} 20l-28 40M${x} 76l28 40M${x + 28} 76l-28 40M${x} 132l28 40M${x + 28} 132l-28 40"/>`).join("")}</g>
@@ -160,15 +183,33 @@ function buildRoom() {
         <g class="grip" fill="none" stroke="#3a4031" stroke-width="2.3" stroke-linecap="round"><path d="M41 70c3-2 6-1 7 2M41 76c3-2 6-1 7 2M41 82c3-2 6-1 7 2M41 88c3-2 6-1 7 2"/><path d="M77 66c-3-2-6-1-7 2M77 72c-3-2-6-1-7 2M77 78c-3-2-6-1-7 2M77 84c-3-2-6-1-7 2"/></g>
         <g fill="#2d2416"><path d="M48 70l1.5 1M48 76l1.5 1M48 82l1.5 1M48 88l1.5 1M70 66l-1.5 1M70 72l-1.5 1M70 78l-1.5 1M70 84l-1.5 1" stroke="#1a140b" stroke-width="1.6"/></g>
       </g>
-      <g class="zarms">
-        <path d="M94 98l14 18 12 22" fill="none" stroke="#1d2119" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M95 99l13 17 11 21" fill="none" stroke="#454b3c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>
-        <circle cx="108" cy="116" r="3.6" fill="#2a2f24"/><path d="M101 106l2 3M113 126l1.5 3" stroke="#5a120d" stroke-width="1.6"/>
-        <path d="M116 134c4-2 9 0 10 5 1 4-2 8-6 9-4 0-7-3-7-7 0-3 1-5 3-7z" fill="#2f3428"/>
-        <g fill="none" stroke="#2f3428" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M125 136l7-4 5 2"/><path d="M127 141l9-1 4 4"/><path d="M125 146l7 5 1 6"/><path d="M119 148l2 8-2 5"/><path d="M114 143l-5 4-1 5"/></g>
-        <g fill="#0b0906"><circle cx="137" cy="134" r="1.1"/><circle cx="140" cy="144" r="1.1"/><circle cx="133" cy="157" r="1.1"/><circle cx="119" cy="161" r="1.1"/><circle cx="108" cy="152" r="1.1"/></g>
-      </g>
     </g></svg>`, 3],
+
+    ["lift", "Lift (out of order)", S("0 0 120 44", `
+      <path d="M30 0l-8 12M90 0l8 12" stroke="#2c2813" stroke-width="2"/>
+      <g transform="rotate(-4 60 26)"><rect x="8" y="10" width="104" height="30" fill="#a89c7c" stroke="#120e08" stroke-width="2"/><rect x="12" y="14" width="96" height="22" fill="none" stroke="#8c1a15" stroke-width="1.5"/>
+      <text x="60" y="31" font-family="monospace" font-size="15" font-weight="bold" text-anchor="middle" fill="#8c1a15">OUT OF ORDER</text>
+      <path d="M90 12c4 6 2 14 6 20M20 14c-2 6 2 12 0 18" stroke="#5a4a2a" stroke-width="1" fill="none" opacity=".6"/></g>`), 3],
+    ["hatch", "Roof hatch", S("0 0 140 70", `
+      <path d="M10 8h120l-14 52H24z" fill="#1a1810" ${ink}/><path d="M20 14h100l-11 40H31z" fill="#2d2b21" stroke="#090806" stroke-width="2"/>
+      <path d="M28 20h84M26 30h88M24 40h92" stroke="#15130c" stroke-width="2"/><rect x="62" y="44" width="16" height="6" fill="#6f5a30" stroke="#090806"/>
+      <path d="M118 56c6 6 4 12 10 14" stroke="#0a0805" stroke-width="2" fill="none"/><path d="M30 56l-6 12M34 58l2 10" stroke="#3b3323" stroke-width="1.5"/>`), 3],
+    ["lift-breaker", "Breaker box", S("0 0 70 100", `
+      <rect x="2" y="2" width="66" height="96" rx="2" fill="#2f312b" ${ink}/><rect x="9" y="10" width="52" height="40" fill="#141510" stroke="#090806"/>
+      <rect x="28" y="16" width="14" height="28" fill="#090806" stroke="#4a4a40"/><rect class="fuse-in" x="30" y="19" width="10" height="22" rx="2" fill="#c7a650" stroke="#231a08"/>
+      <circle class="power-led" cx="20" cy="64" r="4.5" fill="#3a0d0a" stroke="#090806"/><text x="30" y="67" font-family="monospace" font-size="7" fill="#8a8574">POWER</text>
+      <path d="M12 78h46M12 86h30" stroke="#4a4a40" stroke-width="2"/><path d="M60 4c-6 10-2 20-8 30" stroke="#6b3e20" stroke-width="2" fill="none"/>`), 3],
+    ["vent", "Vent with a fan", `<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <defs><radialGradient id="daylight"><stop offset="0" stop-color="#f4ead0" stop-opacity=".9"/><stop offset="1" stop-color="#f4ead0" stop-opacity="0"/></radialGradient></defs>
+      <rect x="2" y="2" width="106" height="106" fill="#0c0c09" stroke="#090806" stroke-width="2"/>
+      <circle class="daylight" cx="55" cy="55" r="46" fill="url(#daylight)"/>
+      <g class="fan"><circle cx="55" cy="55" r="7" fill="#3a3a32"/>${[0, 72, 144, 216, 288].map((a) => `<path d="M55 55c4-14 18-26 34-28-4 12-16 24-34 28z" fill="#2c2c26" stroke="#0a0a08" transform="rotate(${a} 55 55)"/>`).join("")}</g>
+      <g class="vent-cover"><rect x="4" y="4" width="102" height="102" fill="none" stroke="#55534a" stroke-width="6"/>
+        ${[18, 30, 42, 54, 66, 78, 90].map((y) => `<path d="M8 ${y}h94" stroke="#4a4840" stroke-width="5"/><path d="M8 ${y + 2.5}h94" stroke="#141410" stroke-width="1.5"/>`).join("")}
+        ${[[10, 10], [100, 10], [10, 100], [100, 100]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#7a7466" stroke="#090806"/>`).join("")}
+        <rect x="44" y="94" width="22" height="10" rx="2" fill="#6f5a30" stroke="#090806"/></g>
+      <path class="draft" d="M30 50c10-6 20 6 30 0s20 6 30 0M26 64c10-6 22 6 32 0s20 6 32 0" stroke="#d8d0ba" stroke-width="1.2" fill="none" opacity=".35"/>
+    </svg>`, 3],
     ["indicator", "Floor dial", S("0 0 150 80", `
       <path d="M4 76a71 71 0 0 1 142 0z" fill="#3a3019" ${ink}/><path d="M16 76a59 59 0 0 1 118 0z" fill="#a89c7c" stroke="#231a08" stroke-width="2"/>
       <g stroke="#231a08" stroke-width="2"><path d="M26 66l8 3M38 44l7 6M58 27l4 8M92 27l-4 8M112 44l-7 6M124 66l-8 3"/></g>
@@ -340,7 +381,8 @@ function buildRoom() {
     <rect width="1600" height="1000" filter="url(#dirtwall)" opacity=".45"/><rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)"/>
     ${drip(1000, 150, 22, 360)}${drip(1110, 150, 14, 260)}${drip(420, 150, 18, 300)}
     <path d="M980 880l80 14-20 30-90-12z" fill="#7a7259" stroke="#0a0805" stroke-width="2"/>
-  </svg></div>
+    <g class="emergency"><rect x="372" y="168" width="26" height="14" fill="#2a0806" stroke="#090806" stroke-width="2"/><circle cx="385" cy="175" r="90" fill="#9a1a10" opacity=".22"/></g>
+  </svg><div class="shaft-dark level-view" data-stage="3" aria-hidden="true"></div></div>
   <div class="redlight"></div>
   <svg class="vampire" viewBox="0 0 300 400" aria-hidden="true">
     <defs><radialGradient id="flesh" cx=".5" cy=".36" r=".62"><stop offset="0" stop-color="#8b8676"/><stop offset=".55" stop-color="#4c493d"/><stop offset="1" stop-color="#0b0a07"/></radialGradient></defs>

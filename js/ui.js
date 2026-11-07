@@ -70,6 +70,8 @@ function render() {
   $("room").classList.toggle("casket-open", !!(game.flags && game.flags.casketOpen));
   $("room").classList.toggle("power-on", !!(game.flags && game.flags.powerOn));
   $("room").classList.toggle("gate-closed", !!(game.flags && game.flags.gateClosed));
+  $("room").classList.toggle("lift-power", !!(game.flags && game.flags.liftPower));
+  $("room").classList.toggle("vent-out", stage === 3 && out);
   $("room").classList.toggle("later", game.loop >= 2);
   const scrawl = $("room").querySelector(".scrawl-name");
   if (scrawl) set(scrawl, "textContent", (game.partner ? game.partner.name : "them").toUpperCase().slice(0, 10));
@@ -386,7 +388,7 @@ const updateSound = (() => {
     } catch { ctx = null; }  // no sound is better than a broken game
   };
   document.addEventListener("tle-scare", () => { if (ctx) SFX.hit(); });
-  document.addEventListener("animationiteration", (e) => { if (ctx && e.animationName === "zlunge" && game.stage === 3 && game.phase === "playing") setTimeout(SFX.bang, 3200); });  // lands with the slam at 70% of the cycle
+  document.addEventListener("animationiteration", (e) => { if (ctx && e.animationName === "zlunge" && game.stage === 3 && game.phase === "playing") SFX.bang(); });  // lands with the slam at 70% of the cycle
   addEventListener("click", (e) => { if (ctx && e.target.closest?.(".obj, #game-input button, #lobby button, #chat-form button, #settings-panel button")) SFX.click(); });
   // Browsers only allow sound after the player does something.
   for (const type of ["pointerdown", "keydown"]) addEventListener(type, start, { capture: true });
