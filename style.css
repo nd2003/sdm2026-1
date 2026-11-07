@@ -837,3 +837,7 @@ h1, h2, #timer, #loop-count, #hud::before { font-family: var(--print-sc); letter
 #obj-zombie .art { filter: grayscale(.75) brightness(2.8) contrast(1.5) drop-shadow(0 .5cqw .4cqw #000c); }
 #opponent .steps li { color: var(--text-dim); }
 #opponent .steps li.done { color: var(--danger-hi); }
+/* the hand holding the flashlight: whole, small, inside the corner and clear of every object */
+.arm { width: 8.5cqw; right: .6%; bottom: .6%; transform-origin: 100% 100%; }
+#obj-vampire { left: 56.5%; bottom: 31%; }
+#room[data-scare="vampire"] .vampire { left: 56.5%; }
