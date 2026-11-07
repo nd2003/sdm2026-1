@@ -1641,3 +1641,224 @@ body {
   color: var(--color-success);
   background: rgba(103, 161, 125, 0.15);
 }
+
+/* ==========================================================================
+   OFFICE MAINSCREEN FRACTURED TIMELINE EXTENSIONS (IMAGE 3 MATCH)
+   ========================================================================== */
+
+/* Room Container Framed with Warm Amber Accent Border */
+.tle-room-frame {
+  position: relative;
+  border: 2px solid var(--color-accent-warm);
+  border-radius: 14px;
+  background: #10121a;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Pill: ROOM 01 // OFFICE */
+.tle-room-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--color-accent-warm);
+  color: var(--color-accent-warm);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  background: rgba(184, 137, 92, 0.12);
+}
+
+/* Player Status Chips: • You, • Drek */
+.tle-player-chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tle-p-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 16px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+}
+
+.tle-dot-you {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+.tle-dot-drek {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+}
+
+/* Control Buttons: ▶ Start, ⏸ Pause/Stop, ↺ Restart */
+.tle-btn-start {
+  background: rgba(103, 161, 125, 0.18);
+  color: #a7f3d0;
+  border: 1px solid var(--color-success);
+  font-weight: 800;
+}
+
+.tle-btn-start:hover {
+  background: rgba(103, 161, 125, 0.32);
+}
+
+.tle-btn-pause {
+  background: rgba(196, 107, 117, 0.16);
+  color: #fecdd3;
+  border: 1px solid var(--color-warning);
+  font-weight: 800;
+}
+
+.tle-btn-pause:hover {
+  background: rgba(196, 107, 117, 0.28);
+}
+
+.tle-btn-restart {
+  background: rgba(128, 105, 181, 0.18);
+  color: #ddd6fe;
+  border: 1px solid var(--color-primary);
+  font-weight: 800;
+}
+
+.tle-btn-restart:hover {
+  background: rgba(128, 105, 181, 0.32);
+}
+
+/* Circular Interaction Badges (🔍, 🔒, ✅) */
+.tle-badge-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(17, 19, 28, 0.9);
+  border: 1.5px solid var(--color-accent-warm);
+  color: var(--color-accent-warm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  transition: transform 0.15s ease;
+}
+
+.tle-hotspot:hover .tle-badge-icon {
+  transform: translate(-50%, -50%) scale(1.15);
+  border-color: var(--color-primary);
+  color: var(--color-text-main);
+}
+
+/* Unified Wide Bottom Dock (Image 3 Match) */
+.tle-bottom-dock {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-top: 14px;
+}
+
+@media (max-width: 860px) {
+  .tle-bottom-dock {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tle-dock-left,
+.tle-dock-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.tle-dock-heading {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.tle-dock-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+}
+
+.tle-dock-sub {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+
+/* Inventory Slots: 4 horizontal slots */
+.tle-inv-slots {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.tle-inv-slot {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.tle-inv-slot:hover {
+  border-color: var(--color-primary);
+}
+
+.tle-inv-selected {
+  border: 1.5px solid var(--color-primary);
+  background: rgba(128, 105, 181, 0.22);
+}
+
+.tle-slot-empty {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #4a5068;
+}
+
+.tle-slot-name {
+  font-size: 0.62rem;
+  color: var(--color-text-main);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 48px;
+}

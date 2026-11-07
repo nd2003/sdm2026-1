@@ -96,7 +96,7 @@ export interface GameScreenController {
 }
 
 const ROOM_TITLES: Record<DifficultyLevel, string> = {
-  basic: "ROOM 01 // OUTBREAK BIO-BUNKER",
+  basic: "ROOM 01 // OFFICE",
   medium: "ROOM 02 // ROSSO'S SPEAKEASY",
   hard: "ROOM 03 // QUARANTINE COMMAND LAB",
 };
@@ -637,27 +637,27 @@ export function renderGameScreen(
            ================================================================= -->
       <header class="tle-header hidden" id="gameplay-header">
         <div class="tle-header-left">
-          <button type="button" class="tle-btn-header" id="btn-pause-loop" title="Pause / Resume">
-            ⏸ Pause
-          </button>
-          <button type="button" class="tle-btn-header hidden" id="btn-start-loop" title="Start / Resume">
-            ▶ Resume
-          </button>
-          <button type="button" class="tle-btn-header tle-btn-help" id="btn-hint" title="Help / Hints">
-            💡 Help
-          </button>
           <button type="button" class="tle-btn-header" id="btn-open-lobby" title="Return to Lobby">
             🚪 Lobby
           </button>
+          <button type="button" class="tle-btn-header tle-btn-help" id="btn-hint" title="Help / Hints">
+            💡
+          </button>
+          <span class="tle-loop-chip" id="hud-loop">LOOP #01</span>
+          <span class="tle-room-pill" id="hud-room-title">ROOM 01 // OFFICE</span>
+          <div class="tle-player-chips">
+            <span class="tle-p-chip"><span class="tle-p-dot tle-dot-you"></span> You</span>
+            <span class="tle-p-chip"><span class="tle-p-dot tle-dot-drek"></span> Drek</span>
+          </div>
           <div class="tle-diff-group" role="group" aria-label="Room Progression">
             <button type="button" class="tle-diff-btn" id="btn-diff-basic" data-diff="basic">
-              Room 1
+              [ROOM 1]
             </button>
             <button type="button" class="tle-diff-btn" id="btn-diff-medium" data-diff="medium">
-              🔒 Room 2
+              [ROOM 2]
             </button>
             <button type="button" class="tle-diff-btn" id="btn-diff-hard" data-diff="hard">
-              🔒 Room 3
+              [ROOM 3]
             </button>
           </div>
         </div>
@@ -665,28 +665,30 @@ export function renderGameScreen(
         <div class="tle-header-center">
           <div class="tle-title-block">
             <h1 class="tle-main-title">TIME LOOP ESCAPE</h1>
-            <div class="tle-meta-badges">
-              <span class="tle-loop-chip" id="hud-loop">LOOP 01</span>
-              <span class="tle-memory-chip" id="hud-memory">MEMORY 1/4</span>
-            </div>
+            <span class="tle-memory-chip" id="hud-memory">MEMORY 1/4</span>
           </div>
         </div>
 
         <div class="tle-header-right">
-          <div class="tle-timer-box" title="Time Remaining">
-            <span class="tle-top-timer-display" id="hud-timer-val">
-              ${formatTime(state.timeLeftSeconds)}
-            </span>
-            <div class="tle-timer-progress-bar-wrap">
-              <div class="tle-prog-fill" id="hud-timer-progress" style="width: 100%"></div>
-            </div>
-          </div>
-          <button type="button" class="tle-coop-pill" id="btn-scoreboard" title="Co-Op Summary">
-            <span class="tle-p-dot"></span>
-            <span id="header-coop-names">🤝 ${state.player1Name} &amp; ${state.player2Name}</span>
+          <button type="button" class="tle-btn-header tle-btn-start" id="btn-start-loop" title="Start /
+            Resume">
+            ▶ Start
           </button>
-          <button type="button" class="tle-btn-header" id="btn-reset-loop" title="Rewind Time Loop">
-            ↺
+          <button type="button" class="tle-btn-header tle-btn-pause" id="btn-pause-loop" title="Pause / Stop">
+            ⏸ Pause/Stop
+          </button>
+          <button type="button" class="tle-btn-header tle-btn-restart" id="btn-reset-loop" title="Rewind Time
+            Loop">
+            ↺ Restart
+          </button>
+          <div class="tle-timer-box" title="Time Remaining">
+            <span class="tle-top-timer-display" id="hud-timer-val">01:00</span>
+            <div class="tle-timer-progress-bar-wrap"><div class="tle-prog-fill" id="hud-timer-progress"
+              style="width: 100%"></div></div>
+          </div>
+          <button type="button" class="tle-coop-pill hidden" id="btn-scoreboard" title="Co-Op Summary">
+            <span class="tle-p-dot"></span>
+            <span id="header-coop-names">🤝 Saif &amp; Drek</span>
           </button>
         </div>
       </header>
@@ -796,202 +798,236 @@ export function renderGameScreen(
                  ROOM 1 (IMAGE 3): OUTBREAK BIO-BUNKER (Fun & Intuitive!)
                  ========================================================= -->
             <div class="tle-scene" id="scene-basic">
-              <svg class="tle-scene-svg" viewBox="0 0 1000 575" preserveAspectRatio="none">
+              <svg class="tle-scene-svg" viewBox="0 0 1000 560" preserveAspectRatio="none">
                 <defs>
-                  <linearGradient id="bunkL" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#9a7230" />
-                    <stop offset="60%" stop-color="#b58d47" />
-                    <stop offset="100%" stop-color="#6b5126" />
+                  <linearGradient id="officeWall" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#181a26" />
+                    <stop offset="70%" stop-color="#1f2233" />
+                    <stop offset="100%" stop-color="#161824" />
                   </linearGradient>
-                  <linearGradient id="bunkR" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#b89352" />
-                    <stop offset="100%" stop-color="#745a2c" />
+                  <linearGradient id="officeFloor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2c1a11" />
+                    <stop offset="100%" stop-color="#190e09" />
+                  </linearGradient>
+                  <linearGradient id="lampBeam" x1="0.5" y1="0" x2="0.5" y2="1">
+                    <stop offset="0%" stop-color="#ffd56b" stop-opacity="0.32" />
+                    <stop offset="40%" stop-color="#ffb74d" stop-opacity="0.18" />
+                    <stop offset="100%" stop-color="#ff9800" stop-opacity="0" />
+                  </linearGradient>
+                  <linearGradient id="windowSky" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#0f2038" />
+                    <stop offset="100%" stop-color="#1a355d" />
+                  </linearGradient>
+                  <linearGradient id="mountBlue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#294d7d" />
+                    <stop offset="100%" stop-color="#132742" />
                   </linearGradient>
                 </defs>
-                <!-- Grungy Ochre Bunker Left & Right Walls + Terracotta Tiled Floor -->
-                <polygon points="0,0 520,55 520,355 0,545" fill="url(#bunkL)" />
-                <polygon points="1000,0 520,55 520,355 1000,520" fill="url(#bunkR)" />
-                <polygon points="0,575 0,545 520,355 1000,520 1000,575" fill="#5c2818" />
-                <!-- Red-Brown Floor Tiles -->
-                <g stroke="#3d170c" stroke-width="2" opacity="0.65">
-                  <line x1="520" y1="355" x2="180" y2="575" />
-                  <line x1="520" y1="355" x2="460" y2="575" />
-                  <line x1="520" y1="355" x2="760" y2="575" />
-                  <line x1="210" y1="470" x2="855" y2="470" />
-                  <line x1="90" y1="525" x2="960" y2="525" />
-                </g>
-                <!-- Weathered Wall Ledge on Left + Grunge Soot Streaks on Right -->
-                <polygon points="0,465 520,305 520,340 0,515" fill="#3a2c20" />
-                <rect x="440" y="165" width="58" height="105" rx="3" fill="#57493f" stroke="#2d241e"
-                  stroke-width="2" />
-                <path d="M785,95 L795,220 M830,85 L840,235" stroke="#1f1a14" stroke-width="14" opacity="0.45"
+
+                <!-- Deep Navy Wall Background -->
+                <rect x="0" y="0" width="1000" height="420" fill="url(#officeWall)" />
+                <rect x="0" y="405" width="1000" height="15" fill="#141622" stroke="#25293d" stroke-width="1"
                   />
+
+                <!-- Rich Wooden Floor -->
+                <rect x="0" y="420" width="1000" height="140" fill="url(#officeFloor)" />
+                <line x1="0" y1="465" x2="1000" y2="465" stroke="#3d2618" stroke-width="1.5" opacity="0.6" />
+                <line x1="0" y1="510" x2="1000" y2="510" stroke="#3d2618" stroke-width="1.5" opacity="0.6" />
+
+                <!-- 1. Left Window with Venetian Blinds & Climbing Ivy -->
+                <g id="r1-office-window">
+                  <rect x="115" y="80" width="135" height="210" rx="4" fill="#0d182b" stroke="#34435e"
+                    stroke-width="4" />
+                  <rect x="121" y="86" width="123" height="198" fill="url(#windowSky)" />
+                  <g stroke="#263852" stroke-width="3" opacity="0.85">
+                    <line x1="121" y1="102" x2="244" y2="102" /><line x1="121" y1="118" x2="244" y2="118" />
+                    <line x1="121" y1="134" x2="244" y2="134" /><line x1="121" y1="150" x2="244" y2="150" />
+                    <line x1="121" y1="166" x2="244" y2="166" /><line x1="121" y1="182" x2="244" y2="182" />
+                    <line x1="121" y1="198" x2="244" y2="198" /><line x1="121" y1="214" x2="244" y2="214" />
+                    <line x1="121" y1="230" x2="244" y2="230" /><line x1="121" y1="246" x2="244" y2="246" />
+                    <line x1="121" y1="262" x2="244" y2="262" /><line x1="121" y1="276" x2="244" y2="276" />
+                  </g>
+                  <path d="M105,75 Q115,65 125,72 Q130,80 120,85 Z" fill="#6ba852" />
+                  <path d="M125,72 Q138,68 142,78 Q135,86 128,82 Z" fill="#4d8238" />
+                  <path d="M108,85 Q118,92 112,102 Q102,98 108,85 Z" fill="#78be5d" />
+                </g>
+
+                <!-- 2. Framed Mountain Landscape Painting -->
+                <g id="r1-office-painting">
+                  <rect x="305" y="130" width="88" height="124" rx="3" fill="#131724" stroke="#48597a"
+                    stroke-width="3.5" />
+                  <rect x="311" y="136" width="76" height="112" fill="url(#windowSky)" />
+                  <polygon points="311,248 340,175 370,248" fill="url(#mountBlue)" />
+                  <polygon points="345,248 368,190 387,248" fill="#1a3254" />
+                  <path d="M352,248 Q350,225 358,210 Q362,200 365,190" fill="none" stroke="#e0e8f5"
+                    stroke-width="4.5" stroke-linecap="round" />
+                </g>
+
+                <!-- 3. Tall Center Wooden Wardrobe / Cabinet -->
+                <g id="r1-office-wardrobe">
+                  <rect x="440" y="125" width="108" height="305" rx="3" fill="#382215" stroke="#24150c"
+                    stroke-width="3" />
+                  <rect x="448" y="138" width="42" height="280" fill="#2d1a10" stroke="#482d1d"
+                    stroke-width="2" />
+                  <rect x="496" y="138" width="42" height="280" fill="#2d1a10" stroke="#482d1d"
+                    stroke-width="2" />
+                  <line x1="493" y1="125" x2="493" y2="430" stroke="#1d1009" stroke-width="2" />
+                  <path d="M485,123 Q493,110 502,120 Q495,128 488,124 Z" fill="#6ba852" />
+                  <path d="M502,120 Q515,114 518,125 Q508,130 502,123 Z" fill="#4d8238" />
+                </g>
+
+                <!-- 4. Cork Bulletin Board with Yellow Sticky Notes -->
+                <g id="r1-office-corkboard">
+                  <rect x="588" y="120" width="118" height="96" rx="3" fill="#4d3522" stroke="#6b4c33"
+                    stroke-width="4" />
+                  <rect x="600" y="130" width="58" height="60" fill="#f4f1e8" rx="1" />
+                  <circle cx="629" cy="140" r="3.5" fill="#c0392b" />
+                  <polygon points="613,149 629,143 645,149" fill="#2c3e50" />
+                  <rect x="616" y="150" width="26" height="22" fill="#34495e" />
+                  <rect x="620" y="154" width="4" height="18" fill="#ecf0f1" />
+                  <rect x="627" y="154" width="4" height="18" fill="#ecf0f1" />
+                  <rect x="634" y="154" width="4" height="18" fill="#ecf0f1" />
+                  <rect x="668" y="134" width="18" height="18" fill="#f1c40f" rx="1" transform="rotate(-3 677
+                    143)" />
+                  <rect x="669" y="158" width="18" height="18" fill="#f1c40f" rx="1" transform="rotate(4 678
+                    167)" />
+                  <rect x="604" y="172" width="18" height="15" fill="#f39c12" rx="1" transform="rotate(2 613
+                    179)" />
+                </g>
+
+                <!-- 5. Right Computer Table & Monitor Terminal -->
+                <g id="r1-office-terminal-desk">
+                  <rect x="562" y="325" width="160" height="14" fill="#3a2416" stroke="#25160c"
+                    stroke-width="2" />
+                  <rect x="574" y="339" width="10" height="90" fill="#2a190f" />
+                  <rect x="700" y="339" width="10" height="90" fill="#2a190f" />
+                  <rect x="633" y="305" width="16" height="22" fill="#1c1f2b" />
+                  <rect x="623" y="324" width="36" height="4" rx="1" fill="#2d3345" />
+                  <rect x="590" y="242" width="102" height="66" rx="4" fill="#141724" stroke="#b8895c"
+                    stroke-width="2.5" />
+                  <rect x="596" y="248" width="90" height="54" rx="2" fill="#0d0f18" />
+                  <circle cx="623" cy="278" r="3.5" fill="#ffb74d" />
+                  <circle cx="635" cy="278" r="3.5" fill="#ffb74d" />
+                  <circle cx="647" cy="278" r="3.5" fill="#ffb74d" />
+                  <circle cx="659" cy="278" r="3.5" fill="#ffb74d" />
+                  <polygon points="576,318 578,314 588,321 585,325" fill="#e67e22" />
+                </g>
+
+                <!-- 6. Right Wooden Exit Door -->
+                <g id="r1-door-wrap">
+                  <rect x="778" y="145" width="100" height="280" rx="3" fill="#171924" stroke="#3d4359"
+                    stroke-width="3" />
+                  <rect x="784" y="151" width="88" height="268" fill="#1d2030" />
+                  <rect x="792" y="162" width="72" height="110" fill="#151724" stroke="#2b3044"
+                    stroke-width="2" />
+                  <rect x="792" y="286" width="72" height="120" fill="#151724" stroke="#2b3044"
+                    stroke-width="2" />
+                  <rect x="787" y="278" width="12" height="4" rx="1.5" fill="#b8895c" />
+                  <circle cx="789" cy="280" r="2.5" fill="#d4aa7d" />
+                </g>
+
+                <!-- 7. Left Large Desk & Lamp Casting Cone on Journal -->
+                <g id="r1-office-main-desk">
+                  <polygon points="60,370 455,370 455,475 60,475" fill="#442a1a" stroke="#2b1a10"
+                    stroke-width="3" />
+                  <rect x="60" y="386" width="395" height="89" fill="#321e12" />
+                  <rect x="235" y="348" width="52" height="22" rx="2" fill="#583722" stroke="#362114"
+                    stroke-width="2" />
+                  <ellipse cx="172" cy="366" rx="16" ry="6" fill="#b8895c" />
+                  <path d="M172,364 L164,312 L185,296" fill="none" stroke="#d4aa7d" stroke-width="3.5"
+                    stroke-linecap="round" />
+                  <path d="M175,286 Q194,286 198,300 Q186,308 172,300 Z" fill="#f39c12" stroke="#b8895c"
+                    stroke-width="2" />
+                  <polygon points="186,300 130,435 295,435" fill="url(#lampBeam)" />
+                  <polygon points="194,394 238,392 238,426 190,428" fill="#fefefe" stroke="#d5dbdb"
+                    stroke-width="1.5" />
+                  <polygon points="238,392 282,394 286,428 238,426" fill="#f5f7f7" stroke="#d5dbdb"
+                    stroke-width="1.5" />
+                  <line x1="198" y1="402" x2="232" y2="401" stroke="#7f8c8d" stroke-width="1" />
+                  <line x1="198" y1="409" x2="230" y2="408" stroke="#7f8c8d" stroke-width="1" />
+                  <line x1="198" y1="416" x2="234" y2="415" stroke="#7f8c8d" stroke-width="1" />
+                  <line x1="244" y1="401" x2="278" y2="402" stroke="#7f8c8d" stroke-width="1" />
+                  <line x1="244" y1="408" x2="276" y2="409" stroke="#7f8c8d" stroke-width="1" />
+                  <line x1="244" y1="415" x2="278" y2="416" stroke="#7f8c8d" stroke-width="1" />
+                </g>
               </svg>
 
-              <!-- 1A. Upper-Left Wooden Chemistry Tube Display -->
+              <!-- HOTSPOT 1: Open Journal on Left Desk (Inspect clue & key) -->
               <button
                 type="button"
                 class="tle-hotspot"
-                style="left: 5%; top: 8%; width: 25%; height: 36%"
-                id="obj-r1-chem"
-                data-object-id="r1-chem"
-              >
-                <svg viewBox="0 0 240 190" width="100%" height="100%">
-                  <rect x="8" y="8" width="224" height="174" fill="#593a1e" stroke="#2b1a0c" stroke-width="6"
-                    />
-                  <rect x="18" y="18" width="204" height="154" fill="#d6c59a" />
-                  <!-- Glowing Green Flask + Blue Spiral Condenser -->
-                  <path d="M35,35 Q65,95 95,130" stroke="#22c55e" stroke-width="7" fill="none" />
-                  <circle cx="95" cy="135" r="22" fill="#84cc16" stroke="#15803d" stroke-width="3" />
-                  <path
-                    d="M140,40 L140,145 Q140,160 160,160 L185,160 L185,55"
-                    fill="none"
-                    stroke="#1d4ed8"
-                    stroke-width="6"
-                  />
-                  <path
-                    d="M160,65 C175,70 150,80 175,85 C150,95 175,105 160,115"
-                    fill="none"
-                    stroke="#2563eb"
-                    stroke-width="4"
-                  />
-                </svg>
-              </button>
-              <span class="tle-obj-tag" id="tag-r1-chem" style="left: 9%; top: 44%">
-                🧪 CHEMISTRY RACK
-              </span>
-
-              <!-- 1B. Lit Glass Glovebox Case on Left Ledge -->
-              <button
-                type="button"
-                class="tle-hotspot"
-                style="left: 13%; top: 48%; width: 22%; height: 24%"
+                style="left: 18%; top: 68%; width: 13%; height: 12%"
                 id="obj-r1-glovebox"
                 data-object-id="r1-glovebox"
+                aria-label="Inspect Open Journal"
               >
-                <svg viewBox="0 0 210 130" width="100%" height="100%">
-                  <rect
-                    x="10"
-                    y="12"
-                    width="190"
-                    height="106"
-                    fill="rgba(254,249,195,0.28)"
-                    stroke="#fef08a"
-                    stroke-width="3"
-                  />
-                  <line x1="12" y1="15" x2="198" y2="15" stroke="#fde047" stroke-width="5" />
-                  <circle cx="68" cy="72" r="20" fill="#475569" stroke="#cbd5e1" stroke-width="4" />
-                  <circle cx="148" cy="72" r="20" fill="#475569" stroke="#cbd5e1" stroke-width="4" />
-                  <rect x="96" y="84" width="22" height="10" rx="3" fill="#fbbf24" />
-                </svg>
+                <div class="tle-badge-icon">🔍</div>
+                <span class="tle-tag-bubble" id="tag-r1-glove">🔍 Journal</span>
               </button>
-              <span class="tle-obj-tag" id="tag-r1-glove" style="left: 15%; top: 72%">
-                🧤 GLASS GLOVEBOX
-              </span>
 
-              <!-- 1C. Wooden Supply Crate on Floor -->
+              <!-- HOTSPOT 2: Center Wardrobe (Keyhole Lock) -->
               <button
                 type="button"
                 class="tle-hotspot"
-                style="left: 29%; top: 75%; width: 14%; height: 18%"
+                style="left: 45%; top: 38%; width: 9%; height: 20%"
                 id="obj-r1-crate"
                 data-object-id="r1-crate"
+                aria-label="Unlock Wardrobe"
               >
-                <svg viewBox="0 0 140 100" width="100%" height="100%">
-                  <polygon points="10,25 115,10 132,75 25,92" fill="#6b4226" stroke="#2c180c" stroke-width="3"
-                    />
-                  <rect x="64" y="38" width="14" height="18" rx="3" fill="#fbbf24" />
-                </svg>
+                <div class="tle-badge-icon">🔒</div>
+                <span class="tle-tag-bubble" id="tag-r1-crate">🔒 Wardrobe</span>
               </button>
-              <span class="tle-obj-tag" id="tag-r1-crate" style="left: 29.5%; top: 92%">
-                📦 SUPPLY CRATE
-              </span>
 
-              <!-- 1D. Glowing World Outbreak Map Screen -->
+              <!-- HOTSPOT 3: Right Computer Terminal (Passcode Puzzle) -->
               <button
                 type="button"
                 class="tle-hotspot"
-                style="left: 58%; top: 26%; width: 22%; height: 21%"
-                id="obj-r1-map"
-                data-object-id="r1-map"
-              >
-                <svg viewBox="0 0 220 120" width="100%" height="100%">
-                  <rect x="4" y="4" width="212" height="112" rx="4" fill="#141418" stroke="#334155"
-                    stroke-width="4" />
-                  <!-- Simplified Continents + Red Outbreak Dots (3, 5, 2) -->
-                  <path d="M22,28 L65,26 L58,62 L46,96 L34,72 Z" fill="#cbd5e1" opacity="0.82" />
-                  <path d="M92,24 L138,22 L134,58 L104,88 L94,55 Z" fill="#cbd5e1" opacity="0.82" />
-                  <path d="M146,28 L198,30 L190,76 L154,68 Z" fill="#cbd5e1" opacity="0.82" />
-                  <!-- 3 Dots in Americas -->
-                  <circle cx="38" cy="40" r="4" fill="#ef4444" />
-                  <circle cx="50" cy="52" r="4" fill="#ef4444" />
-                  <circle cx="44" cy="78" r="4" fill="#ef4444" />
-                  <!-- 5 Dots in Europe/Africa -->
-                  <circle cx="104" cy="34" r="4" fill="#ef4444" />
-                  <circle cx="118" cy="32" r="4" fill="#ef4444" />
-                  <circle cx="112" cy="46" r="4" fill="#ef4444" />
-                  <circle cx="126" cy="44" r="4" fill="#ef4444" />
-                  <circle cx="114" cy="68" r="4" fill="#ef4444" />
-                  <!-- 2 Dots in Asia -->
-                  <circle cx="168" cy="46" r="4" fill="#ef4444" />
-                  <circle cx="182" cy="58" r="4" fill="#ef4444" />
-                </svg>
-              </button>
-              <span class="tle-obj-tag" style="left: 61%; top: 47.5%">🗺️ WORLD MAP</span>
-
-              <!-- 1E. Slanted Steel Console Below World Map -->
-              <button
-                type="button"
-                class="tle-hotspot"
-                style="left: 57%; top: 51%; width: 17%; height: 34%"
+                style="left: 59%; top: 41%; width: 11%; height: 17%"
                 id="obj-r1-console"
                 data-object-id="r1-console"
+                aria-label="Access Computer Terminal"
               >
-                <svg viewBox="0 0 160 190" width="100%" height="100%">
-                  <polygon points="25,10 145,22 135,180 12,162" fill="#2c2f33" stroke="#111315"
-                    stroke-width="4" />
-                  <rect x="34" y="24" width="24" height="22" fill="#dcfce7" />
-                  <rect x="66" y="27" width="24" height="22" fill="#dbeafe" />
-                  <rect x="98" y="30" width="24" height="22" fill="#fee2e2" />
-                  <text x="46" y="40" text-anchor="middle" fill="#15803d" font-size="13"
-                    font-weight="bold">?</text>
-                  <text x="78" y="43" text-anchor="middle" fill="#1d4ed8" font-size="13"
-                    font-weight="bold">?</text>
-                  <text x="110" y="46" text-anchor="middle" fill="#b91c1c" font-size="13"
-                    font-weight="bold">?</text>
-                </svg>
+                <div class="tle-badge-icon">🔒</div>
+                <span class="tle-tag-bubble" id="tag-r1-console">🔒 Terminal</span>
               </button>
-              <span class="tle-obj-tag" id="tag-r1-console" style="left: 57.5%; top: 85%">
-                🎛️ STEEL CONSOLE
-              </span>
 
-              <!-- 1F. Bunker Steel Exit Door (Swings Open + Real-Time Walk-Through Zoom!) -->
-              <div
-                class="tle-door-3d-wrap"
-                id="r1-door-wrap"
-                style="left: 82%; top: 18%; width: 15%; height: 64%"
+              <!-- HOTSPOT 4: Right Exit Door -->
+              <button
+                type="button"
+                class="tle-hotspot"
+                style="left: 78%; top: 30%; width: 10%; height: 42%"
+                id="obj-r1-door"
+                data-object-id="r1-door"
+                aria-label="Escape Through Office Door"
               >
-                <button
-                  type="button"
-                  class="tle-hotspot"
-                  style="inset: 0; width: 100%; height: 100%"
-                  id="obj-r1-door"
-                  data-object-id="r1-door"
-                >
-                  <svg viewBox="0 0 150 340" width="100%" height="100%">
-                    <!-- Corridor Glow Behind Open Door -->
-                    <rect x="8" y="8" width="134" height="324" fill="#0f2932" stroke="#2c251d"
-                      stroke-width="8" />
-                    <circle cx="75" cy="170" r="36" fill="#2dd4bf" opacity="0.45" />
-                    <text x="75" y="175" text-anchor="middle" fill="#ccfbf1" font-size="13"
-                      font-weight="bold">
-                      ENTER ➔
-                    </text>
-                  </svg>
-                  <div class="tle-door-leaf-3d tle-r1-door-leaf">
-                    <span class="tle-r1-door-sign">BUNKER EXIT</span>
-                    <span class="tle-r1-door-handle"></span>
-                  </div>
+                <div class="tle-badge-icon">🔒</div>
+                <span class="tle-tag-bubble" id="tag-r1-door">🔒 Exit</span>
+              </button>
+
+              <!-- HOTSPOT 5: Desk Tool Box / Reagents -->
+              <button
+                type="button"
+                class="tle-hotspot"
+                style="left: 23%; top: 60%; width: 6%; height: 6%"
+                id="obj-r1-chem"
+                data-object-id="r1-chem"
+                aria-label="Inspect Desk Box"
+              >
+                <span class="tle-tag-bubble" id="tag-r1-chem">📦 Box</span>
+              </button>
+
+              <!-- HOTSPOT 6: Corkboard Blueprint -->
+              <button
+                type="button"
+                class="tle-hotspot"
+                style="left: 60%; top: 22%; width: 10%; height: 16%"
+                id="obj-r1-map"
+                data-object-id="r1-map"
+                aria-label="Inspect Bulletin Board"
+              >
+                <span class="tle-tag-bubble" id="tag-r1-map">📌 Notes</span>
+              </button>
+            </div>
                 </button>
               </div>
               <span class="tle-obj-tag" id="tag-r1-door" style="left: 82%; top: 83%">
@@ -1586,34 +1622,31 @@ export function renderGameScreen(
         </div>
 
         <!-- BOTTOM DOCK: INVENTORY (BOTTOM LEFT) & CLUES (BOTTOM RIGHT) -->
-        <div class="tle-bottom-dock" id="inventory-clues-dock">
-          <!-- Bottom Left: INVENTORY -->
-          <section class="tle-panel-matte tle-inventory-panel" id="panel-inventory">
-            <div class="tle-panel-head">
-              <span class="tle-panel-title">INVENTORY</span>
-              <span class="tle-panel-tag">TEMPORARY</span>
-            </div>
-            <div class="tle-inv-slots" id="inventory-list"></div>
-          </section>
+        <footer class="tle-bottom-dock" id="inventory-clues-dock">
+            <!-- Bottom Left: TEMPORARY INVENTORY -->
+            <section class="tle-dock-left tle-panel-matte" id="panel-inventory">
+              <div class="tle-dock-heading">
+                <span class="tle-dock-title">TEMPORARY INVENTORY</span>
+                <span class="tle-dock-sub">Physical items — wiped on loop reset</span>
+              </div>
+              <div class="tle-inv-slots" id="inventory-list"></div>
+            </section>
 
-          <!-- Bottom Center: Room Objectives Checklist -->
-          <section class="tle-panel-matte tle-tasks-dock" id="panel-tasks">
-            <div class="tle-panel-head">
-              <span class="tle-panel-title">OBJECTIVES</span>
-              <span class="tle-panel-tag" id="hud-tasks-ratio">0 / 3</span>
-            </div>
-            <div class="tle-tasks-box" id="tasks-checklist"></div>
-          </section>
+            <!-- Bottom Right: PERMANENT KNOWLEDGE / CLUES -->
+            <section class="tle-dock-right tle-panel-matte" id="panel-clues">
+              <div class="tle-dock-heading">
+                <span class="tle-dock-title">PERMANENT KNOWLEDGE / CLUES</span>
+                <span class="tle-dock-sub">Neural logs — retained across loops</span>
+              </div>
+              <ul class="tle-clues-list" id="clues-list"></ul>
+            </section>
 
-          <!-- Bottom Right: CLUES -->
-          <section class="tle-panel-matte tle-clues-panel" id="panel-clues">
-            <div class="tle-panel-head">
-              <span class="tle-panel-title">CLUES</span>
-              <span class="tle-panel-tag tle-tag-saved">PERMANENT</span>
+            <!-- Preserved for DOM references -->
+            <div id="panel-tasks" class="hidden">
+              <span id="hud-tasks-ratio"></span>
+              <div id="tasks-checklist"></div>
             </div>
-            <ul class="tle-clues-list" id="clues-list"></ul>
-          </section>
-        </div>
+          </footer>
       </main>
 
       <!-- =================================================================
@@ -3399,7 +3432,7 @@ export function renderGameScreen(
     const invEl = container.querySelector<HTMLElement>("#inventory-list");
     if (invEl) {
       const cells: string[] = [];
-      for (let i = 0; i < 3; i += 1) {
+      for (let i = 0; i < 4; i += 1) {
         const item = state.inventory[i];
         if (item) {
           const isSelected = state.selectedInventoryItem === item;
