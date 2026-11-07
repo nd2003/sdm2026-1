@@ -3,6 +3,7 @@
  * checked without the server. Buttons switch the level and the object states, and a click shows the object id.
  */
 import "./room.css";
+import { type ChatLine, mountChat, updateChat } from "./chat.ts";
 import { type HudView, mountHud, updateHud } from "./hud.ts";
 import { buildRoom, placeObjects, type RoomView, updateRoom } from "./room.ts";
 
@@ -25,6 +26,7 @@ placeObjects(room, rand, { color: "BLUE", casket: "left" });
 const show = (): void => {
   updateRoom(room, view);
   updateHud(hudRoot, { ...hud, loop: view.loop, stage: view.stage });
+  updateChat(hudRoot, chat);
   for (const b of document.querySelectorAll<HTMLButtonElement>("[data-stage-btn]"))
     b.setAttribute("aria-pressed", String(Number(b.dataset.stageBtn) === view.stage));
 };
@@ -62,6 +64,16 @@ const hud: HudView = {
   escaped: false,
 };
 mountHud(hudRoot);
+
+// The chat with a sample partner line: a sent line shows up as yours, and the partner answers once.
+const chat: ChatLine[] = [
+  { from: "Partner", text: "My painting needs a colour. What's on your note?", mine: false },
+];
+mountChat(hudRoot, (text) => {
+  chat.push({ from: "You", text, mine: true });
+  if (chat.length === 2) chat.push({ from: "Partner", text: "Got it, trying that now.", mine: false });
+  show();
+});
 const button = (id: string, run: () => void): void =>
   (document.getElementById(id) as HTMLElement).addEventListener("click", () => {
     run();
