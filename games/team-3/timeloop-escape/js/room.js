@@ -2,7 +2,8 @@
 // Builds the clickable objects inside #room. No puzzle logic here: every click goes to onObjectClick(id).
 // Art is inline SVG so CSS can animate parts of it (clock hand, cabinet doors, door bolt and light, computer screen, ceiling tube).
 function buildRoom() {
-  const S = (vb, body) => `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"><g filter="url(#grime)">${body}</g></svg>`;
+  const S = (vb, body) =>
+    `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"><g filter="url(#grime)">${body}</g></svg>`;
   const ink = 'stroke="#090806" stroke-width="2" stroke-linejoin="round"';
   const CASKET = `
       <path d="M60 4L104 34 90 146H30L16 34z" fill="#0a0806" ${ink}/>
@@ -12,12 +13,27 @@ function buildRoom() {
       <rect x="39" y="72" width="42" height="17" fill="#8d7433" stroke="#231a08" stroke-width="1.5"/><path d="M43 77h34M43 84h34M47 75l6 12M56 74l5 13M66 75l6 12" stroke="#2b2109" stroke-width="1.3"/></g>`;
 
   const HAND = (x, y, angle, s = 1) => {
-    const fingers = [[-6, 17, -1.2, [7, 6, 5]], [-2.2, 18, -.3, [8, 7, 5]], [1.6, 18, .4, [7.5, 6.5, 5]], [5.2, 16.5, 1.4, [6, 5, 4]]];
-    const bones = fingers.map(([fx, fy, lean, segs]) => {
-      let px = fx, py = fy, d = `M${px} ${py}`, joints = "";
-      segs.forEach((len, i) => { px += lean * (i + 1) * .5; py += len; d += `L${px.toFixed(1)} ${py}`; if (i < 2) joints += `<circle cx="${px.toFixed(1)}" cy="${py}" r="1.5" fill="#20251b"/>`; });
-      return `<path d="${d}" fill="none" stroke="#2f3428" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>${joints}<circle cx="${px.toFixed(1)}" cy="${py + .8}" r="1.1" fill="#0b0906"/>`;
-    }).join("");
+    const fingers = [
+      [-6, 17, -1.2, [7, 6, 5]],
+      [-2.2, 18, -0.3, [8, 7, 5]],
+      [1.6, 18, 0.4, [7.5, 6.5, 5]],
+      [5.2, 16.5, 1.4, [6, 5, 4]],
+    ];
+    const bones = fingers
+      .map(([fx, fy, lean, segs]) => {
+        let px = fx,
+          py = fy,
+          d = `M${px} ${py}`,
+          joints = "";
+        segs.forEach((len, i) => {
+          px += lean * (i + 1) * 0.5;
+          py += len;
+          d += `L${px.toFixed(1)} ${py}`;
+          if (i < 2) joints += `<circle cx="${px.toFixed(1)}" cy="${py}" r="1.5" fill="#20251b"/>`;
+        });
+        return `<path d="${d}" fill="none" stroke="#2f3428" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>${joints}<circle cx="${px.toFixed(1)}" cy="${py + 0.8}" r="1.1" fill="#0b0906"/>`;
+      })
+      .join("");
     return `<g transform="translate(${x} ${y}) rotate(${angle}) scale(${s})">
       <path d="M-4.5 -2C-5 4-8.5 9-8.5 15c0 2.5 2 4 4.5 4H5c2.5 0 4.5-1.5 4.5-4 0-6-3.5-11-4-17z" fill="#2b3024" stroke="#0b0906" stroke-width=".8"/>
       <path d="M-3 4c1 3 1 7 0 10M1 3c.5 4 .5 8 0 12M4 5c0 3 0 6-1 9" stroke="#1d2119" stroke-width=".8" fill="none"/>
@@ -25,8 +41,12 @@ function buildRoom() {
       <path d="M-8 8c-4 2-7 6-8.5 10l-1 5" fill="none" stroke="#2f3428" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="-14.8" cy="17.5" r="1.4" fill="#20251b"/><circle cx="-17.4" cy="23.6" r="1" fill="#0b0906"/>
     </g>`;
   };
-  const objects = [  // DOM order = Tab order: wall left to right, then floor left to right
-    ["clock", "Clock", `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+  const objects = [
+    // DOM order = Tab order: wall left to right, then floor left to right
+    [
+      "clock",
+      "Clock",
+      `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <g filter="url(#grime)"><circle cx="50" cy="50" r="46" fill="#3b2c1e" ${ink}/><circle cx="50" cy="50" r="38" fill="#8d8671" ${ink}/>
       <path d="M50 16v8M50 76v8M16 50h8M76 50h8" stroke="#16130e" stroke-width="3"/>
       <path d="M50 50L47 28M50 50L37 62" stroke="#16130e" stroke-width="4" stroke-linecap="round"/>
@@ -36,8 +56,14 @@ function buildRoom() {
       <g stroke="#1b170d" stroke-width="2.4" stroke-linecap="round">
         <path d="M108 14v24M114 13v24M120 14v24M126 13v24M104 33l27-16M136 14v24M142 13v24M148 14v24M154 13v24M132 33l27-16"/>
         <path d="M108 48v24M114 47v24M120 48v24M126 47v24M104 67l27-16M136 48v24M142 47v24"/></g>
-      <path d="M148 48v24M154 47v24" stroke="#d8d0ba" stroke-width="2.4" stroke-linecap="round"/></svg>`],
-    ["painting", "Painting", S("0 0 120 90", `
+      <path d="M148 48v24M154 47v24" stroke="#d8d0ba" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    ],
+    [
+      "painting",
+      "Painting",
+      S(
+        "0 0 120 90",
+        `
       <path d="M1 1h96l6 7 16-3v84H12l-4-9-7 2z" fill="#3f3019" ${ink}/><rect x="8" y="8" width="104" height="74" fill="#120d07"/>
       <rect x="11" y="11" width="98" height="68" fill="url(#sea)"/><circle cx="96" cy="26" r="6" fill="#c9d6f2"/>
       <path d="M11 56q12-9 24 0t25 0 25 0 24 0v23H11z" style="fill:var(--paint3,#0f338f)"/><path d="M11 65q12-8 24 0t25 0 25 0 24 0" fill="none" style="stroke:var(--paint4,#7fa8fb)" stroke-width="1.6"/>
@@ -47,17 +73,63 @@ function buildRoom() {
       <path d="M87 11l-8 17 11 14 19-8V11z" fill="#000" fill-opacity=".25"/>
       <path d="M26 78l-5 11 8-4 5 4 3-11z" fill="#1c50d2" stroke="#0a1a4a"/><path d="M92 79l3 8 5-5 3 6 1-9z" fill="#0f338f" stroke="#0a1a4a"/>
       <path d="M1 28l6 5-2 8 5 6M112 60l6 4-3 9" fill="none" stroke="#0a0805" stroke-width="1.5"/>
-      <path d="M12 11c10 0 13 4 15 10-6 2-11 1-15 5zM109 79c-8 0-14-2-16-8 6-2 11-2 16-8z" fill="#121a0a" fill-opacity=".8"/>`)],
-    ["photo", "Photograph", S("0 0 60 72", `
+      <path d="M12 11c10 0 13 4 15 10-6 2-11 1-15 5zM109 79c-8 0-14-2-16-8 6-2 11-2 16-8z" fill="#121a0a" fill-opacity=".8"/>`,
+      ),
+    ],
+    [
+      "photo",
+      "Photograph",
+      S(
+        "0 0 60 72",
+        `
       <g transform="rotate(-5 30 36)" clip-path="url(#tornphoto)"><rect x="3" y="3" width="54" height="66" fill="#9c9070" ${ink}/><rect x="8" y="8" width="44" height="42" fill="#5f5844"/>
       <rect x="8" y="8" width="44" height="14" fill="#7a7259"/>
-      <g fill="#231f15">${[[14, 22], [24, 22], [34, 22], [44, 22], [12, 34], [22, 34], [32, 34], [42, 34]].map(([x, y]) => `<path d="M${x - 5} ${y + 16}c0-7 2-9 5-9s5 2 5 9z"/>`).join("")}</g>
-      <g fill="#b5a987">${[[14, 22], [24, 22], [34, 22], [44, 22], [12, 34], [22, 34], [32, 34], [42, 34]].map(([x, y]) => `<circle cx="${x}" cy="${y + 2}" r="3.2"/>`).join("")}</g>
-      <g stroke="#120e08" stroke-width="1.5">${[[14, 22], [24, 22], [44, 22], [12, 34], [22, 34], [32, 34], [42, 34]].map(([x, y]) => `<path d="M${x - 4} ${y}l8 5M${x - 4} ${y + 4}l8-5M${x - 3} ${y + 2}h7"/>`).join("")}</g>
+      <g fill="#231f15">${[
+        [14, 22],
+        [24, 22],
+        [34, 22],
+        [44, 22],
+        [12, 34],
+        [22, 34],
+        [32, 34],
+        [42, 34],
+      ]
+        .map(([x, y]) => `<path d="M${x - 5} ${y + 16}c0-7 2-9 5-9s5 2 5 9z"/>`)
+        .join("")}</g>
+      <g fill="#b5a987">${[
+        [14, 22],
+        [24, 22],
+        [34, 22],
+        [44, 22],
+        [12, 34],
+        [22, 34],
+        [32, 34],
+        [42, 34],
+      ]
+        .map(([x, y]) => `<circle cx="${x}" cy="${y + 2}" r="3.2"/>`)
+        .join("")}</g>
+      <g stroke="#120e08" stroke-width="1.5">${[
+        [14, 22],
+        [24, 22],
+        [44, 22],
+        [12, 34],
+        [22, 34],
+        [32, 34],
+        [42, 34],
+      ]
+        .map(([x, y]) => `<path d="M${x - 4} ${y}l8 5M${x - 4} ${y + 4}l8-5M${x - 3} ${y + 2}h7"/>`)
+        .join("")}</g>
       <path d="M13 59c4-3 6 2 10 0s5-2 9 0" fill="none" stroke="#2c271c" stroke-width="1.8" stroke-linecap="round"/>
       <circle cx="10" cy="11" r="6" fill="#121a0a" fill-opacity=".6"/></g>
-      <circle cx="30" cy="5" r="2" fill="#4a4336" stroke="#090806"/>`)],
-    ["door", "Exit door", S("0 -16 60 156", `
+      <circle cx="30" cy="5" r="2" fill="#4a4336" stroke="#090806"/>`,
+      ),
+    ],
+    [
+      "door",
+      "Exit door",
+      S(
+        "0 -16 60 156",
+        `
       <rect x="12" y="-15" width="36" height="12" fill="#1a1612" ${ink}/><text x="30" y="-6" font-size="8" font-weight="bold" text-anchor="middle" fill="#c23a30" font-family="monospace">EXIT</text>
       <rect x="1" y="1" width="58" height="138" fill="#1d1a15" ${ink}/><rect x="6" y="6" width="48" height="133" fill="#45443c" ${ink}/>
       <path d="M6 22h48M6 118h48" stroke="#27261f" stroke-width="3"/>
@@ -68,8 +140,15 @@ function buildRoom() {
       <g font-family="monospace" font-weight="bold" fill="#17140d" font-size="4.6"><text x="16" y="33">NIGHT</text><text x="16" y="38">AUDITORS</text><text x="16" y="43">WANTED</text></g><g font-family="monospace" fill="#2c271c" font-size="3.4"><text x="16" y="48">Floor 14. Cash.</text><text x="16" y="52">No questions.</text></g></g>
       <g class="scrawl" font-family="Special Elite, monospace" fill="#c23a30" font-size="5.6" transform="rotate(-3 30 40)"><text x="10" y="32">DON'T LEAVE</text><text x="10" y="40">WITHOUT</text><text class="scrawl-name" x="10" y="49"></text></g>
       <rect class="bolt" x="27" y="62" width="27" height="7" fill="#22211b" stroke="#090806"/>
-      <circle class="lock" cx="46" cy="55" r="2.8" fill="#c6352c"/><circle cx="46" cy="77" r="3.6" fill="#6c5a35" ${ink}/>`)],
-    ["shelf", "Bookshelf", S("0 0 80 110", `
+      <circle class="lock" cx="46" cy="55" r="2.8" fill="#c6352c"/><circle cx="46" cy="77" r="3.6" fill="#6c5a35" ${ink}/>`,
+      ),
+    ],
+    [
+      "shelf",
+      "Bookshelf",
+      S(
+        "0 0 80 110",
+        `
       <rect x="1" y="1" width="78" height="108" fill="#33261a" ${ink}/><rect x="6" y="6" width="68" height="98" fill="#120e0a"/>
       <path d="M6 38h68M6 71l68 3" stroke="#33261a" stroke-width="4"/>
       <g stroke="#090806" stroke-width="1"><rect x="9" y="12" width="7" height="24" fill="#4c2c28"/><rect x="16" y="15" width="6" height="21" fill="#37423a"/><rect x="22" y="10" width="8" height="26" fill="#5b4c2f"/><rect x="34" y="16" width="6" height="20" fill="#3b3e48" transform="rotate(14 37 36)"/>
@@ -77,80 +156,183 @@ function buildRoom() {
       <rect x="9" y="82" width="8" height="20" fill="#513b28"/><rect x="17" y="79" width="7" height="23" fill="#2e3439"/></g>
       <path d="M47 62c0-7 4-11 10-11s10 4 10 11c0 3-2 4-3 5v3H50v-3c-1-1-3-2-3-5z" fill="#a39b83" ${ink}/><circle cx="53" cy="60" r="2.6" fill="#0b0907"/><circle cx="61" cy="60" r="2.6" fill="#0b0907"/><path d="M53 70v-3M57 70v-3M61 70v-3" stroke="#0b0907"/>
       <g transform="rotate(-3 58 26)"><path d="M43 34V19c5-2 10-2 15 0 5-2 10-2 15 0v15c-5-2-10-2-15 0-5-2-10-2-15 0z" fill="#a89c7c" stroke="#090806"/><path d="M58 19v15" stroke="#090806"/><path d="M46 22h9M46 25h9M46 28h9M61 22h9M61 25h5M61 28h5" stroke="#2c271c" stroke-width="1"/></g>
-      <path d="M74 6L52 6M74 6L60 22M74 6L74 28M58 6q4 6 8 7t8 5" fill="none" stroke="#d8d0ba" stroke-opacity=".45" stroke-width=".8"/>`)],
-    ["cabinet", "Cabinet", S("0 0 70 96", `
+      <path d="M74 6L52 6M74 6L60 22M74 6L74 28M58 6q4 6 8 7t8 5" fill="none" stroke="#d8d0ba" stroke-opacity=".45" stroke-width=".8"/>`,
+      ),
+    ],
+    [
+      "cabinet",
+      "Cabinet",
+      S(
+        "0 0 70 96",
+        `
       <rect x="1" y="1" width="68" height="86" fill="#2c2419" ${ink}/><rect x="6" y="6" width="58" height="76" fill="#070605"/>
       <rect x="22" y="40" width="26" height="16" fill="#b5ab90" transform="rotate(-6 35 48)"/>
       <path d="M8 87v8M62 87v8" stroke="#090806" stroke-width="4"/>
       <g class="dl"><rect x="6" y="6" width="29" height="76" fill="#4a3b29" ${ink}/><path d="M12 56l9 15M17 54l9 15M22 54l7 12" stroke="#17120c" stroke-width="1.3"/></g>
       <g class="dr"><rect x="35" y="6" width="29" height="76" fill="#4a3b29" ${ink}/><path d="M44 12c1 10-1 15 1 24" fill="none" stroke="#6a3b1f" stroke-width="2"/></g>
-      <g class="padlock"><path d="M31 40v-4c0-6 8-6 8 0v4" fill="none" stroke="#17140e" stroke-width="2.2"/><rect x="28" y="40" width="14" height="11" fill="#6f5a30" ${ink}/><circle cx="35" cy="45" r="1.5" fill="#090806"/></g>`)],
-    ["lamp", "Ceiling light", `<svg viewBox="0 0 120 26" xmlns="http://www.w3.org/2000/svg">
+      <g class="padlock"><path d="M31 40v-4c0-6 8-6 8 0v4" fill="none" stroke="#17140e" stroke-width="2.2"/><rect x="28" y="40" width="14" height="11" fill="#6f5a30" ${ink}/><circle cx="35" cy="45" r="1.5" fill="#090806"/></g>`,
+      ),
+    ],
+    [
+      "lamp",
+      "Ceiling light",
+      `<svg viewBox="0 0 120 26" xmlns="http://www.w3.org/2000/svg">
       <path d="M8 0l3 6M112 0l-4 6" stroke="#0a0805" stroke-width="1.5"/>
       <rect x="1" y="6" width="118" height="14" fill="#4b4630" ${ink}/>
       <rect class="tube" x="6" y="10" width="108" height="7" rx="3" fill="url(#tube)"/>
       <path d="M92 10v7M101 10v7" stroke="#2c2813" stroke-width="2"/>
-      <path d="M116 20c2 2 1 4 3 6" fill="none" stroke="#0a0805"/></svg>`],
-    ["computer", "Computer", S("0 0 80 72", `
+      <path d="M116 20c2 2 1 4 3 6" fill="none" stroke="#0a0805"/></svg>`,
+    ],
+    [
+      "computer",
+      "Computer",
+      S(
+        "0 0 80 72",
+        `
       <rect x="6" y="1" width="68" height="52" rx="4" fill="#6f6a57" ${ink}/><rect class="screen" x="13" y="7" width="54" height="38" rx="5" fill="#0c1a11"/>
       <text class="txt" x="18" y="21" font-size="7" font-family="monospace" fill="#73a57a">PASSWORD</text>
       <path class="txt" d="M18 29h20" stroke="#73a57a" stroke-width="1.5"/><rect class="cursor" x="40" y="25" width="5" height="6" fill="#73a57a"/>
       <path d="M60 7l-7 12 5 6-8 9M53 19l-8-3" fill="none" stroke="#b9c7b3" stroke-opacity=".5" stroke-width=".8"/>
       <rect x="30" y="53" width="20" height="6" fill="#55513f" ${ink}/><rect x="4" y="60" width="72" height="11" rx="1" fill="#6f6a57" ${ink}/>
       <path d="M10 65h60" stroke="#35322a" stroke-width="2" stroke-dasharray="4 2"/>
-      <path d="M67 53c0 4 .8 6 1.5 6s1.5-2 1.5-6z" fill="#8c1a15"/>`)],
-    ["note", "Note", S("0 0 40 44", `
+      <path d="M67 53c0 4 .8 6 1.5 6s1.5-2 1.5-6z" fill="#8c1a15"/>`,
+      ),
+    ],
+    [
+      "note",
+      "Note",
+      S(
+        "0 0 40 44",
+        `
       <g transform="rotate(-7 20 22)"><path d="M4 5l5-2 4 2 6-2 5 2 5-2 7 2-1 8 1 7-1 9 1 11-6-1-6 2-5-2-6 2-9-1 1-11-1-9 1-7z" fill="#a89c7c" ${ink}/>
       <path d="M9 14c5-3 6 2 10 0s5 0 11-1" fill="none" stroke="#1c50d2" stroke-width="2" stroke-linecap="round"/>
       <path d="M9 22c4-2 7 1 11 0s5-1 7 0M9 29c3-1 6 1 10 0" fill="none" stroke="#231e15" stroke-width="1.5" stroke-linecap="round"/>
-      <ellipse cx="29" cy="33" rx="3.5" ry="4.5" fill="#8c1a15" fill-opacity=".85"/></g>`)],
-    ["phone", "Old phone", S("0 0 80 56", `
+      <ellipse cx="29" cy="33" rx="3.5" ry="4.5" fill="#8c1a15" fill-opacity=".85"/></g>`,
+      ),
+    ],
+    [
+      "phone",
+      "Old phone",
+      S(
+        "0 0 80 56",
+        `
       <path d="M12 54l6-26h44l6 26z" fill="#1d1a15" ${ink}/><path d="M6 24c0-14 68-14 68 0l-4 8H56l-3-8H27l-3 8H10z" fill="#2a2620" ${ink}/>
       <circle cx="40" cy="42" r="9" fill="#4a4336" stroke="#090806"/><circle cx="40" cy="42" r="3" fill="#120e0a"/><g fill="#120e0a"><circle cx="40" cy="35.5" r="1.2"/><circle cx="46" cy="39" r="1.2"/><circle cx="46" cy="45" r="1.2"/><circle cx="40" cy="48.500" r="1.2"/><circle cx="34" cy="45" r="1.2"/><circle cx="34" cy="39" r="1.2"/></g>
-      <path d="M12 34c-10 6-10 14-4 20" fill="none" stroke="#090806" stroke-width="2"/>`)],
-    ["coat", "Coat on a hook", S("0 0 60 120", `
+      <path d="M12 34c-10 6-10 14-4 20" fill="none" stroke="#090806" stroke-width="2"/>`,
+      ),
+    ],
+    [
+      "coat",
+      "Coat on a hook",
+      S(
+        "0 0 60 120",
+        `
       <path d="M30 2v9" stroke="#6c5a35" stroke-width="3"/><circle cx="30" cy="3" r="2.500" fill="#6c5a35"/>
       <path d="M30 10c-14 2-22 8-24 20L2 100c8 6 14 6 20 2l4-40 4-8 4 8 4 40c6 4 12 4 20-2l-4-70c-2-12-10-18-24-20z" fill="#27231b" ${ink}/>
       <path d="M30 12l-9 22 9 20 9-20z" fill="#14120c" stroke="#090806"/><path d="M12 74h13v14H12z" fill="#1c1913" stroke="#090806"/>
-      <path d="M14 18c8-3 24-3 32 0" fill="none" stroke="#6d6a58" stroke-opacity=".6" stroke-width="3"/><path d="M40 72l9 3-3 14-9-3z" fill="#a89c7c" stroke="#090806"/>`)],
-    ["vending", "Vending machine", S("0 0 90 170", `
+      <path d="M14 18c8-3 24-3 32 0" fill="none" stroke="#6d6a58" stroke-opacity=".6" stroke-width="3"/><path d="M40 72l9 3-3 14-9-3z" fill="#a89c7c" stroke="#090806"/>`,
+      ),
+    ],
+    [
+      "vending",
+      "Vending machine",
+      S(
+        "0 0 90 170",
+        `
       <rect x="2" y="2" width="86" height="166" rx="3" fill="#33362f" ${ink}/><rect x="9" y="9" width="52" height="118" fill="#0c0d0a" ${ink}/>
       <g>${[0, 1, 2, 3, 4].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${13 + c * 16}" y="${14 + r * 23}" width="12" height="17" fill="#7a6d48" stroke="#090806"/><path d="M${15 + c * 16} ${21 + r * 23}h8" stroke="#17140d" stroke-width="1.5"/>`)).join("")}</g>
       <path d="M9 9L61 127M61 9L30 60" stroke="#c9c2a8" stroke-opacity=".3"/><rect x="66" y="14" width="17" height="10" fill="#120e0a" stroke="#090806"/>
       <g fill="#55524a" stroke="#090806">${[0, 1, 2, 3].map((r) => `<rect x="67" y="${32 + r * 12}" width="15" height="8"/>`).join("")}</g>
-      <rect x="9" y="136" width="52" height="24" fill="#050403" stroke="#090806" stroke-width="2"/><path d="M6 168l12-3M60 168l18-2" stroke="#6b3e20" stroke-width="3"/>`)],
-    ["scratches", "Scratches on the door frame", S("0 0 24 150", `
+      <rect x="9" y="136" width="52" height="24" fill="#050403" stroke="#090806" stroke-width="2"/><path d="M6 168l12-3M60 168l18-2" stroke="#6b3e20" stroke-width="3"/>`,
+      ),
+    ],
+    [
+      "scratches",
+      "Scratches on the door frame",
+      S(
+        "0 0 24 150",
+        `
       <rect x="1" y="1" width="22" height="148" fill="#2a2820" stroke="#090806"/>
       <g stroke="#b8b09a" stroke-width="1.3" stroke-linecap="round"><path d="M7 30l3 26M12 28l3 30M17 31l2 24M6 72l4 30M11 70l3 34M16 73l3 28M7 112l2 20M12 110l2 24"/></g>
-      <path d="M9 40l1 8M14 44l1 8M8 86l1 8M13 90l1 8" stroke="#6e0d08" stroke-width="1.6"/>`)],
+      <path d="M9 40l1 8M14 44l1 8M8 86l1 8M13 90l1 8" stroke="#6e0d08" stroke-width="1.6"/>`,
+      ),
+    ],
     ["casket-left", "Left casket", S("0 0 120 150", CASKET), 2],
     ["casket-right", "Right casket", S("0 0 120 150", CASKET), 2],
-    ["fusebox", "Fuse box", S("0 0 70 90", `
+    [
+      "fusebox",
+      "Fuse box",
+      S(
+        "0 0 70 90",
+        `
       <rect x="2" y="2" width="66" height="86" rx="2" fill="#3c4247" ${ink}/><rect x="9" y="9" width="52" height="72" fill="#14171a" stroke="#090806"/>
       <g fill="#6c6a5c" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1].map((c) => `<rect x="${14 + c * 14}" y="${15 + r * 17}" width="9" height="13"/>`)).join("")}</g>
       <rect x="46" y="16" width="10" height="56" fill="#090a0b" stroke="#2c3338"/><g class="lever"><rect x="42" y="20" width="18" height="9" rx="2" fill="#8c1a15" stroke="#090806"/></g>
-      <path d="M2 88c6 4 8 6 7 2M68 2l-8 6" stroke="#6b3e20" stroke-width="2"/><path d="M16 73c8-2 14 1 22 0" stroke="#c7a650" stroke-width="1.5" fill="none"/><circle class="led" cx="17" cy="79" r="1"/>`), 2],
-    ["shoes", "Pair of shoes", S("0 0 100 44", `
+      <path d="M2 88c6 4 8 6 7 2M68 2l-8 6" stroke="#6b3e20" stroke-width="2"/><path d="M16 73c8-2 14 1 22 0" stroke="#c7a650" stroke-width="1.5" fill="none"/><circle class="led" cx="17" cy="79" r="1"/>`,
+      ),
+      2,
+    ],
+    [
+      "shoes",
+      "Pair of shoes",
+      S(
+        "0 0 100 44",
+        `
       <path d="M4 34c0-14 6-22 12-22 8 0 8 10 18 14 8 3 12 6 10 12H6z" fill="#14120c" ${ink}/><path d="M16 15l6 8M20 13l6 8" stroke="#a79f8a" stroke-width="1.6"/>
       <path d="M54 34c0-14 6-22 12-22 8 0 8 10 18 14 8 3 12 6 10 12H56z" fill="#17150e" ${ink}/><path d="M66 15l6 8M70 13l6 8" stroke="#a79f8a" stroke-width="1.6"/>
-      <path d="M6 38h38M56 38h38" stroke="#000" stroke-width="3"/>`), 2],
-    ["bricked-door", "Bricked-up door", S("0 0 70 140", `
+      <path d="M6 38h38M56 38h38" stroke="#000" stroke-width="3"/>`,
+      ),
+      2,
+    ],
+    [
+      "bricked-door",
+      "Bricked-up door",
+      S(
+        "0 0 70 140",
+        `
       <rect x="2" y="2" width="66" height="136" fill="#1a1d20" ${ink}/><rect x="8" y="10" width="54" height="128" fill="url(#bricks)"/>
       <path d="M8 10h54M8 10v128M62 10v128" stroke="#0a0c0e" stroke-width="4"/><path d="M18 64c6 6 16 6 22-2M24 90l14-6" stroke="#0a0c0e" stroke-width="2" fill="none"/>
-      <rect x="20" y="20" width="30" height="9" fill="#8d7433" stroke="#231a08"/><path d="M23 24h24" stroke="#2b2109" stroke-width="2"/>`), 2],
-    ["candles", "Candle stubs", `<svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <rect x="20" y="20" width="30" height="9" fill="#8d7433" stroke="#231a08"/><path d="M23 24h24" stroke="#2b2109" stroke-width="2"/>`,
+      ),
+      2,
+    ],
+    [
+      "candles",
+      "Candle stubs",
+      `<svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <g class="candles"><circle cx="44" cy="44" r="58" fill="url(#candle)"/><g fill="#f4d98a"><path d="M26 48c-4-7 0-12 0-17 3 6 5 11 0 17zM50 38c-4-8 0-14 0-20 3 7 6 13 0 20zM68 54c-3-6 0-10 0-14 3 5 4 9 0 14z"/></g></g>
       <g fill="#c9c2a8" stroke="#3b3323"><rect x="20" y="48" width="12" height="28"/><rect x="44" y="38" width="13" height="40"/><rect x="62" y="54" width="11" height="22"/></g>
-      <path d="M14 78c20 6 50 6 64 0-2-6-12-6-14-2-10 2-30 2-36 0-4-4-12-2-14 2z" fill="#a79f8a" stroke="#3b3323"/></svg>`, 2],
-    ["keypad", "Keypad", S("0 0 60 84", `
+      <path d="M14 78c20 6 50 6 64 0-2-6-12-6-14-2-10 2-30 2-36 0-4-4-12-2-14 2z" fill="#a79f8a" stroke="#3b3323"/></svg>`,
+      2,
+    ],
+    [
+      "keypad",
+      "Keypad",
+      S(
+        "0 0 60 84",
+        `
       <rect x="2" y="2" width="56" height="80" rx="3" fill="#2a2820" ${ink}/><rect x="9" y="8" width="42" height="14" fill="#2c0c09" stroke="#090806"/><circle class="led" cx="46" cy="15" r="2.5"/>
-      <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`), 2],
-    ["lift-panel", "Lift buttons", S("0 0 60 170", `
+      <g fill="#6f6a57" stroke="#090806">${[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => `<rect x="${10 + c * 14}" y="${28 + r * 16}" width="11" height="12"/>`)).join("")}</g>`,
+      ),
+      2,
+    ],
+    [
+      "lift-panel",
+      "Lift buttons",
+      S(
+        "0 0 60 170",
+        `
       <rect x="2" y="2" width="56" height="166" rx="3" fill="#3a3019" ${ink}/><rect x="8" y="8" width="44" height="154" fill="#231d0f" stroke="#090806"/>
       <rect x="14" y="12" width="32" height="12" fill="#090806" stroke="#6f5a30"/><circle class="lift-lamp" cx="30" cy="18" r="3.500" fill="#3a1511"/>
       <g fill="#c7a650" stroke="#231a08" stroke-width="1.2">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].flatMap((r) => [0, 1].map((c) => `<circle cx="${21 + c * 18}" cy="${34 + r * 12}" r="4"/>`)).join("")}</g>
-      <path d="M12 164l10-5M40 160l14 4" stroke="#6b3e20" stroke-width="2"/>`), 3],
-    ["zombie", "Zombie in the lift", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <path d="M12 164l10-5M40 160l14 4" stroke="#6b3e20" stroke-width="2"/>`,
+      ),
+      3,
+    ],
+    [
+      "zombie",
+      "Zombie in the lift",
+      `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <rect class="z-back" x="2" y="2" width="116" height="186" fill="#020202" opacity=".7"/>
       <g class="zsway">
       <g class="zbody">
@@ -185,13 +367,18 @@ function buildRoom() {
         <path d="M92 102l16 20" fill="none" stroke="#151711" stroke-width="10" stroke-linecap="round"/><path d="M108 122l10 22" fill="none" stroke="#151711" stroke-width="6.5" stroke-linecap="round"/>
         <path d="M93 103l15 19 9 21" fill="none" stroke="#454b3c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
         <circle cx="108" cy="122" r="4.6" fill="#262a20"/><path d="M100 110l2 4M113 134l2 4" stroke="#5a120d" stroke-width="1.8"/>
-        ${HAND(118, 144, -28, .95)}
+        ${HAND(118, 144, -28, 0.95)}
       </g>
       </g>
       <rect x="0" y="0" width="120" height="190" fill="url(#zdark)" pointer-events="none"/>
       <rect class="z-under" x="0" y="0" width="120" height="190" fill="url(#zunder)" pointer-events="none"/>
-    </svg>`, 3],
-    ["gate", "Lift gate", `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><g class="rattle">
+    </svg>`,
+      3,
+    ],
+    [
+      "gate",
+      "Lift gate",
+      `<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><g class="rattle">
       <g class="folds">
         <g stroke="#7a6530" stroke-width="3" fill="none"><path d="M3 2H117V188H3z"/>${[3, 17, 31, 45, 59, 73, 87, 101, 117].map((x) => `<path d="M${x} 2v186"/>`).join("")}</g>
         <g stroke="#57461f" stroke-width="2.2">${[3, 31, 59, 87].map((x) => `<path d="M${x} 20l28 40M${x + 28} 20l-28 40M${x} 76l28 40M${x + 28} 76l-28 40M${x} 132l28 40M${x + 28} 132l-28 40"/>`).join("")}</g>
@@ -203,93 +390,220 @@ function buildRoom() {
         <circle cx="10" cy="136" r="5" fill="#262a20"/><path d="M22 112l-3 4M0 152l-3 4" stroke="#5a120d" stroke-width="2"/>
         <g class="zclaw">${HAND(-13, 172, 38, 1.25)}</g>
       </g>
-    </g></svg>`, 3],
-    ["lift", "Lift (out of order)", S("0 0 120 44", `
+    </g></svg>`,
+      3,
+    ],
+    [
+      "lift",
+      "Lift (out of order)",
+      S(
+        "0 0 120 44",
+        `
       <path d="M30 0l-8 12M90 0l8 12" stroke="#2c2813" stroke-width="2"/>
       <g transform="rotate(-4 60 26)"><rect x="8" y="10" width="104" height="30" fill="#a89c7c" stroke="#120e08" stroke-width="2"/><rect x="12" y="14" width="96" height="22" fill="none" stroke="#8c1a15" stroke-width="1.5"/>
       <text x="60" y="31" font-family="monospace" font-size="15" font-weight="bold" text-anchor="middle" fill="#8c1a15">OUT OF ORDER</text>
-      <path d="M90 12c4 6 2 14 6 20M20 14c-2 6 2 12 0 18" stroke="#5a4a2a" stroke-width="1" fill="none" opacity=".6"/></g>`), 3],
-    ["hatch", "Roof hatch", S("0 0 140 70", `
+      <path d="M90 12c4 6 2 14 6 20M20 14c-2 6 2 12 0 18" stroke="#5a4a2a" stroke-width="1" fill="none" opacity=".6"/></g>`,
+      ),
+      3,
+    ],
+    [
+      "hatch",
+      "Roof hatch",
+      S(
+        "0 0 140 70",
+        `
       <path d="M10 8h120l-14 52H24z" fill="#1a1810" ${ink}/><path d="M20 14h100l-11 40H31z" fill="#2d2b21" stroke="#090806" stroke-width="2"/>
       <path d="M28 20h84M26 30h88M24 40h92" stroke="#15130c" stroke-width="2"/><rect x="62" y="44" width="16" height="6" fill="#6f5a30" stroke="#090806"/>
-      <path d="M118 56c6 6 4 12 10 14" stroke="#0a0805" stroke-width="2" fill="none"/><path d="M30 56l-6 12M34 58l2 10" stroke="#3b3323" stroke-width="1.5"/>`), 3],
-    ["lift-breaker", "Breaker box", S("0 0 70 100", `
+      <path d="M118 56c6 6 4 12 10 14" stroke="#0a0805" stroke-width="2" fill="none"/><path d="M30 56l-6 12M34 58l2 10" stroke="#3b3323" stroke-width="1.5"/>`,
+      ),
+      3,
+    ],
+    [
+      "lift-breaker",
+      "Breaker box",
+      S(
+        "0 0 70 100",
+        `
       <rect x="2" y="2" width="66" height="96" rx="2" fill="#2f312b" ${ink}/><rect x="9" y="10" width="52" height="40" fill="#141510" stroke="#090806"/>
       <rect x="28" y="16" width="14" height="28" fill="#090806" stroke="#4a4a40"/><rect class="fuse-in" x="30" y="19" width="10" height="22" rx="2" fill="#c7a650" stroke="#231a08"/>
       <circle class="power-led" cx="20" cy="64" r="4.5" fill="#3a0d0a" stroke="#090806"/><text x="30" y="67" font-family="monospace" font-size="7" fill="#8a8574">POWER</text>
-      <path d="M12 78h46M12 86h30" stroke="#4a4a40" stroke-width="2"/><path d="M60 4c-6 10-2 20-8 30" stroke="#6b3e20" stroke-width="2" fill="none"/>`), 3],
-    ["vent", "Vent with a fan", `<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+      <path d="M12 78h46M12 86h30" stroke="#4a4a40" stroke-width="2"/><path d="M60 4c-6 10-2 20-8 30" stroke="#6b3e20" stroke-width="2" fill="none"/>`,
+      ),
+      3,
+    ],
+    [
+      "vent",
+      "Vent with a fan",
+      `<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <defs><radialGradient id="daylight"><stop offset="0" stop-color="#f4ead0" stop-opacity=".9"/><stop offset="1" stop-color="#f4ead0" stop-opacity="0"/></radialGradient></defs>
       <rect x="2" y="2" width="106" height="106" fill="#0c0c09" stroke="#090806" stroke-width="2"/>
       <circle class="daylight" cx="55" cy="55" r="46" fill="url(#daylight)"/>
       <g class="fan"><circle cx="55" cy="55" r="7" fill="#3a3a32"/>${[0, 72, 144, 216, 288].map((a) => `<path d="M55 55c4-14 18-26 34-28-4 12-16 24-34 28z" fill="#2c2c26" stroke="#0a0a08" transform="rotate(${a} 55 55)"/>`).join("")}</g>
       <g class="vent-cover"><rect x="4" y="4" width="102" height="102" fill="none" stroke="#55534a" stroke-width="6"/>
         ${[18, 30, 42, 54, 66, 78, 90].map((y) => `<path d="M8 ${y}h94" stroke="#4a4840" stroke-width="5"/><path d="M8 ${y + 2.5}h94" stroke="#141410" stroke-width="1.5"/>`).join("")}
-        ${[[10, 10], [100, 10], [10, 100], [100, 100]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#7a7466" stroke="#090806"/>`).join("")}
+        ${[
+          [10, 10],
+          [100, 10],
+          [10, 100],
+          [100, 100],
+        ]
+          .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#7a7466" stroke="#090806"/>`)
+          .join("")}
         <rect x="44" y="94" width="22" height="10" rx="2" fill="#6f5a30" stroke="#090806"/></g>
       <path class="draft" d="M30 50c10-6 20 6 30 0s20 6 30 0M26 64c10-6 22 6 32 0s20 6 32 0" stroke="#d8d0ba" stroke-width="1.2" fill="none" opacity=".35"/>
-    </svg>`, 3],
-    ["indicator", "Floor dial", S("0 0 150 80", `
+    </svg>`,
+      3,
+    ],
+    [
+      "indicator",
+      "Floor dial",
+      S(
+        "0 0 150 80",
+        `
       <path d="M4 76a71 71 0 0 1 142 0z" fill="#3a3019" ${ink}/><path d="M16 76a59 59 0 0 1 118 0z" fill="#a89c7c" stroke="#231a08" stroke-width="2"/>
       <g stroke="#231a08" stroke-width="2"><path d="M26 66l8 3M38 44l7 6M58 27l4 8M92 27l-4 8M112 44l-7 6M124 66l-8 3"/></g>
       <g font-family="monospace" font-size="9" font-weight="bold" fill="#17140d" text-anchor="middle"><text x="42" y="68">G</text><text x="52" y="52">4</text><text x="68" y="44">8</text><text x="84" y="44">12</text><text x="99" y="52">16</text><text x="109" y="68">20</text></g>
-      <path class="needle" d="M75 74L88 34" stroke="#8c1a15" stroke-width="3" stroke-linecap="round"/><circle cx="75" cy="74" r="5" fill="#120e0a"/>`), 3],
-    ["emergency-phone", "Emergency phone", S("0 0 80 110", `
+      <path class="needle" d="M75 74L88 34" stroke="#8c1a15" stroke-width="3" stroke-linecap="round"/><circle cx="75" cy="74" r="5" fill="#120e0a"/>`,
+      ),
+      3,
+    ],
+    [
+      "emergency-phone",
+      "Emergency phone",
+      S(
+        "0 0 80 110",
+        `
       <rect x="2" y="2" width="76" height="106" rx="3" fill="#6e0d08" ${ink}/><rect x="10" y="10" width="60" height="16" fill="#a89c7c" stroke="#090806"/><text x="40" y="22" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle" fill="#17140d">NIGHT DESK</text>
       <rect x="10" y="32" width="60" height="68" fill="#2c0504" stroke="#090806"/><path d="M28 40c-8 0-8 6-8 22s0 22 8 22c4 0 5-3 5-7 0-4-2-7-6-7-1-5-1-11 0-16 4 0 6-3 6-7 0-4-1-7-5-7z" fill="#0a0806" stroke="#000"/>
-      <path d="M26 84c8 8 22 8 26-2s-4-22 4-32" fill="none" stroke="#0a0806" stroke-width="2"/><g fill="#a79f8a">${[0, 1, 2].flatMap((r) => [0, 1].map((c) => `<circle cx="${50 + c * 10}" cy="${44 + r * 10}" r="2.500"/>`)).join("")}</g>`), 3],
-    ["graffiti", "Words scratched into the wall", `<svg viewBox="0 0 180 110" xmlns="http://www.w3.org/2000/svg">
+      <path d="M26 84c8 8 22 8 26-2s-4-22 4-32" fill="none" stroke="#0a0806" stroke-width="2"/><g fill="#a79f8a">${[0, 1, 2].flatMap((r) => [0, 1].map((c) => `<circle cx="${50 + c * 10}" cy="${44 + r * 10}" r="2.500"/>`)).join("")}</g>`,
+      ),
+      3,
+    ],
+    [
+      "graffiti",
+      "Words scratched into the wall",
+      `<svg viewBox="0 0 180 110" xmlns="http://www.w3.org/2000/svg">
       <rect width="180" height="110" fill="#000" fill-opacity=".01"/><g font-family="Special Elite, monospace" fill="#c9c2a8" opacity=".85"><text x="6" y="26" font-size="24">THE DOOR</text><text x="6" y="52" font-size="24">OPENS</text><text x="6" y="78" font-size="24">FOR ONE</text></g>
-      <text x="44" y="104" font-family="Special Elite, monospace" font-size="20" fill="#8c1a15" transform="rotate(-3 44 104)">UNLESS</text></svg>`, 3],
+      <text x="44" y="104" font-family="Special Elite, monospace" font-size="20" fill="#8c1a15" transform="rotate(-3 44 104)">UNLESS</text></svg>`,
+      3,
+    ],
   ];
   const room = document.getElementById("room");
-  const rays = (pts, col, w) => pts.map(([x, y]) => `<path d="M800 470L${x} ${y}" stroke="${col}" stroke-width="${w}"/>`).join("");
-  const range = (a, b, n) => Array.from({ length: n }, (_, i) => a + (b - a) * i / (n - 1));
+  const rays = (pts, col, w) =>
+    pts.map(([x, y]) => `<path d="M800 470L${x} ${y}" stroke="${col}" stroke-width="${w}"/>`).join("");
+  const range = (a, b, n) => Array.from({ length: n }, (_, i) => a + ((b - a) * i) / (n - 1));
   const blob = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#blob)"/>`;
   const drip = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#drip)"/>`;
 
   // Level 2 set dressing: open doors, a chandelier, portraits, chains, clutter, fog and a shadow at the far end
   const corridor = (() => {
-    const top = (x) => 420 * x / 730, bottom = (x) => 1000 - 480 * x / 730, doorTop = (x) => top(x) + (bottom(x) - top(x)) * .22;
+    const top = (x) => (420 * x) / 730,
+      bottom = (x) => 1000 - (480 * x) / 730,
+      doorTop = (x) => top(x) + (bottom(x) - top(x)) * 0.22;
     const door = ([a, b], side, num, hand) => {
-      const X = (x) => (side === "R" ? 1600 - x : x), leafB = a + (b - a) * .62;
+      const X = (x) => (side === "R" ? 1600 - x : x),
+        leafB = a + (b - a) * 0.62;
       const frame = `M${X(a)} ${doorTop(a)}L${X(b)} ${doorTop(b)}V${bottom(b)}L${X(a)} ${bottom(a)}z`;
       const leaf = `M${X(a)} ${doorTop(a)}L${X(leafB)} ${doorTop(leafB) + 6}V${bottom(leafB) - 4}L${X(a)} ${bottom(a)}z`;
-      const mx = X(a + (b - a) * .3), my = doorTop(a) + (bottom(a) - doorTop(a)) * .14, k = (b - a) / 110;
+      const mx = X(a + (b - a) * 0.3),
+        my = doorTop(a) + (bottom(a) - doorTop(a)) * 0.14,
+        k = (b - a) / 110;
       return `<path d="${frame}" fill="#010101" stroke="#0a0c0e" stroke-width="7"/>
         <path d="${leaf}" fill="#30373b" stroke="#0a0c0e" stroke-width="3"/>
-        <path d="M${X(a + (b - a) * .1)} ${doorTop(a) + 40}l${(side === "R" ? -1 : 1) * 10 * k} 30 ${(side === "R" ? 1 : -1) * 4 * k} 50M${X(a + (b - a) * .4)} ${bottom(a) - 120}l${(side === "R" ? -1 : 1) * 8 * k} 40" stroke="#4d565a" stroke-width="${3 * k}" fill="none" opacity=".7"/>
+        <path d="M${X(a + (b - a) * 0.1)} ${doorTop(a) + 40}l${(side === "R" ? -1 : 1) * 10 * k} 30 ${(side === "R" ? 1 : -1) * 4 * k} 50M${X(a + (b - a) * 0.4)} ${bottom(a) - 120}l${(side === "R" ? -1 : 1) * 8 * k} 40" stroke="#4d565a" stroke-width="${3 * k}" fill="none" opacity=".7"/>
         <g transform="translate(${mx} ${my}) skewY(${side === "R" ? -24 : 24}) scale(${k})"><rect x="-18" y="-10" width="36" height="16" fill="#8d7433" stroke="#231a08"/><text x="0" y="3" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle" fill="#231a08">${num}</text></g>
-        ${hand ? `<g transform="translate(${X(a + (b - a) * .35)} ${doorTop(a) + (bottom(a) - doorTop(a)) * .45}) skewY(${side === "R" ? -20 : 20}) scale(${k * 1.3})" fill="#7a0e09" opacity=".85"><path d="M-10 8c-2-8 0-14 6-16l2-18c0-3 4-3 4 0l1 14 2-20c0-3 4-3 4 0l0 20 3-17c1-3 5-2 4 1l-2 19 4-10c1-3 5-2 4 1l-5 18c-2 10-8 14-16 12-5-1-7-2-11-4z"/><path d="M-4 16c0 14 1 24 2 30M6 18c0 10 1 16 2 22" stroke="#7a0e09" stroke-width="2.4"/></g>` : ""}`;
+        ${hand ? `<g transform="translate(${X(a + (b - a) * 0.35)} ${doorTop(a) + (bottom(a) - doorTop(a)) * 0.45}) skewY(${side === "R" ? -20 : 20}) scale(${k * 1.3})" fill="#7a0e09" opacity=".85"><path d="M-10 8c-2-8 0-14 6-16l2-18c0-3 4-3 4 0l1 14 2-20c0-3 4-3 4 0l0 20 3-17c1-3 5-2 4 1l-2 19 4-10c1-3 5-2 4 1l-5 18c-2 10-8 14-16 12-5-1-7-2-11-4z"/><path d="M-4 16c0 14 1 24 2 30M6 18c0 10 1 16 2 22" stroke="#7a0e09" stroke-width="2.4"/></g>` : ""}`;
     };
     const portrait = (x, y, w, h, skew) => `<g transform="translate(${x} ${y}) skewY(${skew})">
       <rect x="-6" y="-6" width="${w + 12}" height="${h + 12}" fill="#3a2614" stroke="#120b06" stroke-width="3"/><rect width="${w}" height="${h}" fill="#1a1712"/>
-      <path d="M${w * .2} ${h}c0-${h * .3} ${w * .1}-${h * .42} ${w * .3}-${h * .46}c${w * .2} ${h * .04} ${w * .3} ${h * .16} ${w * .3} ${h * .46}z" fill="#0d0c09"/>
-      <ellipse cx="${w * .5}" cy="${h * .36}" rx="${w * .2}" ry="${h * .22}" fill="#5f594a"/><ellipse cx="${w * .5}" cy="${h * .3}" rx="${w * .22}" ry="${h * .12}" fill="#1a1712" opacity=".8"/>
-      <g class="eyes-follow"><ellipse cx="${w * .42}" cy="${h * .36}" rx="${w * .055}" ry="${h * .03}" fill="#d8d2bd"/><ellipse cx="${w * .58}" cy="${h * .36}" rx="${w * .055}" ry="${h * .03}" fill="#d8d2bd"/>
-      <g class="pupils"><circle cx="${w * .42}" cy="${h * .36}" r="${w * .025}" fill="#050403"/><circle cx="${w * .58}" cy="${h * .36}" r="${w * .025}" fill="#050403"/></g></g>
-      <path d="M${w * .44} ${h * .5}h${w * .12}" stroke="#2a0806" stroke-width="2"/><path d="M${w * .7} 0l-${w * .2} ${h * .4}" stroke="#0a0805" stroke-width="2"/></g>`;
-    const candle = (x, y) => `<rect x="${x - 4}" y="${y - 26}" width="8" height="26" fill="url(#wax)"/><g transform="translate(${x} ${y - 28})"><g class="flame"><circle r="34" fill="url(#candle)"/><path d="M0 -14c-3 5-4 8-4 11 0 3 2 5 4 5s4-2 4-5c0-3-1-6-4-11z" fill="#f6c45a"/></g></g>`;
+      <path d="M${w * 0.2} ${h}c0-${h * 0.3} ${w * 0.1}-${h * 0.42} ${w * 0.3}-${h * 0.46}c${w * 0.2} ${h * 0.04} ${w * 0.3} ${h * 0.16} ${w * 0.3} ${h * 0.46}z" fill="#0d0c09"/>
+      <ellipse cx="${w * 0.5}" cy="${h * 0.36}" rx="${w * 0.2}" ry="${h * 0.22}" fill="#5f594a"/><ellipse cx="${w * 0.5}" cy="${h * 0.3}" rx="${w * 0.22}" ry="${h * 0.12}" fill="#1a1712" opacity=".8"/>
+      <g class="eyes-follow"><ellipse cx="${w * 0.42}" cy="${h * 0.36}" rx="${w * 0.055}" ry="${h * 0.03}" fill="#d8d2bd"/><ellipse cx="${w * 0.58}" cy="${h * 0.36}" rx="${w * 0.055}" ry="${h * 0.03}" fill="#d8d2bd"/>
+      <g class="pupils"><circle cx="${w * 0.42}" cy="${h * 0.36}" r="${w * 0.025}" fill="#050403"/><circle cx="${w * 0.58}" cy="${h * 0.36}" r="${w * 0.025}" fill="#050403"/></g></g>
+      <path d="M${w * 0.44} ${h * 0.5}h${w * 0.12}" stroke="#2a0806" stroke-width="2"/><path d="M${w * 0.7} 0l-${w * 0.2} ${h * 0.4}" stroke="#0a0805" stroke-width="2"/></g>`;
+    const candle = (x, y) =>
+      `<rect x="${x - 4}" y="${y - 26}" width="8" height="26" fill="url(#wax)"/><g transform="translate(${x} ${y - 28})"><g class="flame"><circle r="34" fill="url(#candle)"/><path d="M0 -14c-3 5-4 8-4 11 0 3 2 5 4 5s4-2 4-5c0-3-1-6-4-11z" fill="#f6c45a"/></g></g>`;
     return `
     <g class="far-fade"><path d="M640 470L960 470 1060 600H540z" fill="url(#farfade)"/></g>
     <g clip-path="url(#farEnd)"><g class="far-shadow"><path d="M700 520c0-30 4-46 10-52 2-6 2-14 8-14s6 8 8 14c6 6 10 22 10 52z" fill="#000"/></g></g>
-    <g class="barricade" transform="translate(800 540) scale(1.5) translate(-800 -540)">${[  // the far end is blocked: coffins piled across it, lying and standing, boards nailed over them
-      [800, 528, .32, 90], [800, 504, .3, 90], [770, 482, .26, 84], [834, 484, .25, 96],
-      [736, 526, .34, -8], [866, 526, .34, 9], [712, 524, .3, -16], [890, 524, .3, 15], [800, 462, .22, 2]
-    ].map(([x, y, k, r]) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${k})"><path d="M0 -190L56 -152 42 0H-42L-56 -152z" fill="#1d130c" stroke="#060403" stroke-width="7"/><path d="M0 -150v84M-20 -124h40" stroke="#3a281a" stroke-width="7"/></g>`).join("")}
+    <g class="barricade" transform="translate(800 540) scale(1.5) translate(-800 -540)">${[
+      // the far end is blocked: coffins piled across it, lying and standing, boards nailed over them
+      [800, 528, 0.32, 90],
+      [800, 504, 0.3, 90],
+      [770, 482, 0.26, 84],
+      [834, 484, 0.25, 96],
+      [736, 526, 0.34, -8],
+      [866, 526, 0.34, 9],
+      [712, 524, 0.3, -16],
+      [890, 524, 0.3, 15],
+      [800, 462, 0.22, 2],
+    ]
+      .map(
+        ([x, y, k, r]) =>
+          `<g transform="translate(${x} ${y}) rotate(${r}) scale(${k})"><path d="M0 -190L56 -152 42 0H-42L-56 -152z" fill="#1d130c" stroke="#060403" stroke-width="7"/><path d="M0 -150v84M-20 -124h40" stroke="#3a281a" stroke-width="7"/></g>`,
+      )
+      .join("")}
       <path d="M708 470L892 500M712 506L888 478" stroke="#3b2a1a" stroke-width="9"/><path d="M708 470L892 500M712 506L888 478" stroke="#120b06" stroke-width="2" stroke-dasharray="3 22"/>
       <g transform="translate(762 452) rotate(-6)"><rect width="76" height="18" fill="#6e5a3a" stroke="#120b06" stroke-width="2"/><text x="38" y="14" text-anchor="middle" font-family="Special Elite, monospace" font-size="13" fill="#5a0c08">NO EXIT</text></g>
-      ${[[742, 540], [786, 546], [846, 542], [868, 548]].map(([x, y], i) => `<g transform="translate(${x} ${y}) scale(${.5 + i % 2 * .15})"><ellipse cx="0" cy="0" rx="9" ry="8" fill="#cfc6ad" stroke="#2a251a"/><circle cx="-3" cy="-1" r="2.2" fill="#1a1510"/><circle cx="3" cy="-1" r="2.2" fill="#1a1510"/><path d="M-12 8l24 4M-11 12l22 -5" stroke="#cfc6ad" stroke-width="3" stroke-linecap="round"/></g>`).join("")}
+      ${[
+        [742, 540],
+        [786, 546],
+        [846, 542],
+        [868, 548],
+      ]
+        .map(
+          ([x, y], i) =>
+            `<g transform="translate(${x} ${y}) scale(${0.5 + (i % 2) * 0.15})"><ellipse cx="0" cy="0" rx="9" ry="8" fill="#cfc6ad" stroke="#2a251a"/><circle cx="-3" cy="-1" r="2.2" fill="#1a1510"/><circle cx="3" cy="-1" r="2.2" fill="#1a1510"/><path d="M-12 8l24 4M-11 12l22 -5" stroke="#cfc6ad" stroke-width="3" stroke-linecap="round"/></g>`,
+        )
+        .join("")}
       <path d="M700 540c30-6 170-6 200 0" stroke="#000" stroke-width="10" opacity=".5"/></g>
-    <g class="webs" fill="none" stroke="#b8b4a4" stroke-width="1.4" opacity=".35">${[[0, 1], [1600, -1]].map(([x, d]) => `<path d="M${x} 0l${d * 220} 0M${x} 0l${d * 180} 70M${x} 0l${d * 120} 120M${x} 0l${d * 50} 160M${x} 0l0 170"/>${[40, 80, 120].map((r) => `<path d="M${x + d * r * 1.3} 0Q${x + d * r} ${r * .3} ${x + d * r * .95} ${r * .5}Q${x + d * r * .7} ${r * .8} ${x + d * r * .3} ${r * 1.15}Q${x + d * r * .1} ${r * 1.2} ${x} ${r * 1.4}"/>`).join("")}`).join("")}</g>
-    <g class="wreaths">${[[300, 600, -14], [1300, 600, 14]].map(([x, y, sk]) => `<g transform="translate(${x} ${y}) skewY(${sk})"><circle r="26" fill="none" stroke="#1f2a17" stroke-width="12"/><circle r="26" fill="none" stroke="#2f3d22" stroke-width="4" stroke-dasharray="4 6"/>${[0, 72, 144, 216, 288].map((a) => `<circle cx="${26 * Math.cos(a * Math.PI / 180)}" cy="${26 * Math.sin(a * Math.PI / 180)}" r="4" fill="#5a0c0a"/>`).join("")}<path d="M-8 26l-6 26M8 26l6 26" stroke="#3a0806" stroke-width="5"/></g>`).join("")}</g>
-    ${[[430, 642, .62, 7], [1188, 640, .6, -6], [338, 700, .5, -11]].map(([x, y, k, lean]) => `<g transform="translate(${x} ${y}) rotate(${lean}) scale(${k})" opacity="${.45 + k * .6}">
+    <g class="webs" fill="none" stroke="#b8b4a4" stroke-width="1.4" opacity=".35">${[
+      [0, 1],
+      [1600, -1],
+    ]
+      .map(
+        ([x, d]) =>
+          `<path d="M${x} 0l${d * 220} 0M${x} 0l${d * 180} 70M${x} 0l${d * 120} 120M${x} 0l${d * 50} 160M${x} 0l0 170"/>${[40, 80, 120].map((r) => `<path d="M${x + d * r * 1.3} 0Q${x + d * r} ${r * 0.3} ${x + d * r * 0.95} ${r * 0.5}Q${x + d * r * 0.7} ${r * 0.8} ${x + d * r * 0.3} ${r * 1.15}Q${x + d * r * 0.1} ${r * 1.2} ${x} ${r * 1.4}"/>`).join("")}`,
+      )
+      .join("")}</g>
+    <g class="wreaths">${[
+      [300, 600, -14],
+      [1300, 600, 14],
+    ]
+      .map(
+        ([x, y, sk]) =>
+          `<g transform="translate(${x} ${y}) skewY(${sk})"><circle r="26" fill="none" stroke="#1f2a17" stroke-width="12"/><circle r="26" fill="none" stroke="#2f3d22" stroke-width="4" stroke-dasharray="4 6"/>${[0, 72, 144, 216, 288].map((a) => `<circle cx="${26 * Math.cos((a * Math.PI) / 180)}" cy="${26 * Math.sin((a * Math.PI) / 180)}" r="4" fill="#5a0c0a"/>`).join("")}<path d="M-8 26l-6 26M8 26l6 26" stroke="#3a0806" stroke-width="5"/></g>`,
+      )
+      .join("")}</g>
+    ${[
+      [430, 642, 0.62, 7],
+      [1188, 640, 0.6, -6],
+      [338, 700, 0.5, -11],
+    ]
+      .map(
+        ([
+          x,
+          y,
+          k,
+          lean,
+        ]) => `<g transform="translate(${x} ${y}) rotate(${lean}) scale(${k})" opacity="${0.45 + k * 0.6}">
       <path d="M0 -190L56 -152 42 0H-42L-56 -152z" fill="#1a110b" stroke="#060403" stroke-width="6"/><path d="M0 -176L44 -146 32 -10H-32L-44 -146z" fill="none" stroke="#2c1d12" stroke-width="4"/>
-      <path d="M0 -150v84M-20 -124h40" stroke="#3a281a" stroke-width="7"/></g>`).join("")}
+      <path d="M0 -150v84M-20 -124h40" stroke="#3a281a" stroke-width="7"/></g>`,
+      )
+      .join("")}
     ${door([255, 335], "L", "1408")}${door([560, 605], "L", "1413")}${door([430, 490], "R", "1411", true)}${door([650, 682], "R", "1416")}
     ${portrait(186, 270, 52, 70, 6)}${portrait(1186, 330, 58, 78, -8)}
     <path d="M1600 70L880 336" stroke="#1a1d1e" stroke-width="18"/><path d="M1600 64L880 330" stroke="#4a5052" stroke-width="3" opacity=".6"/>
-    ${[[1360, 162, 0], [1120, 250, 1.3], [960, 309, 2.4]].map(([x, y, d]) => `<path d="M${x - 6} ${y}h12" stroke="#2a2d2e" stroke-width="10"/><circle class="drop" cx="${x}" cy="${y + 8}" r="3.2" fill="#9fb3b8" style="animation-delay:${d}s"/>`).join("")}
+    ${[
+      [1360, 162, 0],
+      [1120, 250, 1.3],
+      [960, 309, 2.4],
+    ]
+      .map(
+        ([x, y, d]) =>
+          `<path d="M${x - 6} ${y}h12" stroke="#2a2d2e" stroke-width="10"/><circle class="drop" cx="${x}" cy="${y + 8}" r="3.2" fill="#9fb3b8" style="animation-delay:${d}s"/>`,
+      )
+      .join("")}
     <g class="chains" fill="none" stroke="#2c2c28" stroke-width="5" stroke-dasharray="7 3"><path class="chain chain-a" d="M470 268V420"/><path class="chain chain-b" d="M1130 268V400"/><path d="M465 420a6 6 0 1 0 10 0M1125 400a6 6 0 1 0 10 0"/></g>
     <g class="chandelier"><path d="M800 0V140" stroke="#151510" stroke-width="5" stroke-dasharray="8 3"/>
       <ellipse cx="800" cy="172" rx="80" ry="15" fill="none" stroke="#151510" stroke-width="7"/><path d="M800 140l-60 30M800 140l60 30M800 140l-22 32M800 140l22 32" stroke="#151510" stroke-width="3"/>
@@ -316,7 +630,19 @@ function buildRoom() {
     <ellipse class="puddle" cx="640" cy="705" rx="70" ry="10" fill="url(#puddle)"/><ellipse class="puddle" cx="990" cy="770" rx="90" ry="12" fill="url(#puddle)"/>
     <g transform="translate(520 560)"><path d="M0 22h130l10-6H10z" fill="#4f5355" stroke="#0a0c0e" stroke-width="2"/><path d="M8 22v22M128 22v22M20 44h12M118 44h12" stroke="#2c3033" stroke-width="4"/><path d="M14 16c20-8 60-10 100-6l12 6" fill="#8f897a" stroke="#0a0c0e" stroke-width="2"/><path d="M60 12c6 4 14 4 20 0" stroke="#5a120d" stroke-width="3" fill="none"/><circle cx="14" cy="48" r="5" fill="#0a0c0e"/><circle cx="124" cy="48" r="5" fill="#0a0c0e"/></g>
     <g transform="translate(905 600) rotate(-78)"><circle cx="0" cy="0" r="28" fill="none" stroke="#3a3f42" stroke-width="5"/><path d="M-28 0h56M0 -28v56M-20 -20l40 40M20 -20l-40 40" stroke="#2c3033" stroke-width="2"/><path d="M-6 -30l-10 -40h44l6 40" fill="#3e2e2a" stroke="#0a0c0e" stroke-width="2"/><path d="M-16 -70l-6 -30" stroke="#3a3f42" stroke-width="5"/><circle cx="40" cy="-6" r="8" fill="none" stroke="#3a3f42" stroke-width="4"/></g>
-    ${[[690, 640, -12], [740, 670, 18], [600, 760, 6], [1040, 690, -24], [860, 800, 30], [430, 700, 14]].map(([x, y, a]) => `<path d="M${x} ${y}l26 -4 4 18 -26 4z" fill="#8f8664" stroke="#2c271c" stroke-width="1" transform="rotate(${a} ${x} ${y})"/>`).join("")}
+    ${[
+      [690, 640, -12],
+      [740, 670, 18],
+      [600, 760, 6],
+      [1040, 690, -24],
+      [860, 800, 30],
+      [430, 700, 14],
+    ]
+      .map(
+        ([x, y, a]) =>
+          `<path d="M${x} ${y}l26 -4 4 18 -26 4z" fill="#8f8664" stroke="#2c271c" stroke-width="1" transform="rotate(${a} ${x} ${y})"/>`,
+      )
+      .join("")}
     <g transform="translate(700 632) rotate(-8) skewX(-20)"><rect width="46" height="34" fill="#3a2614" stroke="#120b06" stroke-width="3"/><rect x="5" y="5" width="36" height="24" fill="#4a4a44"/><path d="M5 5l36 24M30 5l-12 24" stroke="#c9c2a8" stroke-width="1" opacity=".5"/></g>
     <g class="fog"><ellipse class="fog-a" cx="500" cy="860" rx="520" ry="70" fill="url(#fog)"/><ellipse class="fog-b" cx="1150" cy="900" rx="560" ry="80" fill="url(#fog)"/><ellipse class="fog-a" cx="800" cy="640" rx="380" ry="40" fill="url(#fog)" opacity=".6"/></g>`;
   })();
@@ -368,9 +694,26 @@ function buildRoom() {
     <rect x="470" y="230" width="660" height="470" fill="#857b43"/>
     <path d="M0 1000L470 700H1130L1600 1000z" fill="url(#floor)"/>
     <g fill="none" clip-path="url(#outer)">
-      ${rays(range(0, 1600, 11).map((x) => [x, 0]), "#3e3a24", 3)}
-      ${[50, 120, 180].map((y) => { const k = (470 - y) / 470; return `<path d="M${800 - 800 * k} ${y}H${800 + 800 * k}" stroke="#3e3a24" stroke-width="3"/>`; }).join("")}
-      ${rays(range(0, 1000, 15).map((y) => [0, y]), "#00000020", 2)}${rays(range(0, 1000, 15).map((y) => [1600, y]), "#00000020", 2)}
+      ${rays(
+        range(0, 1600, 11).map((x) => [x, 0]),
+        "#3e3a24",
+        3,
+      )}
+      ${[50, 120, 180]
+        .map((y) => {
+          const k = (470 - y) / 470;
+          return `<path d="M${800 - 800 * k} ${y}H${800 + 800 * k}" stroke="#3e3a24" stroke-width="3"/>`;
+        })
+        .join("")}
+      ${rays(
+        range(0, 1000, 15).map((y) => [0, y]),
+        "#00000020",
+        2,
+      )}${rays(
+        range(0, 1000, 15).map((y) => [1600, y]),
+        "#00000020",
+        2,
+      )}
     </g>
     <path d="M395 92L540 92 505 180 410 180z" fill="#060503"/><path d="M1110 120L1240 120 1190 180 1090 180z" fill="#060503"/>
     <path d="M430 180c-8 40 14 56 2 96M1140 180c10 30-10 50 6 88" fill="none" stroke="#0a0805" stroke-width="3"/>
@@ -391,7 +734,11 @@ function buildRoom() {
     <path d="M1000 230l24 80-18 60 16 64-12 50M1024 310l36-20M1006 370l-30 18M260 150l-30 90 20 70-40 90M230 240l-40-14" fill="none" stroke="#17130a" stroke-width="3"/>
     <g transform="rotate(5 545 450)"><rect x="500" y="420" width="72" height="92" fill="#2c2214" stroke="#090806" stroke-width="4"/><rect x="508" y="428" width="56" height="76" fill="#0a0805"/><path d="M508 428h56v24l-18 12-12-8-8 22-18 8z" fill="#6c6650"/><path d="M526 450c-5 14 5 16 12 10 6-8-3-20-12-10z" fill="#17130a"/></g>
     <g transform="translate(1270 180) skewY(-22)"><rect width="88" height="70" fill="#2c2214" stroke="#090806" stroke-width="4"/><rect x="8" y="8" width="72" height="54" fill="#0a0805"/><path d="M8 8h72v14l-20 16-14-10-16 20-22-6z" fill="#514b39"/></g>
-    <g transform="translate(1240 590) skewY(-20)" stroke="#201a0d" stroke-width="5">${range(0, 60, 5).map((x, i) => `<path d="M${x} 0v52"/>`).join("")}<path d="M-6 44L68 8"/><g transform="translate(92 0)">${range(0, 60, 5).map((x) => `<path d="M${x} 0v52"/>`).join("")}<path d="M-6 44L68 8"/></g></g>
+    <g transform="translate(1240 590) skewY(-20)" stroke="#201a0d" stroke-width="5">${range(0, 60, 5)
+      .map((x, i) => `<path d="M${x} 0v52"/>`)
+      .join("")}<path d="M-6 44L68 8"/><g transform="translate(92 0)">${range(0, 60, 5)
+      .map((x) => `<path d="M${x} 0v52"/>`)
+      .join("")}<path d="M-6 44L68 8"/></g></g>
     <text transform="translate(1142 496) skewY(-11)" font-family="Special Elite, monospace" font-size="44" fill="#5a120d" opacity=".9">YOU WERE HERE</text>
     <path transform="translate(-300 -20) skewY(14)" d="M612 500c-6 50 2 110-6 176M636 490c-4 60 4 120-3 200M660 494c-5 56 3 104-4 170M682 506c-3 42 2 86-3 132" fill="none" stroke="#4a0e0a" stroke-width="9" stroke-linecap="round" opacity=".7"/>
     <g><rect x="965" y="320" width="110" height="380" fill="#090704" stroke="#2c2813" stroke-width="8"/><rect x="985" y="370" width="70" height="285" fill="#3d3819"/><rect x="1001" y="410" width="38" height="200" fill="#6f6735"/><path d="M965 700L985 655H1055L1075 700z" fill="#1c190c"/>
@@ -418,11 +765,24 @@ function buildRoom() {
         <rect width="1600" height="1000" fill="#14171a"/>
     <path d="M0 0H1600L870 420H730z" fill="#22272b"/><path d="M0 0L730 420V520L0 1000z" fill="#2c3338"/><path d="M1600 0L870 420V520L1600 1000z" fill="#2c3338"/>
     <path d="M0 1000L730 520H870L1600 1000z" fill="#15181b"/><rect x="730" y="420" width="140" height="100" fill="#020203"/>
-    ${[[50, 165], [255, 335], [430, 490], [560, 605], [650, 682]].map(([a, b]) => {
-      const top = (x) => 420 * x / 730, bottom = (x) => 1000 - 480 * x / 730, y = (x) => top(x) + (bottom(x) - top(x)) * .22;
-      const door = (mirror) => { const X = (x) => (mirror ? 1600 - x : x); return `<path d="M${X(a)} ${y(a)}L${X(b)} ${y(b)}V${bottom(b)}L${X(a)} ${bottom(a)}z" fill="url(#bricks)" stroke="#0a0c0e" stroke-width="7"/>`; };
-      return door(false) + door(true);
-    }).join("")}
+    ${[
+      [50, 165],
+      [255, 335],
+      [430, 490],
+      [560, 605],
+      [650, 682],
+    ]
+      .map(([a, b]) => {
+        const top = (x) => (420 * x) / 730,
+          bottom = (x) => 1000 - (480 * x) / 730,
+          y = (x) => top(x) + (bottom(x) - top(x)) * 0.22;
+        const door = (mirror) => {
+          const X = (x) => (mirror ? 1600 - x : x);
+          return `<path d="M${X(a)} ${y(a)}L${X(b)} ${y(b)}V${bottom(b)}L${X(a)} ${bottom(a)}z" fill="url(#bricks)" stroke="#0a0c0e" stroke-width="7"/>`;
+        };
+        return door(false) + door(true);
+      })
+      .join("")}
     <path d="M0 0L730 420M1600 0L870 420M0 1000L730 520M1600 1000L870 520" stroke="#07090a" stroke-width="6"/>
     <rect width="1600" height="1000" filter="url(#mold)" mask="url(#moldmask)" opacity=".8"/>
     ${drip(180, 90, 18, 420)}${drip(420, 220, 14, 300)}${drip(1180, 220, 18, 320)}${drip(1420, 110, 22, 400)}${corridor}
@@ -520,7 +880,7 @@ function buildRoom() {
   </svg>`;
   const scene = room.querySelector(".scene");
   for (const [id, label, art, stage = 1] of objects) {
-    const el = document.createElement("button");  // button = keyboard + screen reader for free
+    const el = document.createElement("button"); // button = keyboard + screen reader for free
     el.id = "obj-" + id;
     el.className = "obj";
     el.dataset.stage = stage;
@@ -530,7 +890,9 @@ function buildRoom() {
     el.addEventListener("click", () => onObjectClick(id));
     scene.append(el);
   }
-  scene.insertAdjacentHTML("beforeend", `<svg class="candelabra level-view" data-stage="2" viewBox="-115 -300 230 320" aria-hidden="true">
+  scene.insertAdjacentHTML(
+    "beforeend",
+    `<svg class="candelabra level-view" data-stage="2" viewBox="-115 -300 230 320" aria-hidden="true">
     <g>
       <ellipse cx="0" cy="2" rx="60" ry="10" fill="#000" opacity=".6"/>
       <g fill="#14110c" stroke="#050403" stroke-width="1.5">
@@ -558,31 +920,60 @@ function buildRoom() {
         </g>
       </g>
     </g>
-  </svg>`);
+  </svg>`,
+  );
   // First-person look: the flashlight follows the pointer, or the focused object for keyboard players.
   // The beam is its own layer moved with transform, so following the pointer never repaints the room.
-  room.insertAdjacentHTML("beforeend", '<div class="beam" aria-hidden="true"><div class="dust"></div></div><div class="wipe l" aria-hidden="true"></div><div class="wipe r" aria-hidden="true"></div>');
+  room.insertAdjacentHTML(
+    "beforeend",
+    '<div class="beam" aria-hidden="true"><div class="dust"></div></div><div class="wipe l" aria-hidden="true"></div><div class="wipe r" aria-hidden="true"></div>',
+  );
   const beam = room.querySelector(".beam");
   const arm = room.querySelector(".arm");
-  let frame = 0, px = 0, py = 0, rect = null;
-  for (const type of ["resize", "scroll"]) addEventListener(type, () => { rect = null; }, { passive: true });
+  let frame = 0,
+    px = 0,
+    py = 0,
+    rect = null;
+  for (const type of ["resize", "scroll"])
+    addEventListener(
+      type,
+      () => {
+        rect = null;
+      },
+      { passive: true },
+    );
   const aim = (x, y) => {
-    px = x; py = y;
-    frame ||= requestAnimationFrame(() => {  // at most one update per screen frame
+    px = x;
+    py = y;
+    frame ||= requestAnimationFrame(() => {
+      // at most one update per screen frame
       frame = 0;
       if (!rect || !rect.width) rect = room.getBoundingClientRect();
-      const nx = Math.min(1, Math.max(0, (px - rect.left) / rect.width)), ny = Math.min(1, Math.max(0, (py - rect.top) / rect.height));
-      beam.style.transform = `translate(${nx * 50}%, ${ny * 50}%)`;  // beam is 2x the room, so 50% = full width
-      for (const el of [scene, arm]) { el.style.setProperty("--nx", nx); el.style.setProperty("--ny", ny); }
+      const nx = Math.min(1, Math.max(0, (px - rect.left) / rect.width)),
+        ny = Math.min(1, Math.max(0, (py - rect.top) / rect.height));
+      beam.style.transform = `translate(${nx * 50}%, ${ny * 50}%)`; // beam is 2x the room, so 50% = full width
+      for (const el of [scene, arm]) {
+        el.style.setProperty("--nx", nx);
+        el.style.setProperty("--ny", ny);
+      }
     });
   };
   room.addEventListener("pointermove", (e) => aim(e.clientX, e.clientY));
-  room.addEventListener("focusin", (e) => { const b = e.target.getBoundingClientRect(); aim(b.left + b.width / 2, b.top + b.height / 2); });
+  room.addEventListener("focusin", (e) => {
+    const b = e.target.getBoundingClientRect();
+    aim(b.left + b.width / 2, b.top + b.height / 2);
+  });
 }
 
 // Called once when a match starts, because the seed only exists then. Same room code = same layout on both screens.
 function placeObjects() {
-  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const shuffle = (a) => {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
   const put = (id, spot, width) => {
     const el = document.getElementById("obj-" + id);
     el.style.left = spot.left + "%";
@@ -591,15 +982,38 @@ function placeObjects() {
     el.style.setProperty("--w", width + "cqw");
     el.style.transform = `translateX(-50%) perspective(70cqw) rotateY(${spot.turn}deg)`;
   };
-  const wallSpots = shuffle([{ left: 18, top: 19, turn: 36, scale: 1 }, { left: 37, top: 27, turn: 0, scale: .6 }, { left: 72, top: 25, turn: -34, scale: .8 }]);
-  [["painting", 18], ["clock", 9], ["photo", 8]].forEach(([id, width], i) => put(id, wallSpots[i], width * wallSpots[i].scale));
-  const floorSpots = shuffle([{ left: 74, bottom: 25, turn: -36, cabinet: 9, shelf: 12 }, { left: 84, bottom: 15, turn: -40, cabinet: 12, shelf: 15 }, { left: 12, bottom: 13, turn: 36, cabinet: 11, shelf: 14 }]);
+  const wallSpots = shuffle([
+    { left: 18, top: 19, turn: 36, scale: 1 },
+    { left: 37, top: 27, turn: 0, scale: 0.6 },
+    { left: 72, top: 25, turn: -34, scale: 0.8 },
+  ]);
+  [
+    ["painting", 18],
+    ["clock", 9],
+    ["photo", 8],
+  ].forEach(([id, width], i) => {
+    put(id, wallSpots[i], width * wallSpots[i].scale);
+  });
+  const floorSpots = shuffle([
+    { left: 74, bottom: 25, turn: -36, cabinet: 9, shelf: 12 },
+    { left: 84, bottom: 15, turn: -40, cabinet: 12, shelf: 15 },
+    { left: 12, bottom: 13, turn: 36, cabinet: 11, shelf: 14 },
+  ]);
   put("cabinet", floorSpots[0], floorSpots[0].cabinet);
   put("shelf", floorSpots[1], floorSpots[1].shelf);
   // The painting is the colour your answer needs: [top, middle, bottom, waves, wave line]
-  const PAINT = { BLUE: ["#5b92ff", "#1c50d2", "#0b2474", "#0f338f", "#7fa8fb"], RED: ["#ff6b5b", "#c11f1a", "#5a0b08", "#7e130f", "#f59a8f"], GREEN: ["#79d98a", "#1f8f3c", "#0b3f1c", "#115a28", "#9be8a8"], WHITE: ["#f2efe4", "#cfcabb", "#9b968a", "#b4ae9f", "#ffffff"], BLACK: ["#5a5a5a", "#2a2a2a", "#0e0e0e", "#1a1a1a", "#8a8a8a"] };
-  const room = document.getElementById("room"), answers = puzzleAnswers(game.role);
-  PAINT[answers.color].forEach((c, i) => room.style.setProperty("--paint" + i, c));
+  const PAINT = {
+    BLUE: ["#5b92ff", "#1c50d2", "#0b2474", "#0f338f", "#7fa8fb"],
+    RED: ["#ff6b5b", "#c11f1a", "#5a0b08", "#7e130f", "#f59a8f"],
+    GREEN: ["#79d98a", "#1f8f3c", "#0b3f1c", "#115a28", "#9be8a8"],
+    WHITE: ["#f2efe4", "#cfcabb", "#9b968a", "#b4ae9f", "#ffffff"],
+    BLACK: ["#5a5a5a", "#2a2a2a", "#0e0e0e", "#1a1a1a", "#8a8a8a"],
+  };
+  const room = document.getElementById("room"),
+    answers = puzzleAnswers(game.role);
+  PAINT[answers.color].forEach((c, i) => {
+    room.style.setProperty("--paint" + i, c);
+  });
   // Which casket hides what. Same art, so nothing gives the answer away until one opens.
   const wrong = answers.casket === "left" ? "right" : "left";
   room.dataset.wrong = wrong;
