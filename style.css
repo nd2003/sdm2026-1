@@ -820,3 +820,20 @@ body.no-flicker :is(.scene.jolt-big, .scene.jolt-small, #flashfx.show, .obj.beck
 body.hurry #room { --beam: 24cqw; }
 
 #obj-vampire { --w: 12cqw; }  /* the coffin around it is wider than the old figure */
+
+/* Print-style chrome around the room (Zaid, 2026-11-07): engraved serif type and framed HUD boxes, same colours as before */
+:root { --print: "IM Fell English", Georgia, serif; --print-sc: "IM Fell English SC", "IM Fell English", Georgia, serif; }
+body, button { font-family: var(--print); }
+h1, h2, #timer, #loop-count, #hud::before { font-family: var(--print-sc); letter-spacing: .02em; }
+#timer, #loop-count { background: none; border: 1px solid #5a4e40; border-radius: 0; box-shadow: inset 0 0 0 3px var(--bg), inset 0 0 0 4px #3a3128; }
+.obj .label { font-family: var(--print); }
+#journal { font-family: var(--print); font-style: italic; }
+#journal h2 { font-style: normal; }
+#chat { background: var(--panel); color: var(--text); box-shadow: inset 0 0 0 1px #3a3128, 0 3px 10px #000a; font-family: var(--print); }
+#inventory, #opponent { background: var(--panel); color: var(--text); box-shadow: inset 0 0 0 1px #3a3128; }
+#opponent :is(h2, b, strong, span, small, p) { color: var(--text); }
+#lobby h1 { font-family: var(--print-sc); }
+/* The zombie: bleached and harsh, so it reads as dead flesh against the lift */
+#obj-zombie .art { filter: grayscale(.75) brightness(2.8) contrast(1.5) drop-shadow(0 .5cqw .4cqw #000c); }
+#opponent .steps li { color: var(--text-dim); }
+#opponent .steps li.done { color: var(--danger-hi); }
