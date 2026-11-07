@@ -237,4 +237,19 @@ describe("Time Loop Escape room logic", () => {
     const replay = m.sim.snapshot();
     expect(runReplay(timeLoopGame, replay).stateHash).toBe(replay.final?.stateHash);
   });
+
+  it("debug restart resets the loop and debug vampire names the biting casket", () => {
+    const m = match();
+    m.click("a", "note");
+    const clues = m.player("a").clues.length;
+    expect(m.sim.applyDebug("a", "restart", ["a"])).toMatch(/loop 2/);
+    expect(m.player("a").loop).toBe(2);
+    expect(m.player("a").timeLeft).toBe(m.sim.state.loopSeconds);
+    expect(m.player("a").clues.length).toBe(clues); // the journal survives the reset
+    const bad = m.answers("a").casket === "left" ? "right" : "left";
+    expect(m.sim.applyDebug("a", "vampire", ["a"])).toContain(`casket-${bad}`);
+    m.sim.applyDebug("a", "skip", ["a"]);
+    m.click("a", `casket-${bad}`);
+    expect(m.player("a").flags.get("vampireBites")).toBe(1);
+  });
 });
